@@ -11,7 +11,10 @@ def send_email(to_email: str, subject: str, html_body: str) -> bool:
     smtp_user = os.environ.get('SMTP_USER')
     smtp_password = os.environ.get('SMTP_PASSWORD')
     
+    print(f"SMTP Config - Host: {smtp_host}, Port: {smtp_port}, User: {smtp_user}, To: {to_email}")
+    
     if not all([smtp_host, smtp_user, smtp_password]):
+        print(f"SMTP not configured: host={bool(smtp_host)}, user={bool(smtp_user)}, password={bool(smtp_password)}")
         return False
     
     msg = MIMEMultipart('alternative')
@@ -182,9 +185,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
     
     try:
+        print(f"Attempting to send email to {to_email}, type: {email_type}")
         success = send_email(to_email, subject, html_body)
         
         if success:
+            print(f"Email sent successfully to {to_email}")
             return {
                 'statusCode': 200,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
@@ -192,6 +197,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'body': json.dumps({'success': True, 'message': 'Email sent'})
             }
         else:
+            print(f"Failed to send email to {to_email}")
             return {
                 'statusCode': 500,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
@@ -199,6 +205,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'body': json.dumps({'error': 'Failed to send email'})
             }
     except Exception as e:
+        print(f"Email error: {str(e)}")
         return {
             'statusCode': 200,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
