@@ -24,7 +24,7 @@ def log_action(conn, appointment_id: str, action: str, old_data: Optional[Dict] 
         return
     cursor = conn.cursor()
     cursor.execute(
-        "INSERT INTO appointment_logs (appointment_id, action, old_data, new_data, user_ip) VALUES (%s, %s, %s, %s, %s)",
+        "INSERT INTO t_p56372141_online_booking_integ.appointment_logs (appointment_id, action, old_data, new_data, user_ip) VALUES (%s, %s, %s, %s, %s)",
         (appointment_id, action, json.dumps(old_data) if old_data else None, json.dumps(new_data) if new_data else None, user_ip)
     )
     conn.commit()
@@ -97,7 +97,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     if conn and date_str:
                         cursor = conn.cursor()
                         cursor.execute(
-                            "SELECT COUNT(*) as cnt FROM appointments WHERE doctor_id = %s AND appointment_date = %s AND appointment_time = %s AND status = 'active'",
+                            "SELECT COUNT(*) as cnt FROM t_p56372141_online_booking_integ.appointments WHERE doctor_id = %s AND appointment_date = %s AND appointment_time = %s AND status = 'active'",
                             (doctor_id, date_str, time_str)
                         )
                         result = cursor.fetchone()
@@ -132,7 +132,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             
             cursor = conn.cursor()
             cursor.execute(
-                "SELECT * FROM appointments WHERE appointment_id = %s",
+                "SELECT * FROM t_p56372141_online_booking_integ.appointments WHERE appointment_id = %s",
                 (appointment_id,)
             )
             appointment = cursor.fetchone()
@@ -164,19 +164,19 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             
             cursor = conn.cursor()
             
-            cursor.execute("SELECT COUNT(*) as total FROM appointments WHERE status = 'active'")
+            cursor.execute("SELECT COUNT(*) as total FROM t_p56372141_online_booking_integ.appointments WHERE status = 'active'")
             active_count = cursor.fetchone()['total']
             
-            cursor.execute("SELECT COUNT(*) as total FROM appointments WHERE status = 'cancelled'")
+            cursor.execute("SELECT COUNT(*) as total FROM t_p56372141_online_booking_integ.appointments WHERE status = 'cancelled'")
             cancelled_count = cursor.fetchone()['total']
             
-            cursor.execute("SELECT COUNT(*) as total FROM appointments WHERE status = 'completed'")
+            cursor.execute("SELECT COUNT(*) as total FROM t_p56372141_online_booking_integ.appointments WHERE status = 'completed'")
             completed_count = cursor.fetchone()['total']
             
-            cursor.execute("SELECT COUNT(*) as total FROM appointments WHERE appointment_date = CURRENT_DATE AND status = 'active'")
+            cursor.execute("SELECT COUNT(*) as total FROM t_p56372141_online_booking_integ.appointments WHERE appointment_date = CURRENT_DATE AND status = 'active'")
             today_count = cursor.fetchone()['total']
             
-            cursor.execute("SELECT service_name, COUNT(*) as cnt FROM appointments WHERE status = 'active' GROUP BY service_name ORDER BY cnt DESC LIMIT 5")
+            cursor.execute("SELECT service_name, COUNT(*) as cnt FROM t_p56372141_online_booking_integ.appointments WHERE status = 'active' GROUP BY service_name ORDER BY cnt DESC LIMIT 5")
             popular_services = [dict(row) for row in cursor.fetchall()]
             
             conn.close()
@@ -208,7 +208,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             limit = int(event.get('queryStringParameters', {}).get('limit', '100'))
             cursor = conn.cursor()
             cursor.execute(
-                "SELECT * FROM appointment_logs ORDER BY created_at DESC LIMIT %s",
+                "SELECT * FROM t_p56372141_online_booking_integ.appointment_logs ORDER BY created_at DESC LIMIT %s",
                 (limit,)
             )
             logs_raw = cursor.fetchall()
@@ -241,7 +241,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             
             cursor = conn.cursor()
             cursor.execute(
-                "SELECT * FROM appointments WHERE status = %s ORDER BY appointment_date DESC, appointment_time DESC LIMIT %s",
+                "SELECT * FROM t_p56372141_online_booking_integ.appointments WHERE status = %s ORDER BY appointment_date DESC, appointment_time DESC LIMIT %s",
                 (status, limit)
             )
             appointments_raw = cursor.fetchall()
@@ -277,7 +277,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT COUNT(*) as cnt FROM appointments WHERE doctor_id = %s AND appointment_date = %s AND appointment_time = %s AND status = 'active'",
+            "SELECT COUNT(*) as cnt FROM t_p56372141_online_booking_integ.appointments WHERE doctor_id = %s AND appointment_date = %s AND appointment_time = %s AND status = 'active'",
             (body_data.get('doctorId'), body_data.get('date'), body_data.get('time'))
         )
         result = cursor.fetchone()
@@ -294,7 +294,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         appointment_id = f"APP{random.randint(10000, 99999)}"
         
         cursor.execute(
-            """INSERT INTO appointments 
+            """INSERT INTO t_p56372141_online_booking_integ.appointments 
             (appointment_id, service_id, service_name, service_price, doctor_id, doctor_name, 
              appointment_date, appointment_time, patient_name, patient_phone, patient_email, status) 
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'active')""",
@@ -332,7 +332,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             }
         
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM appointments WHERE appointment_id = %s", (appointment_id,))
+        cursor.execute("SELECT * FROM t_p56372141_online_booking_integ.appointments WHERE appointment_id = %s", (appointment_id,))
         old_appointment = cursor.fetchone()
         
         if not old_appointment:
@@ -346,7 +346,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
         if body_data.get('newDate') and body_data.get('newTime'):
             cursor.execute(
-                "SELECT COUNT(*) as cnt FROM appointments WHERE doctor_id = %s AND appointment_date = %s AND appointment_time = %s AND status = 'active' AND appointment_id != %s",
+                "SELECT COUNT(*) as cnt FROM t_p56372141_online_booking_integ.appointments WHERE doctor_id = %s AND appointment_date = %s AND appointment_time = %s AND status = 'active' AND appointment_id != %s",
                 (old_appointment['doctor_id'], body_data['newDate'], body_data['newTime'], appointment_id)
             )
             result = cursor.fetchone()
@@ -361,7 +361,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 }
             
             cursor.execute(
-                "UPDATE appointments SET appointment_date = %s, appointment_time = %s, updated_at = CURRENT_TIMESTAMP WHERE appointment_id = %s",
+                "UPDATE t_p56372141_online_booking_integ.appointments SET appointment_date = %s, appointment_time = %s, updated_at = CURRENT_TIMESTAMP WHERE appointment_id = %s",
                 (body_data['newDate'], body_data['newTime'], appointment_id)
             )
             conn.commit()
@@ -396,7 +396,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             }
         
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM appointments WHERE appointment_id = %s", (appointment_id,))
+        cursor.execute("SELECT * FROM t_p56372141_online_booking_integ.appointments WHERE appointment_id = %s", (appointment_id,))
         old_appointment = cursor.fetchone()
         
         if not old_appointment:
@@ -409,7 +409,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             }
         
         cursor.execute(
-            "UPDATE appointments SET status = 'cancelled', updated_at = CURRENT_TIMESTAMP WHERE appointment_id = %s",
+            "UPDATE t_p56372141_online_booking_integ.appointments SET status = 'cancelled', updated_at = CURRENT_TIMESTAMP WHERE appointment_id = %s",
             (appointment_id,)
         )
         conn.commit()
