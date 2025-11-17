@@ -325,7 +325,6 @@ export default function ManageAppointment() {
                 </div>
               </Card>
             )}
-          </div>
         </div>
       </Card>
 
