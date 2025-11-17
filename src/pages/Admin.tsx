@@ -174,6 +174,47 @@ export default function Admin() {
     setPassword('');
   };
 
+  const exportTo1C = () => {
+    if (appointments.length === 0) {
+      toast({
+        title: 'Нет данных',
+        description: 'Нет записей для выгрузки',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    const csvData = appointments.map(apt => ({
+      'ID записи': apt.appointment_id,
+      'Дата': format(new Date(apt.appointment_date), 'dd.MM.yyyy', { locale: ru }),
+      'Время': apt.appointment_time,
+      'Пациент': apt.patient_name,
+      'Телефон': apt.patient_phone,
+      'Email': apt.patient_email,
+      'Услуга': apt.service_name,
+      'Стоимость': apt.service_price,
+      'Врач': apt.doctor_name,
+      'Статус': apt.status === 'active' ? 'Активна' : apt.status === 'cancelled' ? 'Отменена' : 'Завершена'
+    }));
+
+    const headers = Object.keys(csvData[0]);
+    const csvContent = [
+      headers.join(';'),
+      ...csvData.map(row => headers.map(h => row[h]).join(';'))
+    ].join('\n');
+
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `appointments_1c_${format(new Date(), 'yyyy-MM-dd_HH-mm')}.csv`;
+    link.click();
+
+    toast({
+      title: 'Экспорт завершён',
+      description: `Выгружено записей: ${appointments.length}`
+    });
+  };
+
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -329,6 +370,15 @@ export default function Admin() {
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-semibold">Список записей</h3>
                 <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="default"
+                    onClick={exportTo1C}
+                    disabled={appointments.length === 0}
+                  >
+                    <Icon name="Download" size={16} className="mr-2" />
+                    Выгрузить в 1С
+                  </Button>
                   <Button
                     size="sm"
                     variant="outline"

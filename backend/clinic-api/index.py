@@ -252,6 +252,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     apt['appointment_date'] = apt['appointment_date'].isoformat()
                 if 'created_at' in apt and apt['created_at']:
                     apt['created_at'] = apt['created_at'].isoformat()
+                if 'updated_at' in apt and apt['updated_at']:
+                    apt['updated_at'] = apt['updated_at'].isoformat()
                 appointments.append(apt)
             conn.close()
             
