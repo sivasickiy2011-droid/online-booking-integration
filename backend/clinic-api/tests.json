@@ -1,0 +1,42 @@
+{
+  "tests": [
+    {
+      "name": "Get services list",
+      "method": "GET",
+      "path": "/?action=services",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "services": "array"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Get doctors list",
+      "method": "GET",
+      "path": "/?action=doctors&serviceId=1",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "doctors": "array"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Create appointment",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "serviceId": "1",
+        "doctorId": "1",
+        "date": "2025-01-20",
+        "time": "10:00",
+        "patientName": "Иван Иванов",
+        "patientPhone": "+79001234567"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": "boolean"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
