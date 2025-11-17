@@ -211,7 +211,13 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 "SELECT * FROM appointment_logs ORDER BY created_at DESC LIMIT %s",
                 (limit,)
             )
-            logs = [dict(row) for row in cursor.fetchall()]
+            logs_raw = cursor.fetchall()
+            logs = []
+            for row in logs_raw:
+                log = dict(row)
+                if 'created_at' in log and log['created_at']:
+                    log['created_at'] = log['created_at'].isoformat()
+                logs.append(log)
             conn.close()
             
             return {
@@ -238,7 +244,15 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 "SELECT * FROM appointments WHERE status = %s ORDER BY appointment_date DESC, appointment_time DESC LIMIT %s",
                 (status, limit)
             )
-            appointments = [dict(row) for row in cursor.fetchall()]
+            appointments_raw = cursor.fetchall()
+            appointments = []
+            for row in appointments_raw:
+                apt = dict(row)
+                if 'appointment_date' in apt and apt['appointment_date']:
+                    apt['appointment_date'] = apt['appointment_date'].isoformat()
+                if 'created_at' in apt and apt['created_at']:
+                    apt['created_at'] = apt['created_at'].isoformat()
+                appointments.append(apt)
             conn.close()
             
             return {
