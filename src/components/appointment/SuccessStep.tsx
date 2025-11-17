@@ -19,19 +19,7 @@ export default function SuccessStep({ appointmentId, data }: SuccessStepProps) {
   const formattedDate = data.date ? format(new Date(data.date), 'd MMMM yyyy', { locale: ru }) : '';
 
   return (
-    <div className="space-y-6 text-center py-8">
-      <div className="flex justify-center mb-6">
-        <div className="w-24 h-24 rounded-full bg-accent/10 flex items-center justify-center animate-scale-in">
-          <Icon name="CheckCircle2" size={48} className="text-accent" />
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <h2 className="text-3xl font-bold text-accent">Запись подтверждена!</h2>
-        <p className="text-muted-foreground text-lg">
-          Ваша запись успешно создана
-        </p>
-      </div>
+    <div className="space-y-6 text-center py-4">
 
       <Card className="p-6 bg-muted/30 text-left max-w-md mx-auto">
         <div className="space-y-4">
@@ -76,18 +64,7 @@ export default function SuccessStep({ appointmentId, data }: SuccessStepProps) {
         </div>
       </Card>
 
-      <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 max-w-md mx-auto">
-        <div className="flex items-start gap-3 text-left">
-          <Icon name="Bell" size={20} className="text-primary flex-shrink-0 mt-0.5" />
-          <div className="text-sm">
-            <p className="font-medium mb-1">Напоминание отправлено</p>
-            <p className="text-muted-foreground">
-              Мы отправили подтверждение на указанный номер телефона.
-              За день до приема вы получите SMS-напоминание.
-            </p>
-          </div>
-        </div>
-      </div>
+
 
       <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
         <Button variant="outline" onClick={() => window.location.reload()}>

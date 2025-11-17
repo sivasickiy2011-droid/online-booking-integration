@@ -182,34 +182,9 @@ export default function AppointmentForm() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <Card className="p-6 md:p-8 animate-scale-in shadow-xl">
-        <div className="mb-8">
-          <div className="flex justify-between items-center mb-4">
-            {STEPS.map((step, index) => (
-              <div key={step.id} className="flex items-center">
-                <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
-                    currentStep >= step.id
-                      ? 'bg-primary text-primary-foreground shadow-lg scale-110'
-                      : 'bg-muted text-muted-foreground'
-                  }`}
-                >
-                  <Icon name={step.icon as any} size={20} />
-                </div>
-                {index < STEPS.length - 1 && (
-                  <div
-                    className={`w-8 md:w-16 h-1 mx-1 transition-all ${
-                      currentStep > step.id ? 'bg-primary' : 'bg-muted'
-                    }`}
-                  />
-                )}
-              </div>
-            ))}
-          </div>
+      <Card className="p-6">
+        <div className="mb-6">
           <Progress value={progress} className="h-2" />
-          <p className="text-center mt-4 text-sm text-muted-foreground">
-            Шаг {currentStep} из {STEPS.length}: {STEPS[currentStep - 1]?.title}
-          </p>
         </div>
 
         <div className="min-h-[400px]">

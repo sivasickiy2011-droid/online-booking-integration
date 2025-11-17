@@ -5,19 +5,10 @@ import Icon from '@/components/ui/icon';
 
 export default function Index() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-accent/5">
-      <div className="container mx-auto px-4 py-8 md:py-12">
-        <div className="text-center mb-8 md:mb-12 animate-fade-in">
-          <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
-            Онлайн-запись в клинику
-          </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Запишитесь на прием к врачу за несколько простых шагов
-          </p>
-        </div>
-        
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 py-6">
         <Tabs defaultValue="new" className="max-w-5xl mx-auto">
-          <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto mb-8">
+          <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto mb-6">
             <TabsTrigger value="new" className="flex items-center gap-2">
               <Icon name="Plus" size={16} />
               Новая запись

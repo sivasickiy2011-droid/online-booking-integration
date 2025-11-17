@@ -176,14 +176,10 @@ export default function Admin() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-accent/5 flex items-center justify-center">
-        <Card className="w-full max-w-md p-8">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="w-full max-w-md p-6">
           <div className="text-center mb-6">
-            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-              <Icon name="Lock" size={32} className="text-primary" />
-            </div>
-            <h1 className="text-2xl font-bold mb-2">Вход в админ-панель</h1>
-            <p className="text-muted-foreground">Введите пароль для доступа</p>
+            <h1 className="text-xl font-bold mb-2">Вход в админ-панель</h1>
           </div>
 
           <div className="space-y-4">
@@ -223,24 +219,14 @@ export default function Admin() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-accent/5">
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8 animate-fade-in">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                <Icon name="LayoutDashboard" size={24} className="text-primary" />
-              </div>
-              <div>
-                <h1 className="text-4xl font-bold">Админ-панель</h1>
-                <p className="text-muted-foreground">Управление записями и аналитика</p>
-              </div>
-            </div>
-            <Button variant="outline" onClick={handleLogout}>
-              <Icon name="LogOut" size={18} className="mr-2" />
-              Выход
-            </Button>
-          </div>
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 py-6">
+        <div className="mb-6 flex items-center justify-between">
+          <h1 className="text-2xl font-bold">Админ-панель</h1>
+          <Button variant="outline" size="sm" onClick={handleLogout}>
+            <Icon name="LogOut" size={16} className="mr-2" />
+            Выход
+          </Button>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">

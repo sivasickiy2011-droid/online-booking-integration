@@ -204,19 +204,8 @@ export default function ManageAppointment() {
 
   return (
     <div className="max-w-3xl mx-auto">
-      <Card className="p-6 md:p-8">
-        <div className="space-y-6">
-          <div className="text-center">
-            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-              <Icon name="Search" size={32} className="text-primary" />
-            </div>
-            <h2 className="text-2xl font-bold mb-2">Управление записью</h2>
-            <p className="text-muted-foreground">
-              Введите номер записи для отмены или переноса
-            </p>
-          </div>
-
-          <div className="space-y-4">
+      <Card className="p-6">
+        <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="appointmentId">Номер записи</Label>
               <div className="flex gap-2">
