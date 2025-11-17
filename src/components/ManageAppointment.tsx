@@ -18,6 +18,7 @@ import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 
 const API_URL = 'https://functions.poehali.dev/da819482-69ab-4b27-954a-cd7ac2026f30';
+const EMAIL_URL = 'https://functions.poehali.dev/96f87426-ceea-4c3f-8145-2924f5b55361';
 
 export default function ManageAppointment() {
   const [appointmentId, setAppointmentId] = useState('');
@@ -110,6 +111,23 @@ export default function ManageAppointment() {
       const data = await response.json();
 
       if (response.ok) {
+        fetch(EMAIL_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'rescheduled',
+            appointmentData: {
+              patient_email: appointment.patient_email,
+              patient_name: appointment.patient_name,
+              appointment_id: appointment.appointment_id,
+              service_name: appointment.service_name,
+              doctor_name: appointment.doctor_name,
+              newDate: format(newDate, 'yyyy-MM-dd'),
+              newTime: newTime
+            }
+          })
+        }).catch(() => {});
+        
         toast({
           title: 'Успешно',
           description: 'Запись успешно перенесена'
@@ -144,6 +162,21 @@ export default function ManageAppointment() {
       const data = await response.json();
 
       if (response.ok) {
+        fetch(EMAIL_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'cancelled',
+            appointmentData: {
+              patient_email: appointment.patient_email,
+              patient_name: appointment.patient_name,
+              appointment_id: appointment.appointment_id,
+              service_name: appointment.service_name,
+              doctor_name: appointment.doctor_name
+            }
+          })
+        }).catch(() => {});
+        
         toast({
           title: 'Отменено',
           description: 'Запись успешно отменена'

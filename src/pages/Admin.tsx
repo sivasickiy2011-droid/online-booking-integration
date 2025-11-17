@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -17,8 +19,12 @@ import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 
 const API_URL = 'https://functions.poehali.dev/da819482-69ab-4b27-954a-cd7ac2026f30';
+const AUTH_URL = 'https://functions.poehali.dev/bb129e10-b955-455d-8c79-c982ac1ba88f';
 
 export default function Admin() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [password, setPassword] = useState('');
+  const [authLoading, setAuthLoading] = useState(false);
   const [stats, setStats] = useState<any>(null);
   const [appointments, setAppointments] = useState<any[]>([]);
   const [logs, setLogs] = useState<any[]>([]);
@@ -27,8 +33,17 @@ export default function Admin() {
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchStats();
+    const savedAuth = sessionStorage.getItem('admin_authenticated');
+    if (savedAuth === 'true') {
+      setIsAuthenticated(true);
+    }
   }, []);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchStats();
+    }
+  }, [isAuthenticated]);
 
   useEffect(() => {
     if (activeTab === 'appointments') {
@@ -119,17 +134,113 @@ export default function Admin() {
     );
   };
 
+  const handleLogin = async () => {
+    setAuthLoading(true);
+    try {
+      const response = await fetch(AUTH_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password })
+      });
+
+      if (response.ok) {
+        setIsAuthenticated(true);
+        sessionStorage.setItem('admin_authenticated', 'true');
+        toast({
+          title: 'Вход выполнен',
+          description: 'Добро пожаловать в админ-панель'
+        });
+      } else {
+        toast({
+          title: 'Неверный пароль',
+          description: 'Попробуйте еще раз',
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось выполнить вход',
+        variant: 'destructive'
+      });
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    sessionStorage.removeItem('admin_authenticated');
+    setPassword('');
+  };
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-accent/5 flex items-center justify-center">
+        <Card className="w-full max-w-md p-8">
+          <div className="text-center mb-6">
+            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+              <Icon name="Lock" size={32} className="text-primary" />
+            </div>
+            <h1 className="text-2xl font-bold mb-2">Вход в админ-панель</h1>
+            <p className="text-muted-foreground">Введите пароль для доступа</p>
+          </div>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="password">Пароль</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
+                placeholder="Введите пароль"
+              />
+            </div>
+
+            <Button 
+              onClick={handleLogin} 
+              disabled={authLoading || !password}
+              className="w-full"
+            >
+              {authLoading ? (
+                <>
+                  <Icon name="Loader2" size={18} className="mr-2 animate-spin" />
+                  Проверка...
+                </>
+              ) : (
+                <>
+                  <Icon name="LogIn" size={18} className="mr-2" />
+                  Войти
+                </>
+              )}
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-accent/5">
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8 animate-fade-in">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-              <Icon name="LayoutDashboard" size={24} className="text-primary" />
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                <Icon name="LayoutDashboard" size={24} className="text-primary" />
+              </div>
+              <div>
+                <h1 className="text-4xl font-bold">Админ-панель</h1>
+                <p className="text-muted-foreground">Управление записями и аналитика</p>
+              </div>
             </div>
-            <h1 className="text-4xl font-bold">Админ-панель</h1>
+            <Button variant="outline" onClick={handleLogout}>
+              <Icon name="LogOut" size={18} className="mr-2" />
+              Выход
+            </Button>
           </div>
-          <p className="text-muted-foreground ml-15">Управление записями и аналитика</p>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">

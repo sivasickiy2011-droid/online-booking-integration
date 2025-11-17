@@ -12,6 +12,7 @@ import ConfirmationStep from './appointment/ConfirmationStep';
 import SuccessStep from './appointment/SuccessStep';
 
 const API_URL = 'https://functions.poehali.dev/da819482-69ab-4b27-954a-cd7ac2026f30';
+const EMAIL_URL = 'https://functions.poehali.dev/96f87426-ceea-4c3f-8145-2924f5b55361';
 
 const STEPS = [
   { id: 1, title: 'Услуга', icon: 'Stethoscope' },
@@ -115,6 +116,25 @@ export default function AppointmentForm() {
 
       if (response.success) {
         setAppointmentId(response.appointmentId);
+        
+        fetch(EMAIL_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'created',
+            appointmentData: {
+              patientEmail: appointmentData.patientEmail,
+              patientName: appointmentData.patientName,
+              appointmentId: response.appointmentId,
+              serviceName: appointmentData.service?.name,
+              doctorName: appointmentData.doctor?.name,
+              date: appointmentData.date,
+              time: appointmentData.time,
+              servicePrice: appointmentData.service?.price
+            }
+          })
+        }).catch(() => {});
+        
         handleNext();
         toast({
           title: 'Запись создана',

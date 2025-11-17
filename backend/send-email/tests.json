@@ -1,0 +1,28 @@
+{
+  "tests": [
+    {
+      "name": "Send appointment email (skipped without SMTP)",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "type": "created",
+        "appointmentData": {
+          "patientEmail": "test@example.com",
+          "patientName": "Тест Тестов",
+          "appointmentId": "APP12345",
+          "serviceName": "Терапевт",
+          "doctorName": "Иванов И.И.",
+          "date": "2025-01-20",
+          "time": "10:00",
+          "servicePrice": 2500
+        }
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true,
+        "message": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

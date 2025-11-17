@@ -1,0 +1,17 @@
+{
+  "tests": [
+    {
+      "name": "Check password verification",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "password": "testpassword"
+      },
+      "expectedStatus": 401,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
