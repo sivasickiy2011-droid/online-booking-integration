@@ -14,21 +14,28 @@ interface ComponentDeleteDialogProps {
   onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
   loading: boolean;
+  count?: number;
 }
 
 export default function ComponentDeleteDialog({
   open,
   onOpenChange,
   onConfirm,
-  loading
+  loading,
+  count = 1
 }: ComponentDeleteDialogProps) {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Удалить компонент?</AlertDialogTitle>
+          <AlertDialogTitle>
+            Удалить {count === 1 ? 'компонент' : `компоненты (${count})`}?
+          </AlertDialogTitle>
           <AlertDialogDescription>
-            Компонент будет помечен как неактивный. Это действие можно отменить через редактирование.
+            {count === 1
+              ? 'Компонент будет помечен как неактивный.'
+              : 'Выбранные компоненты будут помечены как неактивные.'}
+            {' '}Это действие можно отменить через редактирование.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

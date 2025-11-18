@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import Icon from '@/components/ui/icon';
 import { GlassComponent, componentTypes } from './types';
 
@@ -9,13 +10,17 @@ interface ComponentsListProps {
   loading: boolean;
   onEdit: (component: GlassComponent) => void;
   onDelete: (componentId: number) => void;
+  selectedIds: number[];
+  onToggleSelect: (componentId: number) => void;
 }
 
 export default function ComponentsList({
   components,
   loading,
   onEdit,
-  onDelete
+  onDelete,
+  selectedIds,
+  onToggleSelect
 }: ComponentsListProps) {
   if (loading) {
     return (
@@ -46,8 +51,12 @@ export default function ComponentsList({
                 {typeComponents.map(comp => (
                   <div
                     key={comp.component_id}
-                    className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors"
+                    className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors"
                   >
+                    <Checkbox
+                      checked={selectedIds.includes(comp.component_id!)}
+                      onCheckedChange={() => onToggleSelect(comp.component_id!)}
+                    />
                     <div className="flex-1 space-y-1">
                       <div className="font-medium">{comp.component_name}</div>
                       {comp.article && (

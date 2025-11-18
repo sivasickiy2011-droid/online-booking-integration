@@ -14,6 +14,7 @@ export default function GlassComponentManager() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [componentToDelete, setComponentToDelete] = useState<number | null>(null);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [editingComponent, setEditingComponent] = useState<GlassComponent>({
     component_name: '',
     component_type: 'profile',
@@ -113,26 +114,30 @@ export default function GlassComponentManager() {
   };
 
   const handleDeleteConfirm = async () => {
-    if (!componentToDelete) return;
+    const idsToDelete = componentToDelete ? [componentToDelete] : selectedIds;
+    if (idsToDelete.length === 0) return;
 
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}?action=glass_components&id=${componentToDelete}`, {
-        method: 'DELETE'
-      });
+      await Promise.all(
+        idsToDelete.map(id =>
+          fetch(`${API_URL}?action=glass_components&id=${id}`, {
+            method: 'DELETE'
+          })
+        )
+      );
 
-      if (response.ok) {
-        toast({
-          title: 'Удалено',
-          description: 'Компонент успешно удалён'
-        });
-        setDeleteDialogOpen(false);
-        fetchComponents();
-      }
+      toast({
+        title: 'Удалено',
+        description: `Удалено компонентов: ${idsToDelete.length}`
+      });
+      setDeleteDialogOpen(false);
+      setSelectedIds([]);
+      fetchComponents();
     } catch (error) {
       toast({
         title: 'Ошибка',
-        description: 'Не удалось удалить компонент',
+        description: 'Не удалось удалить компоненты',
         variant: 'destructive'
       });
     } finally {
@@ -221,6 +226,35 @@ export default function GlassComponentManager() {
     return 'other';
   };
 
+  const handleToggleSelect = (componentId: number) => {
+    setSelectedIds(prev =>
+      prev.includes(componentId)
+        ? prev.filter(id => id !== componentId)
+        : [...prev, componentId]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectedIds.length === components.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(components.map(c => c.component_id!));
+    }
+  };
+
+  const handleDeleteSelected = () => {
+    if (selectedIds.length === 0) {
+      toast({
+        title: 'Внимание',
+        description: 'Выберите компоненты для удаления',
+        variant: 'destructive'
+      });
+      return;
+    }
+    setComponentToDelete(null);
+    setDeleteDialogOpen(true);
+  };
+
   const handleExportTemplate = () => {
     const template = [
       {
@@ -282,6 +316,28 @@ export default function GlassComponentManager() {
         </div>
       </div>
 
+      {components.length > 0 && (
+        <div className="flex items-center justify-between bg-muted/50 p-3 rounded-lg">
+          <div className="flex items-center gap-3">
+            <Button variant="outline" size="sm" onClick={handleSelectAll}>
+              <Icon name={selectedIds.length === components.length ? "CheckSquare" : "Square"} size={16} className="mr-2" />
+              {selectedIds.length === components.length ? 'Снять выделение' : 'Выделить всё'}
+            </Button>
+            {selectedIds.length > 0 && (
+              <span className="text-sm text-muted-foreground">
+                Выбрано: {selectedIds.length}
+              </span>
+            )}
+          </div>
+          {selectedIds.length > 0 && (
+            <Button variant="destructive" size="sm" onClick={handleDeleteSelected}>
+              <Icon name="Trash2" size={16} className="mr-2" />
+              Удалить выбранные
+            </Button>
+          )}
+        </div>
+      )}
+
       <input
         ref={fileInputRef}
         type="file"
@@ -295,6 +351,8 @@ export default function GlassComponentManager() {
         loading={loading && !dialogOpen}
         onEdit={handleEdit}
         onDelete={handleDeleteClick}
+        selectedIds={selectedIds}
+        onToggleSelect={handleToggleSelect}
       />
 
       <ComponentEditDialog
@@ -311,6 +369,7 @@ export default function GlassComponentManager() {
         onOpenChange={setDeleteDialogOpen}
         onConfirm={handleDeleteConfirm}
         loading={loading}
+        count={componentToDelete ? 1 : selectedIds.length}
       />
     </div>
   );
