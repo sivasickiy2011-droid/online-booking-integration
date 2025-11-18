@@ -25,7 +25,7 @@ export default function GlassPackageManager() {
   const [selectedPackages, setSelectedPackages] = useState<Set<number>>(new Set());
   const { toast } = useToast();
 
-  const { fileInputRef, handleExcelImport } = useExcelImport(packages, fetchPackages);
+  const { fileInputRef, handleExcelImport, downloadExcelTemplate } = useExcelImport(packages, fetchPackages);
 
   useEffect(() => {
     fetchPackages();
@@ -232,6 +232,10 @@ export default function GlassPackageManager() {
             onChange={handleExcelImport}
             className="hidden"
           />
+          <Button variant="outline" onClick={downloadExcelTemplate}>
+            <Icon name="Download" size={16} className="mr-2" />
+            Скачать шаблон
+          </Button>
           <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
             <Icon name="Upload" size={16} className="mr-2" />
             Импорт из Excel

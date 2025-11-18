@@ -93,8 +93,20 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     FROM t_p56372141_online_booking_integ.package_components pc
                     JOIN t_p56372141_online_booking_integ.glass_components gc ON pc.component_id = gc.component_id
                     WHERE pc.package_id = %s
+                    ORDER BY pc.id
                 """, (package_id,))
                 components = cursor.fetchall()
+                
+                for comp in components:
+                    cursor.execute("""
+                        SELECT gc.*
+                        FROM t_p56372141_online_booking_integ.component_alternatives ca
+                        JOIN t_p56372141_online_booking_integ.glass_components gc ON ca.alternative_component_id = gc.component_id
+                        WHERE ca.component_id = %s
+                    """, (comp['component_id'],))
+                    alternatives = cursor.fetchall()
+                    comp['alternatives'] = alternatives if alternatives else []
+                
                 return {
                     'statusCode': 200,
                     'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},

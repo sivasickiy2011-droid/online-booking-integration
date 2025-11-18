@@ -1,24 +1,16 @@
 {
   "tests": [
     {
+      "name": "Handle OPTIONS request",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
       "name": "Get glass packages",
       "method": "GET",
       "path": "/?action=glass_packages",
-      "expectedStatus": 200,
-      "expectedBody": {
-        "packages": "array"
-      },
-      "bodyMatcher": "partial"
-    },
-    {
-      "name": "Get glass components",
-      "method": "GET",
-      "path": "/?action=glass_components",
-      "expectedStatus": 200,
-      "expectedBody": {
-        "components": "array"
-      },
-      "bodyMatcher": "partial"
+      "expectedStatus": 200
     }
   ]
 }

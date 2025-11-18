@@ -5,7 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import Icon from '@/components/ui/icon';
-import { PackageComponent, API_URL } from './types';
+import { Input } from '@/components/ui/input';
+import { PackageComponent, GlassComponent, API_URL } from './types';
 
 interface PackageComponentsTableDialogProps {
   open: boolean;
@@ -26,11 +27,15 @@ export default function PackageComponentsTableDialog({
 }: PackageComponentsTableDialogProps) {
   const [components, setComponents] = useState<PackageComponent[]>([]);
   const [loading, setLoading] = useState(false);
+  const [allComponents, setAllComponents] = useState<GlassComponent[]>([]);
+  const [addingAlternativeFor, setAddingAlternativeFor] = useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const { toast } = useToast();
 
   useEffect(() => {
     if (open && packageId) {
       fetchPackageComponents();
+      fetchAllComponents();
     }
   }, [open, packageId]);
 
@@ -48,6 +53,48 @@ export default function PackageComponentsTableDialog({
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchAllComponents = async () => {
+    try {
+      const response = await fetch(`${API_URL}?action=glass_components`);
+      const data = await response.json();
+      setAllComponents(data.components || []);
+    } catch (error) {
+      console.error('Failed to fetch components:', error);
+    }
+  };
+
+  const handleAddAlternative = async (mainComponentId: number, alternativeComponentId: number) => {
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'component_alternative',
+          component_id: mainComponentId,
+          alternative_component_id: alternativeComponentId
+        })
+      });
+
+      if (response.ok) {
+        toast({
+          title: 'Успешно',
+          description: 'Аналог добавлен'
+        });
+        setAddingAlternativeFor(null);
+        setSearchQuery('');
+        fetchPackageComponents();
+      } else {
+        throw new Error('Failed to add alternative');
+      }
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось добавить аналог',
+        variant: 'destructive'
+      });
     }
   };
 
@@ -97,6 +144,7 @@ export default function PackageComponentsTableDialog({
                       <th className="p-2 text-center border-r w-20">Кол-во</th>
                       <th className="p-2 text-center border-r w-20">Ед.</th>
                       <th className="p-2 text-right w-28">Цена, ₽</th>
+                      <th className="p-2 text-center w-12"></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -128,10 +176,20 @@ export default function PackageComponentsTableDialog({
                           <td className="p-3 text-center border-r">
                             <span className="font-bold">{item.unit}</span>
                           </td>
-                          <td className="p-3 text-right">
+                          <td className="p-3 text-right border-r">
                             <span className="font-bold">
                               {((item.price_per_unit || 0) * item.quantity).toLocaleString('ru-RU')}
                             </span>
+                          </td>
+                          <td className="p-2 text-center">
+                            <Button 
+                              size="sm" 
+                              variant="ghost"
+                              onClick={() => setAddingAlternativeFor(item.component_id)}
+                              className="h-6 w-6 p-0"
+                            >
+                              <Icon name="Plus" size={14} />
+                            </Button>
                           </td>
                         </tr>
                         {item.alternatives && item.alternatives.map((alt, altIndex) => (
@@ -155,13 +213,67 @@ export default function PackageComponentsTableDialog({
                             <td className="p-2 text-center border-r">
                               <span className="italic text-muted-foreground">{alt.unit}</span>
                             </td>
-                            <td className="p-2 text-right">
+                            <td className="p-2 text-right border-r">
                               <span className="italic text-muted-foreground">
                                 {((alt.price_per_unit || 0) * item.quantity).toLocaleString('ru-RU')}
                               </span>
                             </td>
+                            <td className="p-2"></td>
                           </tr>
                         ))}
+                        {addingAlternativeFor === item.component_id && (
+                          <tr className="border-t bg-blue-50">
+                            <td colSpan={8} className="p-4">
+                              <div className="space-y-2">
+                                <div className="flex gap-2 items-center">
+                                  <Input
+                                    placeholder="Поиск по артикулу или названию..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="flex-1"
+                                  />
+                                  <Button 
+                                    size="sm" 
+                                    variant="ghost"
+                                    onClick={() => {
+                                      setAddingAlternativeFor(null);
+                                      setSearchQuery('');
+                                    }}
+                                  >
+                                    <Icon name="X" size={16} />
+                                  </Button>
+                                </div>
+                                <ScrollArea className="h-48 border rounded">
+                                  <div className="p-2 space-y-1">
+                                    {allComponents
+                                      .filter(c => 
+                                        c.component_id !== item.component_id &&
+                                        !item.alternatives?.some(a => a.component_id === c.component_id) &&
+                                        (searchQuery === '' || 
+                                         c.article.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                         c.component_name.toLowerCase().includes(searchQuery.toLowerCase()))
+                                      )
+                                      .map(comp => (
+                                        <div
+                                          key={comp.component_id}
+                                          className="p-2 hover:bg-accent rounded cursor-pointer text-sm flex justify-between items-center"
+                                          onClick={() => handleAddAlternative(item.component_id, comp.component_id!)}
+                                        >
+                                          <div>
+                                            <span className="font-medium">{comp.article}</span>
+                                            <span className="text-muted-foreground ml-2">{comp.component_name}</span>
+                                            <span className="text-xs text-muted-foreground ml-2">{comp.characteristics}</span>
+                                          </div>
+                                          <span className="text-xs text-muted-foreground">{comp.price_per_unit} ₽</span>
+                                        </div>
+                                      ))
+                                    }
+                                  </div>
+                                </ScrollArea>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
                       </Fragment>
                     ))}
                     <tr className="border-t-2 border-primary bg-orange-50">
