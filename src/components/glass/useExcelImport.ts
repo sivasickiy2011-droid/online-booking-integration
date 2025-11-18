@@ -7,6 +7,22 @@ export function useExcelImport(packages: GlassPackage[], fetchPackages: () => vo
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
+  const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+  const fetchWithRetry = async (url: string, options: RequestInit, retries = 3): Promise<Response> => {
+    for (let i = 0; i < retries; i++) {
+      try {
+        const response = await fetch(url, options);
+        if (response.ok) return response;
+        if (i < retries - 1) await delay(1000 * (i + 1));
+      } catch (error) {
+        if (i === retries - 1) throw error;
+        await delay(1000 * (i + 1));
+      }
+    }
+    throw new Error('Max retries reached');
+  };
+
   const detectComponentType = (name: string): string => {
     const nameLower = name.toLowerCase();
     if (nameLower.includes('петл') || nameLower.includes('шарнир')) return 'hinge';
@@ -266,12 +282,18 @@ export function useExcelImport(packages: GlassPackage[], fetchPackages: () => vo
       const componentMap = new Map<string, number>();
       const stats = { created: 0, updated: 0, reused: 0 };
 
-      for (const comp of components.filter(c => !c.isAlternative)) {
+      const mainComponents = components.filter(c => !c.isAlternative);
+      console.log(`Processing ${mainComponents.length} main components...`);
+      
+      for (let i = 0; i < mainComponents.length; i++) {
+        const comp = mainComponents[i];
         try {
+          console.log(`[${i + 1}/${mainComponents.length}] Processing: ${comp.article}`);
+          
           const componentId = await findOrCreateComponent(comp, allComponents, stats);
           componentMap.set(comp.article, componentId);
 
-          const pcResponse = await fetch(API_URL, {
+          const pcResponse = await fetchWithRetry(API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -287,6 +309,8 @@ export function useExcelImport(packages: GlassPackage[], fetchPackages: () => vo
             const errorText = await pcResponse.text();
             console.error('Failed to add component to package:', errorText);
           }
+          
+          await delay(100);
         } catch (error) {
           console.error(`Error processing component ${comp.article}:`, error);
         }
@@ -294,8 +318,14 @@ export function useExcelImport(packages: GlassPackage[], fetchPackages: () => vo
 
       console.log('Component map after main components:', Array.from(componentMap.entries()));
 
-      for (const alt of components.filter(c => c.isAlternative)) {
+      const alternatives = components.filter(c => c.isAlternative);
+      console.log(`Processing ${alternatives.length} alternatives...`);
+      
+      for (let i = 0; i < alternatives.length; i++) {
+        const alt = alternatives[i];
         try {
+          console.log(`[${i + 1}/${alternatives.length}] Processing alternative: ${alt.article}`);
+          
           const mainComponentId = componentMap.get(alt.mainComponentArticle!);
           if (!mainComponentId) {
             console.log(`Skipping alternative ${alt.article} - main component ${alt.mainComponentArticle} not found in map`);
@@ -303,9 +333,8 @@ export function useExcelImport(packages: GlassPackage[], fetchPackages: () => vo
           }
 
           const altComponentId = await findOrCreateComponent(alt, allComponents, stats);
-          console.log(`Adding alternative: main=${mainComponentId}, alt=${altComponentId}, mainArticle=${alt.mainComponentArticle}, altArticle=${alt.article}`);
 
-          const altResponse = await fetch(API_URL, {
+          const altResponse = await fetchWithRetry(API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -321,6 +350,8 @@ export function useExcelImport(packages: GlassPackage[], fetchPackages: () => vo
           } else {
             console.log(`✓ Successfully added alternative ${alt.article}`);
           }
+          
+          await delay(100);
         } catch (error) {
           console.error(`Error processing alternative ${alt.article}:`, error);
         }
