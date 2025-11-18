@@ -3,6 +3,7 @@ import os
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timedelta
 import random
+from decimal import Decimal
 
 try:
     import psycopg2
@@ -18,6 +19,15 @@ def get_db_connection():
     if not database_url:
         return None
     return psycopg2.connect(database_url, cursor_factory=RealDictCursor)
+
+def convert_decimals(obj):
+    if isinstance(obj, list):
+        return [convert_decimals(item) for item in obj]
+    elif isinstance(obj, dict):
+        return {key: convert_decimals(value) for key, value in obj.items()}
+    elif isinstance(obj, Decimal):
+        return float(obj)
+    return obj
 
 def log_action(conn, appointment_id: str, action: str, old_data: Optional[Dict] = None, new_data: Optional[Dict] = None, user_ip: str = ''):
     if not conn:
@@ -462,7 +472,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'statusCode': 200,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                 'isBase64Encoded': False,
-                'body': json.dumps({'packages': packages})
+                'body': json.dumps(convert_decimals({'packages': packages}))
             }
     
     if path == 'glass_package':
@@ -584,7 +594,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'statusCode': 200,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                 'isBase64Encoded': False,
-                'body': json.dumps({'components': components})
+                'body': json.dumps(convert_decimals({'components': components}))
             }
         
         elif method == 'POST':
