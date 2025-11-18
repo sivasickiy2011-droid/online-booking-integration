@@ -20,6 +20,7 @@ interface GlassComponent {
   price_per_unit: number;
   quantity: number;
   is_required: boolean;
+  alternatives?: GlassComponent[];
 }
 
 interface GlassPackage {
@@ -57,6 +58,7 @@ export default function GlassCalculator() {
   const [customerEmail, setCustomerEmail] = useState('');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
+  const [selectedAlternatives, setSelectedAlternatives] = useState<Record<number, number>>({});
   const { toast } = useToast();
 
   const API_URL = 'https://functions.poehali.dev/da819482-69ab-4b27-954a-cd7ac2026f30';
@@ -82,8 +84,19 @@ export default function GlassCalculator() {
   const handlePackageChange = (packageId: string) => {
     const pkg = packages.find(p => p.package_id === parseInt(packageId));
     setSelectedPackage(pkg || null);
+    setSelectedAlternatives({});
     if (pkg && width && height) {
       calculatePrice(pkg, parseFloat(width), parseFloat(height));
+    }
+  };
+
+  const handleAlternativeSelect = (mainComponentId: number, alternativeId: number) => {
+    setSelectedAlternatives(prev => ({
+      ...prev,
+      [mainComponentId]: alternativeId
+    }));
+    if (selectedPackage && width && height) {
+      calculatePrice(selectedPackage, parseFloat(width), parseFloat(height));
     }
   };
 
@@ -106,10 +119,15 @@ export default function GlassCalculator() {
     if (pkg.components && pkg.components.length > 0) {
       pkg.components.forEach(comp => {
         if (comp.is_required) {
-          const quantity = comp.unit === 'м²' ? squareMeters : comp.quantity;
-          const cost = quantity * comp.price_per_unit;
+          const selectedAltId = selectedAlternatives[comp.component_id];
+          const activeComponent = selectedAltId 
+            ? comp.alternatives?.find(alt => alt.component_id === selectedAltId) || comp
+            : comp;
           
-          if (comp.component_type === 'service') {
+          const quantity = activeComponent.unit === 'м²' ? squareMeters : comp.quantity;
+          const cost = quantity * activeComponent.price_per_unit;
+          
+          if (activeComponent.component_type === 'service') {
             servicesTotal += cost;
           } else {
             componentsTotal += cost;
@@ -259,24 +277,56 @@ export default function GlassCalculator() {
                   {selectedPackage.components && selectedPackage.components.length > 0 && (
                     <div className="pt-3 border-t space-y-2">
                       <div className="font-medium text-foreground mb-2">Состав комплекта:</div>
-                      {selectedPackage.components.map((comp, idx) => (
-                        <div key={idx} className="grid grid-cols-12 gap-2 text-xs py-1">
-                          <div className="col-span-1 text-muted-foreground text-right">{idx + 1}.</div>
-                          <div className="col-span-7">
-                            <div className="font-medium">{comp.component_name}</div>
-                            {comp.article && <div className="text-muted-foreground">[{comp.article}]</div>}
-                            {comp.characteristics && (
-                              <div className="text-muted-foreground text-[10px]">{comp.characteristics}</div>
+                      {selectedPackage.components.map((comp, idx) => {
+                        const selectedAltId = selectedAlternatives[comp.component_id];
+                        const activeComponent = selectedAltId 
+                          ? comp.alternatives?.find(alt => alt.component_id === selectedAltId) || comp
+                          : comp;
+                        const hasAlternatives = comp.alternatives && comp.alternatives.length > 0;
+                        
+                        return (
+                          <div key={idx} className="space-y-1">
+                            <div className="grid grid-cols-12 gap-2 text-xs py-1">
+                              <div className="col-span-1 text-muted-foreground text-right">{idx + 1}.</div>
+                              <div className="col-span-7">
+                                <div className="font-medium">{activeComponent.component_name}</div>
+                                {activeComponent.article && <div className="text-muted-foreground">[{activeComponent.article}]</div>}
+                                {activeComponent.characteristics && (
+                                  <div className="text-muted-foreground text-[10px]">{activeComponent.characteristics}</div>
+                                )}
+                              </div>
+                              <div className="col-span-2 text-right text-muted-foreground">
+                                {comp.quantity} {activeComponent.unit}
+                              </div>
+                              <div className="col-span-2 text-right font-medium">
+                                {activeComponent.price_per_unit.toLocaleString('ru-RU')} ₽
+                              </div>
+                            </div>
+                            {hasAlternatives && (
+                              <div className="ml-8 space-y-1">
+                                <Select 
+                                  value={selectedAltId?.toString() || comp.component_id.toString()}
+                                  onValueChange={(value) => handleAlternativeSelect(comp.component_id, parseInt(value))}
+                                >
+                                  <SelectTrigger className="h-7 text-xs">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value={comp.component_id.toString()}>
+                                      {comp.component_name} - {comp.price_per_unit.toLocaleString('ru-RU')} ₽
+                                    </SelectItem>
+                                    {comp.alternatives?.map(alt => (
+                                      <SelectItem key={alt.component_id} value={alt.component_id.toString()}>
+                                        {alt.component_name} - {alt.price_per_unit.toLocaleString('ru-RU')} ₽
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
                             )}
                           </div>
-                          <div className="col-span-2 text-right text-muted-foreground">
-                            {comp.quantity} {comp.unit}
-                          </div>
-                          <div className="col-span-2 text-right font-medium">
-                            {comp.price_per_unit.toLocaleString('ru-RU')} ₽
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                 </CardContent>
@@ -334,17 +384,6 @@ export default function GlassCalculator() {
                     <span className="text-muted-foreground">Услуги:</span>
                     <span className="font-medium">{calculation.services_total.toLocaleString('ru-RU', { minimumFractionDigits: 2 })} ₽</span>
                   </div>
-                  <Separator />
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Промежуточный итог:</span>
-                    <span className="font-medium">{calculation.subtotal.toLocaleString('ru-RU', { minimumFractionDigits: 2 })} ₽</span>
-                  </div>
-                  {calculation.markup_amount > 0 && (
-                    <div className="flex justify-between text-muted-foreground">
-                      <span>Наценка ({selectedPackage?.markup_percent}%):</span>
-                      <span>{calculation.markup_amount.toLocaleString('ru-RU', { minimumFractionDigits: 2 })} ₽</span>
-                    </div>
-                  )}
                   <Separator className="my-3" />
                   <div className="flex justify-between text-lg font-bold">
                     <span>ИТОГО:</span>

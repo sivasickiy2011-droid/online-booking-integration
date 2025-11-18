@@ -30,6 +30,7 @@ export default function PackageComponentsTableDialog({
   const [allComponents, setAllComponents] = useState<GlassComponent[]>([]);
   const [addingAlternativeFor, setAddingAlternativeFor] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -98,6 +99,67 @@ export default function PackageComponentsTableDialog({
     }
   };
 
+  const handleDeleteAlternative = async (mainComponentId: number, alternativeComponentId: number) => {
+    try {
+      const response = await fetch(API_URL, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'component_alternative',
+          component_id: mainComponentId,
+          alternative_component_id: alternativeComponentId
+        })
+      });
+
+      if (response.ok) {
+        toast({
+          title: 'Удалено',
+          description: 'Аналог удален'
+        });
+        fetchPackageComponents();
+      } else {
+        throw new Error('Failed to delete alternative');
+      }
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось удалить аналог',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleSwapMainAlternative = async (currentMainId: number, newMainId: number) => {
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'swap_main_alternative',
+          package_id: packageId,
+          current_main_id: currentMainId,
+          new_main_id: newMainId
+        })
+      });
+
+      if (response.ok) {
+        toast({
+          title: 'Успешно',
+          description: 'Основная позиция изменена'
+        });
+        fetchPackageComponents();
+      } else {
+        throw new Error('Failed to swap');
+      }
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось изменить основную позицию',
+        variant: 'destructive'
+      });
+    }
+  };
+
   const getTotalPrice = () => {
     return components.reduce((sum, item) => {
       const price = item.price_per_unit || 0;
@@ -119,11 +181,21 @@ export default function PackageComponentsTableDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl max-h-[90vh]">
+      <DialogContent className={isFullscreen ? "max-w-[98vw] max-h-[98vh]" : "max-w-6xl max-h-[90vh]"}>
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-3">
-            <span className="text-2xl font-bold text-orange-600">{packageArticle}</span>
-            <span className="text-lg">{packageName}</span>
+          <DialogTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl font-bold text-orange-600">{packageArticle}</span>
+              <span className="text-lg">{packageName}</span>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsFullscreen(!isFullscreen)}
+              className="ml-auto"
+            >
+              <Icon name={isFullscreen ? "Minimize2" : "Maximize2"} size={16} />
+            </Button>
           </DialogTitle>
           <DialogDescription>
             Рекомендуемый набор фурнитуры (жирным) и возможные аналоги (курсивом)
@@ -195,7 +267,7 @@ export default function PackageComponentsTableDialog({
                         {item.alternatives && item.alternatives.map((alt, altIndex) => (
                           <tr
                             key={`${item.id}-alt-${altIndex}`}
-                            className="border-t bg-green-50/30"
+                            className="border-t bg-green-50/30 group"
                           >
                             <td className="p-2 pl-6 border-r"></td>
                             <td className="p-2 border-r">
@@ -218,7 +290,28 @@ export default function PackageComponentsTableDialog({
                                 {((alt.price_per_unit || 0) * item.quantity).toLocaleString('ru-RU')}
                               </span>
                             </td>
-                            <td className="p-2"></td>
+                            <td className="p-2 text-center">
+                              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleSwapMainAlternative(item.component_id, alt.component_id!)}
+                                  className="h-6 w-6 p-0"
+                                  title="Сделать основной позицией"
+                                >
+                                  <Icon name="ArrowUpDown" size={12} />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleDeleteAlternative(item.component_id, alt.component_id!)}
+                                  className="h-6 w-6 p-0 text-destructive"
+                                  title="Удалить аналог"
+                                >
+                                  <Icon name="Trash2" size={12} />
+                                </Button>
+                              </div>
+                            </td>
                           </tr>
                         ))}
                         {addingAlternativeFor === item.component_id && (

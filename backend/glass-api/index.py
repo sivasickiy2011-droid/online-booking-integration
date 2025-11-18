@@ -221,6 +221,49 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'isBase64Encoded': False,
                     'body': json.dumps({'success': True})
                 }
+            
+            elif action == 'swap_main_alternative':
+                package_id = body.get('package_id')
+                current_main_id = body.get('current_main_id')
+                new_main_id = body.get('new_main_id')
+                
+                cursor.execute("""
+                    SELECT quantity, is_required FROM t_p56372141_online_booking_integ.package_components 
+                    WHERE package_id = %s AND component_id = %s
+                """, (package_id, current_main_id))
+                main_data = cursor.fetchone()
+                
+                if main_data:
+                    cursor.execute("""
+                        DELETE FROM t_p56372141_online_booking_integ.component_alternatives 
+                        WHERE component_id = %s AND alternative_component_id = %s
+                    """, (current_main_id, new_main_id))
+                    
+                    cursor.execute("""
+                        UPDATE t_p56372141_online_booking_integ.package_components 
+                        SET component_id = %s
+                        WHERE package_id = %s AND component_id = %s
+                    """, (new_main_id, package_id, current_main_id))
+                    
+                    cursor.execute("""
+                        INSERT INTO t_p56372141_online_booking_integ.component_alternatives 
+                        (component_id, alternative_component_id)
+                        VALUES (%s, %s)
+                    """, (new_main_id, current_main_id))
+                    
+                    cursor.execute("""
+                        UPDATE t_p56372141_online_booking_integ.component_alternatives 
+                        SET component_id = %s
+                        WHERE component_id = %s
+                    """, (new_main_id, current_main_id))
+                
+                conn.commit()
+                return {
+                    'statusCode': 200,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'isBase64Encoded': False,
+                    'body': json.dumps({'success': True})
+                }
         
         elif method == 'PUT':
             body = json.loads(event.get('body', '{}'))
@@ -288,6 +331,21 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             elif action == 'glass_component':
                 component_id = body.get('component_id')
                 cursor.execute("DELETE FROM t_p56372141_online_booking_integ.glass_components WHERE component_id = %s", (component_id,))
+                conn.commit()
+                return {
+                    'statusCode': 200,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'isBase64Encoded': False,
+                    'body': json.dumps({'success': True})
+                }
+            
+            elif action == 'component_alternative':
+                component_id = body.get('component_id')
+                alternative_id = body.get('alternative_component_id')
+                cursor.execute("""
+                    DELETE FROM t_p56372141_online_booking_integ.component_alternatives 
+                    WHERE component_id = %s AND alternative_component_id = %s
+                """, (component_id, alternative_id))
                 conn.commit()
                 return {
                     'statusCode': 200,
