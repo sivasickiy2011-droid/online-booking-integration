@@ -655,7 +655,19 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 }
             
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM t_p56372141_online_booking_integ.glass_components WHERE is_active = true ORDER BY component_type, component_name")
+            cursor.execute("""
+                SELECT 
+                    c.*,
+                    (SELECT COUNT(DISTINCT pc.package_id) 
+                     FROM t_p56372141_online_booking_integ.package_components pc 
+                     WHERE pc.component_id = c.component_id) +
+                    (SELECT COUNT(DISTINCT ca.component_id)
+                     FROM t_p56372141_online_booking_integ.component_alternatives ca
+                     WHERE ca.alternative_component_id = c.component_id) as packages_count
+                FROM t_p56372141_online_booking_integ.glass_components c 
+                WHERE c.is_active = true 
+                ORDER BY c.component_type, c.component_name
+            """)
             components = [dict(row) for row in cursor.fetchall()]
             conn.close()
             

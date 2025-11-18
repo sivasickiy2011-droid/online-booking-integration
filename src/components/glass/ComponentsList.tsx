@@ -1,7 +1,9 @@
+import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Icon from '@/components/ui/icon';
 import { GlassComponent, componentTypes } from './types';
 
@@ -22,6 +24,29 @@ export default function ComponentsList({
   selectedIds,
   onToggleSelect
 }: ComponentsListProps) {
+  const [filterType, setFilterType] = useState<string>('all');
+  const [filterArticle, setFilterArticle] = useState<string>('all');
+  const [filterUnit, setFilterUnit] = useState<string>('all');
+
+  const uniqueArticles = useMemo(() => {
+    const articles = components.map(c => c.article).filter(Boolean);
+    return Array.from(new Set(articles)).sort();
+  }, [components]);
+
+  const uniqueUnits = useMemo(() => {
+    const units = components.map(c => c.unit).filter(Boolean);
+    return Array.from(new Set(units)).sort();
+  }, [components]);
+
+  const filteredComponents = useMemo(() => {
+    return components.filter(comp => {
+      if (filterType !== 'all' && comp.component_type !== filterType) return false;
+      if (filterArticle !== 'all' && comp.article !== filterArticle) return false;
+      if (filterUnit !== 'all' && comp.unit !== filterUnit) return false;
+      return true;
+    });
+  }, [components, filterType, filterArticle, filterUnit]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -31,10 +56,87 @@ export default function ComponentsList({
   }
 
   return (
-    <div className="grid gap-3">
-      {componentTypes.map(type => {
-        const typeComponents = components.filter(c => c.component_type === type.value);
-        if (typeComponents.length === 0) return null;
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Фильтры</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Тип компонента</label>
+              <Select value={filterType} onValueChange={setFilterType}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Все типы</SelectItem>
+                  {componentTypes.map(type => (
+                    <SelectItem key={type.value} value={type.value}>
+                      {type.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Артикул</label>
+              <Select value={filterArticle} onValueChange={setFilterArticle}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Все артикулы</SelectItem>
+                  {uniqueArticles.map(article => (
+                    <SelectItem key={article} value={article}>
+                      {article}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Единица измерения</label>
+              <Select value={filterUnit} onValueChange={setFilterUnit}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Все единицы</SelectItem>
+                  {uniqueUnits.map(unit => (
+                    <SelectItem key={unit} value={unit}>
+                      {unit}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {(filterType !== 'all' || filterArticle !== 'all' || filterUnit !== 'all') && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-4"
+              onClick={() => {
+                setFilterType('all');
+                setFilterArticle('all');
+                setFilterUnit('all');
+              }}
+            >
+              <Icon name="X" size={16} className="mr-2" />
+              Сбросить фильтры
+            </Button>
+          )}
+        </CardContent>
+      </Card>
+
+      <div className="grid gap-3">
+        {componentTypes.map(type => {
+          const typeComponents = filteredComponents.filter(c => c.component_type === type.value);
+          if (typeComponents.length === 0) return null;
 
         return (
           <Card key={type.value}>
@@ -58,7 +160,14 @@ export default function ComponentsList({
                       onCheckedChange={() => onToggleSelect(comp.component_id!)}
                     />
                     <div className="flex-1 space-y-1">
-                      <div className="font-medium">{comp.component_name}</div>
+                      <div className="flex items-center gap-2">
+                        <div className="font-medium">{comp.component_name}</div>
+                        {comp.packages_count > 0 && (
+                          <Badge variant="secondary" className="text-xs">
+                            {comp.packages_count} компл.
+                          </Badge>
+                        )}
+                      </div>
                       {comp.article && (
                         <div className="text-sm text-muted-foreground">
                           Артикул: {comp.article}
@@ -101,6 +210,7 @@ export default function ComponentsList({
           </Card>
         );
       })}
+      </div>
     </div>
   );
 }

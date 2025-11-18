@@ -7,6 +7,7 @@ export interface GlassComponent {
   unit: string;
   price_per_unit: number;
   is_active: boolean;
+  packages_count?: number;
 }
 
 export interface GlassPackage {

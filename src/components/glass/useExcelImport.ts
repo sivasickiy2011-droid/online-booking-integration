@@ -22,7 +22,11 @@ export function useExcelImport(packages: GlassPackage[], fetchPackages: () => vo
     return 'other';
   };
 
-  const findOrCreateComponent = async (comp: any, allComponents: any[]): Promise<number> => {
+  const findOrCreateComponent = async (
+    comp: any, 
+    allComponents: any[], 
+    stats: { created: number; updated: number; reused: number }
+  ): Promise<number> => {
     const existingComponent = allComponents.find((c: any) => c.article === comp.article);
 
     if (existingComponent) {
@@ -51,6 +55,9 @@ export function useExcelImport(packages: GlassPackage[], fetchPackages: () => vo
             }
           })
         });
+        stats.updated++;
+      } else {
+        stats.reused++;
       }
 
       return existingComponent.component_id;
@@ -76,6 +83,7 @@ export function useExcelImport(packages: GlassPackage[], fetchPackages: () => vo
     });
 
     const createData = await createResponse.json();
+    stats.created++;
     return createData.component_id;
   };
 
@@ -208,9 +216,10 @@ export function useExcelImport(packages: GlassPackage[], fetchPackages: () => vo
       const allComponents = componentsData.components || [];
 
       const componentMap = new Map<string, number>();
+      const stats = { created: 0, updated: 0, reused: 0 };
 
       for (const comp of components.filter(c => !c.isAlternative)) {
-        const componentId = await findOrCreateComponent(comp, allComponents);
+        const componentId = await findOrCreateComponent(comp, allComponents, stats);
         componentMap.set(comp.article, componentId);
 
         await fetch(API_URL, {
@@ -231,7 +240,7 @@ export function useExcelImport(packages: GlassPackage[], fetchPackages: () => vo
         const mainComponentId = componentMap.get(alt.mainComponentArticle!);
         if (!mainComponentId) continue;
 
-        const altComponentId = await findOrCreateComponent(alt, allComponents);
+        const altComponentId = await findOrCreateComponent(alt, allComponents, stats);
 
         await fetch(API_URL, {
           method: 'POST',
@@ -244,9 +253,12 @@ export function useExcelImport(packages: GlassPackage[], fetchPackages: () => vo
         });
       }
 
+      const mainCount = components.filter(c => !c.isAlternative).length;
+      const altCount = components.filter(c => c.isAlternative).length;
+      
       toast({
         title: 'Импорт завершён',
-        description: `Импортировано ${components.filter(c => !c.isAlternative).length} компонентов и ${components.filter(c => c.isAlternative).length} аналогов`
+        description: `${mainCount} компонентов, ${altCount} аналогов | Создано: ${stats.created}, обновлено: ${stats.updated}, использовано: ${stats.reused}`
       });
 
       fetchPackages();
