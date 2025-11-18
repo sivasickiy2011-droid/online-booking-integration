@@ -114,9 +114,10 @@ export function useExcelImport(packages: GlassPackage[], fetchPackages: () => vo
         const row = rows[i];
         if (!row || row.length === 0) continue;
 
-        if (row[1] && typeof row[1] === 'string' && row[1].includes('ДАП')) {
-          packageArticle = row[1].trim();
-          packageName = row[3] || '';
+        const cellValue = String(row[1] || '');
+        if (cellValue && (cellValue.includes('ДАП') || cellValue.includes('дап') || /^\d{4}-\d{4}$/.test(cellValue))) {
+          packageArticle = cellValue.trim();
+          packageName = row[3] || row[2] || packageArticle;
           continue;
         }
 

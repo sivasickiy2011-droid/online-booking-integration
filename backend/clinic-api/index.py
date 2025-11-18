@@ -27,6 +27,8 @@ def convert_decimals(obj):
         return {key: convert_decimals(value) for key, value in obj.items()}
     elif isinstance(obj, Decimal):
         return float(obj)
+    elif isinstance(obj, datetime):
+        return obj.isoformat()
     return obj
 
 def log_action(conn, appointment_id: str, action: str, old_data: Optional[Dict] = None, new_data: Optional[Dict] = None, user_ip: str = ''):
