@@ -67,8 +67,40 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
         if method == 'GET':
             if action == 'glass_packages':
-                cursor.execute("SELECT * FROM t_p56372141_online_booking_integ.glass_packages ORDER BY package_id DESC")
+                params = event.get('queryStringParameters', {})
+                active_only = params.get('active_only') == 'true'
+                with_components = params.get('with_components') == 'true'
+                
+                if active_only:
+                    cursor.execute("SELECT * FROM t_p56372141_online_booking_integ.glass_packages WHERE is_active = true ORDER BY package_id DESC")
+                else:
+                    cursor.execute("SELECT * FROM t_p56372141_online_booking_integ.glass_packages ORDER BY package_id DESC")
+                
                 packages = cursor.fetchall()
+                
+                if with_components:
+                    for pkg in packages:
+                        cursor.execute("""
+                            SELECT pc.*, gc.* 
+                            FROM t_p56372141_online_booking_integ.package_components pc
+                            JOIN t_p56372141_online_booking_integ.glass_components gc ON pc.component_id = gc.component_id
+                            WHERE pc.package_id = %s
+                            ORDER BY pc.id
+                        """, (pkg['package_id'],))
+                        components = cursor.fetchall()
+                        
+                        for comp in components:
+                            cursor.execute("""
+                                SELECT gc.*
+                                FROM t_p56372141_online_booking_integ.component_alternatives ca
+                                JOIN t_p56372141_online_booking_integ.glass_components gc ON ca.alternative_component_id = gc.component_id
+                                WHERE ca.component_id = %s
+                            """, (comp['component_id'],))
+                            alternatives = cursor.fetchall()
+                            comp['alternatives'] = alternatives if alternatives else []
+                        
+                        pkg['components'] = components
+                
                 return {
                     'statusCode': 200,
                     'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},

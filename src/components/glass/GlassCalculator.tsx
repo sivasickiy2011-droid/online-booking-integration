@@ -61,7 +61,7 @@ export default function GlassCalculator() {
   const [selectedAlternatives, setSelectedAlternatives] = useState<Record<number, number>>({});
   const { toast } = useToast();
 
-  const API_URL = 'https://functions.poehali.dev/da819482-69ab-4b27-954a-cd7ac2026f30';
+  const API_URL = 'https://functions.poehali.dev/ea1cedae-dffe-4589-a9c8-05fcc5e540be';
 
   useEffect(() => {
     fetchPackages();
@@ -303,25 +303,53 @@ export default function GlassCalculator() {
                               </div>
                             </div>
                             {hasAlternatives && (
-                              <div className="ml-8 space-y-1">
-                                <Select 
-                                  value={selectedAltId?.toString() || comp.component_id.toString()}
-                                  onValueChange={(value) => handleAlternativeSelect(comp.component_id, parseInt(value))}
+                              <div className="ml-8 space-y-1 mt-2">
+                                <div className="text-[10px] text-muted-foreground mb-1">Доступные варианты:</div>
+                                <div 
+                                  className={`flex items-start gap-2 p-2 rounded border cursor-pointer transition-colors ${
+                                    !selectedAltId ? 'bg-primary/10 border-primary' : 'bg-background hover:bg-accent'
+                                  }`}
+                                  onClick={() => handleAlternativeSelect(comp.component_id, comp.component_id)}
                                 >
-                                  <SelectTrigger className="h-7 text-xs">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value={comp.component_id.toString()}>
-                                      {comp.component_name} - {comp.price_per_unit.toLocaleString('ru-RU')} ₽
-                                    </SelectItem>
-                                    {comp.alternatives?.map(alt => (
-                                      <SelectItem key={alt.component_id} value={alt.component_id.toString()}>
-                                        {alt.component_name} - {alt.price_per_unit.toLocaleString('ru-RU')} ₽
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
+                                  <div className="mt-0.5">
+                                    {!selectedAltId ? (
+                                      <Icon name="CheckCircle2" size={14} className="text-primary" />
+                                    ) : (
+                                      <Icon name="Circle" size={14} className="text-muted-foreground" />
+                                    )}
+                                  </div>
+                                  <div className="flex-1 text-xs">
+                                    <div className="font-medium">{comp.component_name}</div>
+                                    <div className="text-muted-foreground text-[10px]">{comp.article}</div>
+                                  </div>
+                                  <div className="text-xs font-medium whitespace-nowrap">
+                                    {comp.price_per_unit.toLocaleString('ru-RU')} ₽
+                                  </div>
+                                </div>
+                                {comp.alternatives?.map(alt => (
+                                  <div 
+                                    key={alt.component_id}
+                                    className={`flex items-start gap-2 p-2 rounded border cursor-pointer transition-colors ${
+                                      selectedAltId === alt.component_id ? 'bg-primary/10 border-primary' : 'bg-background hover:bg-accent'
+                                    }`}
+                                    onClick={() => handleAlternativeSelect(comp.component_id, alt.component_id)}
+                                  >
+                                    <div className="mt-0.5">
+                                      {selectedAltId === alt.component_id ? (
+                                        <Icon name="CheckCircle2" size={14} className="text-primary" />
+                                      ) : (
+                                        <Icon name="Circle" size={14} className="text-muted-foreground" />
+                                      )}
+                                    </div>
+                                    <div className="flex-1 text-xs">
+                                      <div className="font-medium">{alt.component_name}</div>
+                                      <div className="text-muted-foreground text-[10px]">{alt.article}</div>
+                                    </div>
+                                    <div className="text-xs font-medium whitespace-nowrap">
+                                      {alt.price_per_unit.toLocaleString('ru-RU')} ₽
+                                    </div>
+                                  </div>
+                                ))}
                               </div>
                             )}
                           </div>
