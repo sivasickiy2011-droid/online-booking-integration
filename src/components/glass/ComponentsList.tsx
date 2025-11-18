@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import Icon from '@/components/ui/icon';
 import { GlassComponent, componentTypes } from './types';
 
@@ -25,27 +26,17 @@ export default function ComponentsList({
   onToggleSelect
 }: ComponentsListProps) {
   const [filterType, setFilterType] = useState<string>('all');
-  const [filterArticle, setFilterArticle] = useState<string>('all');
-  const [filterUnit, setFilterUnit] = useState<string>('all');
-
-  const uniqueArticles = useMemo(() => {
-    const articles = components.map(c => c.article).filter(Boolean);
-    return Array.from(new Set(articles)).sort();
-  }, [components]);
-
-  const uniqueUnits = useMemo(() => {
-    const units = components.map(c => c.unit).filter(Boolean);
-    return Array.from(new Set(units)).sort();
-  }, [components]);
+  const [filterArticle, setFilterArticle] = useState<string>('');
+  const [filterName, setFilterName] = useState<string>('');
 
   const filteredComponents = useMemo(() => {
     return components.filter(comp => {
       if (filterType !== 'all' && comp.component_type !== filterType) return false;
-      if (filterArticle !== 'all' && comp.article !== filterArticle) return false;
-      if (filterUnit !== 'all' && comp.unit !== filterUnit) return false;
+      if (filterArticle && !comp.article?.toLowerCase().includes(filterArticle.toLowerCase())) return false;
+      if (filterName && !comp.component_name.toLowerCase().includes(filterName.toLowerCase())) return false;
       return true;
     });
-  }, [components, filterType, filterArticle, filterUnit]);
+  }, [components, filterType, filterArticle, filterName]);
 
   if (loading) {
     return (
@@ -82,48 +73,32 @@ export default function ComponentsList({
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Артикул</label>
-              <Select value={filterArticle} onValueChange={setFilterArticle}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Все артикулы</SelectItem>
-                  {uniqueArticles.map(article => (
-                    <SelectItem key={article} value={article}>
-                      {article}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Input
+                placeholder="Поиск по артикулу..."
+                value={filterArticle}
+                onChange={(e) => setFilterArticle(e.target.value)}
+              />
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Единица измерения</label>
-              <Select value={filterUnit} onValueChange={setFilterUnit}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Все единицы</SelectItem>
-                  {uniqueUnits.map(unit => (
-                    <SelectItem key={unit} value={unit}>
-                      {unit}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <label className="text-sm font-medium">Наименование</label>
+              <Input
+                placeholder="Поиск по названию..."
+                value={filterName}
+                onChange={(e) => setFilterName(e.target.value)}
+              />
             </div>
           </div>
 
-          {(filterType !== 'all' || filterArticle !== 'all' || filterUnit !== 'all') && (
+          {(filterType !== 'all' || filterArticle || filterName) && (
             <Button
               variant="outline"
               size="sm"
               className="mt-4"
               onClick={() => {
                 setFilterType('all');
-                setFilterArticle('all');
-                setFilterUnit('all');
+                setFilterArticle('');
+                setFilterName('');
               }}
             >
               <Icon name="X" size={16} className="mr-2" />
