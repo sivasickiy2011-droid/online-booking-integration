@@ -377,7 +377,8 @@ export default function GlassPackageManager() {
               </Button>
             </div>
           </DialogContent>
-        </Dialog>
+          </Dialog>
+        </div>
       </div>
 
       {loading ? (
