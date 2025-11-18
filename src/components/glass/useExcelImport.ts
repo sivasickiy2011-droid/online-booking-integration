@@ -264,50 +264,62 @@ export function useExcelImport(packages: GlassPackage[], fetchPackages: () => vo
       const stats = { created: 0, updated: 0, reused: 0 };
 
       for (const comp of components.filter(c => !c.isAlternative)) {
-        const componentId = await findOrCreateComponent(comp, allComponents, stats);
-        componentMap.set(comp.article, componentId);
+        try {
+          const componentId = await findOrCreateComponent(comp, allComponents, stats);
+          componentMap.set(comp.article, componentId);
 
-        const pcResponse = await fetch(API_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'package_component',
-            package_id: targetPackageId,
-            component_id: componentId,
-            quantity: comp.quantity,
-            is_required: true
-          })
-        });
+          const pcResponse = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'package_component',
+              package_id: targetPackageId,
+              component_id: componentId,
+              quantity: comp.quantity,
+              is_required: true
+            })
+          });
 
-        if (!pcResponse.ok) {
-          const errorText = await pcResponse.text();
-          console.error('Failed to add component to package:', errorText);
+          if (!pcResponse.ok) {
+            const errorText = await pcResponse.text();
+            console.error('Failed to add component to package:', errorText);
+          }
+        } catch (error) {
+          console.error(`Error processing component ${comp.article}:`, error);
         }
       }
 
+      console.log('Component map after main components:', Array.from(componentMap.entries()));
+
       for (const alt of components.filter(c => c.isAlternative)) {
-        const mainComponentId = componentMap.get(alt.mainComponentArticle!);
-        if (!mainComponentId) {
-          console.log(`Skipping alternative ${alt.article} - main component ${alt.mainComponentArticle} not found`);
-          continue;
-        }
+        try {
+          const mainComponentId = componentMap.get(alt.mainComponentArticle!);
+          if (!mainComponentId) {
+            console.log(`Skipping alternative ${alt.article} - main component ${alt.mainComponentArticle} not found in map`);
+            continue;
+          }
 
-        const altComponentId = await findOrCreateComponent(alt, allComponents, stats);
-        console.log(`Adding alternative: main=${mainComponentId}, alt=${altComponentId}, article=${alt.article}`);
+          const altComponentId = await findOrCreateComponent(alt, allComponents, stats);
+          console.log(`Adding alternative: main=${mainComponentId}, alt=${altComponentId}, mainArticle=${alt.mainComponentArticle}, altArticle=${alt.article}`);
 
-        const altResponse = await fetch(API_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'component_alternative',
-            component_id: mainComponentId,
-            alternative_component_id: altComponentId
-          })
-        });
+          const altResponse = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'component_alternative',
+              component_id: mainComponentId,
+              alternative_component_id: altComponentId
+            })
+          });
 
-        if (!altResponse.ok) {
-          const errorText = await altResponse.text();
-          console.error(`Failed to add alternative ${alt.article}:`, errorText);
+          if (!altResponse.ok) {
+            const errorText = await altResponse.text();
+            console.error(`Failed to add alternative ${alt.article}:`, errorText);
+          } else {
+            console.log(`✓ Successfully added alternative ${alt.article}`);
+          }
+        } catch (error) {
+          console.error(`Error processing alternative ${alt.article}:`, error);
         }
       }
 
