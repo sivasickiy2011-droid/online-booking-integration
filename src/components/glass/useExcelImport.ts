@@ -99,6 +99,24 @@ export function useExcelImport(packages: GlassPackage[], fetchPackages: () => vo
 
       let packageArticle = '';
       let packageName = '';
+      
+      // Проверяем ячейку C2 (строка 1, столбец 2)
+      if (rows.length > 1 && rows[1] && rows[1][2]) {
+        const c2Value = String(rows[1][2]).trim();
+        if (c2Value) {
+          packageArticle = c2Value;
+          packageName = c2Value;
+          console.log('Found package in C2:', packageArticle);
+        }
+      }
+      
+      // Если не нашли - генерируем
+      if (!packageArticle) {
+        packageArticle = `ДАП-${Date.now().toString().slice(-6)}`;
+        packageName = packageArticle;
+        console.log('Generated package article:', packageArticle);
+      }
+
       const components: Array<{
         article: string;
         name: string;
@@ -115,14 +133,6 @@ export function useExcelImport(packages: GlassPackage[], fetchPackages: () => vo
         if (!row || row.length === 0) continue;
 
         console.log(`Row ${i}:`, row);
-
-        const cellValue = String(row[1] || '');
-        if (cellValue && (cellValue.includes('ДАП') || cellValue.includes('дап') || /^\d{4}-\d{4}$/.test(cellValue))) {
-          packageArticle = cellValue.trim();
-          packageName = row[3] || row[2] || packageArticle;
-          console.log('Found package:', packageArticle, packageName);
-          continue;
-        }
 
         const positionNum = row[1];
         const article = row[2];
@@ -164,10 +174,10 @@ export function useExcelImport(packages: GlassPackage[], fetchPackages: () => vo
       console.log('Final package article:', packageArticle);
       console.log('Total components found:', components.length);
 
-      if (!packageArticle || components.length === 0) {
+      if (components.length === 0) {
         toast({
           title: 'Ошибка импорта',
-          description: `Не удалось найти артикул комплекта (${packageArticle ? 'найден' : 'НЕ найден'}) или компоненты (найдено: ${components.length})`,
+          description: `Компоненты не найдены в файле (найдено: ${components.length})`,
           variant: 'destructive'
         });
         return;
