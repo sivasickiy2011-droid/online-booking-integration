@@ -22,6 +22,7 @@ export default function GlassPackageManager() {
   const [editComponentsPackageId, setEditComponentsPackageId] = useState<number | null>(null);
   const [editComponentsPackageName, setEditComponentsPackageName] = useState('');
   const [isEditComponentsDialogOpen, setIsEditComponentsDialogOpen] = useState(false);
+  const [selectedPackages, setSelectedPackages] = useState<Set<number>>(new Set());
   const { toast } = useToast();
 
   const { fileInputRef, handleExcelImport } = useExcelImport(packages, fetchPackages);
@@ -90,8 +91,13 @@ export default function GlassPackageManager() {
     if (!confirm('Удалить комплект?')) return;
 
     try {
-      const response = await fetch(`${API_URL}?action=glass_package&id=${id}`, {
-        method: 'DELETE'
+      const response = await fetch(API_URL, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'glass_package',
+          package_id: id
+        })
       });
 
       if (response.ok) {
@@ -104,6 +110,55 @@ export default function GlassPackageManager() {
         description: 'Не удалось удалить комплект',
         variant: 'destructive'
       });
+    }
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedPackages.size === 0) return;
+    if (!confirm(`Удалить выбранные комплекты (${selectedPackages.size})?`)) return;
+
+    try {
+      const deletePromises = Array.from(selectedPackages).map(id =>
+        fetch(API_URL, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'glass_package',
+            package_id: id
+          })
+        })
+      );
+
+      await Promise.all(deletePromises);
+      toast({ title: `Удалено комплектов: ${selectedPackages.size}` });
+      setSelectedPackages(new Set());
+      fetchPackages();
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось удалить комплекты',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const togglePackageSelection = (id: number) => {
+    setSelectedPackages(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedPackages.size === packages.length) {
+      setSelectedPackages(new Set());
+    } else {
+      setSelectedPackages(new Set(packages.map(p => p.package_id!)));
     }
   };
 
@@ -150,9 +205,26 @@ export default function GlassPackageManager() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-semibold">Управление комплектами</h2>
-          <p className="text-sm text-muted-foreground">Всего комплектов: {packages.length}</p>
+          <p className="text-sm text-muted-foreground">
+            Всего комплектов: {packages.length}
+            {selectedPackages.size > 0 && (
+              <span className="ml-2 font-semibold">• Выбрано: {selectedPackages.size}</span>
+            )}
+          </p>
         </div>
         <div className="flex gap-2">
+          {selectedPackages.size > 0 && (
+            <>
+              <Button variant="outline" onClick={toggleSelectAll}>
+                <Icon name="CheckSquare" size={16} className="mr-2" />
+                {selectedPackages.size === packages.length ? 'Снять все' : 'Выбрать все'}
+              </Button>
+              <Button variant="destructive" onClick={handleDeleteSelected}>
+                <Icon name="Trash2" size={16} className="mr-2" />
+                Удалить выбранные ({selectedPackages.size})
+              </Button>
+            </>
+          )}
           <input
             ref={fileInputRef}
             type="file"
@@ -181,6 +253,8 @@ export default function GlassPackageManager() {
             <PackageCard
               key={pkg.package_id}
               pkg={pkg}
+              selected={selectedPackages.has(pkg.package_id!)}
+              onToggleSelect={() => togglePackageSelection(pkg.package_id!)}
               onView={openViewDialog}
               onEditComponents={openEditComponentsDialog}
               onEdit={openEditDialog}

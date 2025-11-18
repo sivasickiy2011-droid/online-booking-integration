@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import Icon from '@/components/ui/icon';
 import { GlassPackage } from './types';
 
@@ -19,6 +20,8 @@ const PRODUCT_TYPES = [
 
 interface PackageCardProps {
   pkg: GlassPackage;
+  selected: boolean;
+  onToggleSelect: () => void;
   onView: (pkg: GlassPackage) => void;
   onEditComponents: (pkg: GlassPackage) => void;
   onEdit: (pkg: GlassPackage) => void;
@@ -27,16 +30,25 @@ interface PackageCardProps {
 
 export default function PackageCard({
   pkg,
+  selected,
+  onToggleSelect,
   onView,
   onEditComponents,
   onEdit,
   onDelete
 }: PackageCardProps) {
   return (
-    <Card className={!pkg.is_active ? 'opacity-50' : ''}>
+    <Card className={`${!pkg.is_active ? 'opacity-50' : ''} ${selected ? 'ring-2 ring-primary' : ''}`}>
       <CardHeader>
         <CardTitle className="flex items-center justify-between text-base">
-          {pkg.package_name}
+          <div className="flex items-center gap-2">
+            <Checkbox
+              checked={selected}
+              onCheckedChange={onToggleSelect}
+              onClick={(e) => e.stopPropagation()}
+            />
+            <span>{pkg.package_name}</span>
+          </div>
           <div className="flex gap-1">
             <Button
               variant="ghost"
