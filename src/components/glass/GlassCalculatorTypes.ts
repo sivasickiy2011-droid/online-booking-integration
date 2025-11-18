@@ -1,0 +1,36 @@
+export interface GlassComponent {
+  component_id: number;
+  component_name: string;
+  component_type: string;
+  article: string;
+  characteristics: string;
+  unit: string;
+  price_per_unit: number;
+  quantity: number;
+  is_required: boolean;
+  alternatives?: GlassComponent[];
+}
+
+export interface GlassPackage {
+  package_id: number;
+  package_name: string;
+  product_type: string;
+  glass_type: string;
+  glass_thickness: number;
+  glass_price_per_sqm: number;
+  hardware_set: string;
+  hardware_price: number;
+  markup_percent: number;
+  installation_price: number;
+  description: string;
+  components?: GlassComponent[];
+}
+
+export interface CalculationResult {
+  square_meters: number;
+  components_total: number;
+  services_total: number;
+  subtotal: number;
+  markup_amount: number;
+  total_price: number;
+}
