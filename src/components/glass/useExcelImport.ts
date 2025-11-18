@@ -114,10 +114,13 @@ export function useExcelImport(packages: GlassPackage[], fetchPackages: () => vo
         const row = rows[i];
         if (!row || row.length === 0) continue;
 
+        console.log(`Row ${i}:`, row);
+
         const cellValue = String(row[1] || '');
         if (cellValue && (cellValue.includes('ДАП') || cellValue.includes('дап') || /^\d{4}-\d{4}$/.test(cellValue))) {
           packageArticle = cellValue.trim();
           packageName = row[3] || row[2] || packageArticle;
+          console.log('Found package:', packageArticle, packageName);
           continue;
         }
 
@@ -158,10 +161,13 @@ export function useExcelImport(packages: GlassPackage[], fetchPackages: () => vo
         }
       }
 
+      console.log('Final package article:', packageArticle);
+      console.log('Total components found:', components.length);
+
       if (!packageArticle || components.length === 0) {
         toast({
           title: 'Ошибка импорта',
-          description: 'Не удалось найти артикул комплекта или компоненты в файле',
+          description: `Не удалось найти артикул комплекта (${packageArticle ? 'найден' : 'НЕ найден'}) или компоненты (найдено: ${components.length})`,
           variant: 'destructive'
         });
         return;
