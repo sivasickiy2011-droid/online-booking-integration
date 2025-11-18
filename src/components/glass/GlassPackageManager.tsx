@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -9,8 +9,9 @@ import { useToast } from '@/hooks/use-toast';
 import Icon from '@/components/ui/icon';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
+import * as XLSX from 'xlsx';
 import { GlassPackage, API_URL } from './types';
-import PackageComponentsDialog from './PackageComponentsDialog';
+import PackageComponentsTableDialog from './PackageComponentsTableDialog';
 import PackageComponentsEditDialog from './PackageComponentsEditDialog';
 
 const PRODUCT_TYPES = [
@@ -43,10 +44,12 @@ export default function GlassPackageManager() {
   const [viewPackageId, setViewPackageId] = useState<number | null>(null);
   const [viewPackageName, setViewPackageName] = useState('');
   const [viewPackageArticle, setViewPackageArticle] = useState('');
+  const [viewPackageSketch, setViewPackageSketch] = useState('');
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [editComponentsPackageId, setEditComponentsPackageId] = useState<number | null>(null);
   const [editComponentsPackageName, setEditComponentsPackageName] = useState('');
   const [isEditComponentsDialogOpen, setIsEditComponentsDialogOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -143,6 +146,7 @@ export default function GlassPackageManager() {
       markup_percent: 20,
       installation_price: 3000,
       description: '',
+      sketch_image_url: '',
       is_active: true
     });
     setIsDialogOpen(true);
@@ -157,6 +161,7 @@ export default function GlassPackageManager() {
     setViewPackageId(pkg.package_id);
     setViewPackageName(pkg.package_name);
     setViewPackageArticle(pkg.package_article || 'Не указан');
+    setViewPackageSketch(pkg.sketch_image_url || '');
     setIsViewDialogOpen(true);
   };
 
@@ -173,13 +178,18 @@ export default function GlassPackageManager() {
           <h2 className="text-xl font-semibold">Управление комплектами</h2>
           <p className="text-sm text-muted-foreground">Всего комплектов: {packages.length}</p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={openCreateDialog}>
-              <Icon name="Plus" size={16} className="mr-2" />
-              Добавить комплект
-            </Button>
-          </DialogTrigger>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
+            <Icon name="Upload" size={16} className="mr-2" />
+            Импорт из Excel
+          </Button>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={openCreateDialog}>
+                <Icon name="Plus" size={16} className="mr-2" />
+                Добавить комплект
+              </Button>
+            </DialogTrigger>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
@@ -317,6 +327,28 @@ export default function GlassPackageManager() {
               </div>
 
               <div className="grid gap-2">
+                <Label htmlFor="sketch_image_url">Эскиз изделия (URL изображения)</Label>
+                <Input
+                  id="sketch_image_url"
+                  value={editingPackage?.sketch_image_url || ''}
+                  onChange={(e) => setEditingPackage({ ...editingPackage, sketch_image_url: e.target.value })}
+                  placeholder="https://example.com/sketch.png"
+                />
+                {editingPackage?.sketch_image_url && (
+                  <div className="border rounded-lg p-2 bg-muted/30">
+                    <img
+                      src={editingPackage.sketch_image_url}
+                      alt="Предпросмотр эскиза"
+                      className="max-h-32 mx-auto object-contain"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="grid gap-2">
                 <Label htmlFor="description">Описание</Label>
                 <Textarea
                   id="description"
@@ -429,12 +461,13 @@ export default function GlassPackageManager() {
       )}
 
       {viewPackageId && (
-        <PackageComponentsDialog
+        <PackageComponentsTableDialog
           open={isViewDialogOpen}
           onOpenChange={setIsViewDialogOpen}
           packageId={viewPackageId}
           packageName={viewPackageName}
           packageArticle={viewPackageArticle}
+          sketchImageUrl={viewPackageSketch}
         />
       )}
 

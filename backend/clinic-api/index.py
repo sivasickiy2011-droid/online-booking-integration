@@ -492,15 +492,16 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             cursor.execute(
                 """INSERT INTO t_p56372141_online_booking_integ.glass_packages 
                 (package_name, package_article, product_type, glass_type, glass_thickness, glass_price_per_sqm, 
-                hardware_set, hardware_price, markup_percent, installation_price, description, is_active)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                hardware_set, hardware_price, markup_percent, installation_price, description, sketch_image_url, is_active)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING package_id""",
                 (package.get('package_name'), package.get('package_article', ''),
                  package.get('product_type'), package.get('glass_type'),
                  package.get('glass_thickness'), package.get('glass_price_per_sqm'),
                  package.get('hardware_set'), package.get('hardware_price'),
                  package.get('markup_percent'), package.get('installation_price'),
-                 package.get('description'), package.get('is_active', True))
+                 package.get('description'), package.get('sketch_image_url', ''),
+                 package.get('is_active', True))
             )
             package_id = cursor.fetchone()['package_id']
             conn.commit()
@@ -530,7 +531,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 """UPDATE t_p56372141_online_booking_integ.glass_packages 
                 SET package_name = %s, package_article = %s, product_type = %s, glass_type = %s, glass_thickness = %s,
                 glass_price_per_sqm = %s, hardware_set = %s, hardware_price = %s,
-                markup_percent = %s, installation_price = %s, description = %s,
+                markup_percent = %s, installation_price = %s, description = %s, sketch_image_url = %s,
                 is_active = %s, updated_at = CURRENT_TIMESTAMP
                 WHERE package_id = %s""",
                 (package.get('package_name'), package.get('package_article', ''),
@@ -538,7 +539,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                  package.get('glass_thickness'), package.get('glass_price_per_sqm'),
                  package.get('hardware_set'), package.get('hardware_price'),
                  package.get('markup_percent'), package.get('installation_price'),
-                 package.get('description'), package.get('is_active', True),
+                 package.get('description'), package.get('sketch_image_url', ''),
+                 package.get('is_active', True),
                  package.get('package_id'))
             )
             conn.commit()

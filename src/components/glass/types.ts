@@ -22,6 +22,7 @@ export interface GlassPackage {
   markup_percent: number;
   installation_price: number;
   description: string;
+  sketch_image_url?: string;
   is_active: boolean;
 }
 
