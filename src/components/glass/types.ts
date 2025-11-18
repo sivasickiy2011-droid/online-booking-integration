@@ -43,7 +43,7 @@ export interface PackageComponent {
   alternatives?: GlassComponent[];
 }
 
-export const API_URL = 'https://functions.poehali.dev/da819482-69ab-4b27-954a-cd7ac2026f30';
+export const API_URL = 'https://functions.poehali.dev/ea1cedae-dffe-4589-a9c8-05fcc5e540be';
 
 export const componentTypes = [
   { value: 'profile', label: 'Профиль' },
