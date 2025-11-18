@@ -159,11 +159,24 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 is_required = body.get('is_required', True)
                 
                 cursor.execute("""
-                    INSERT INTO t_p56372141_online_booking_integ.package_components 
-                    (package_id, component_id, quantity, is_required)
-                    VALUES (%s, %s, %s, %s)
-                    ON CONFLICT (package_id, component_id) DO UPDATE SET quantity = %s
-                """, (package_id, component_id, quantity, is_required, quantity))
+                    SELECT id FROM t_p56372141_online_booking_integ.package_components 
+                    WHERE package_id = %s AND component_id = %s
+                """, (package_id, component_id))
+                existing = cursor.fetchone()
+                
+                if existing:
+                    cursor.execute("""
+                        UPDATE t_p56372141_online_booking_integ.package_components 
+                        SET quantity = %s, is_required = %s
+                        WHERE package_id = %s AND component_id = %s
+                    """, (quantity, is_required, package_id, component_id))
+                else:
+                    cursor.execute("""
+                        INSERT INTO t_p56372141_online_booking_integ.package_components 
+                        (package_id, component_id, quantity, is_required)
+                        VALUES (%s, %s, %s, %s)
+                    """, (package_id, component_id, quantity, is_required))
+                
                 conn.commit()
                 return {
                     'statusCode': 200,
@@ -177,11 +190,18 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 alternative_id = body.get('alternative_component_id')
                 
                 cursor.execute("""
-                    INSERT INTO t_p56372141_online_booking_integ.component_alternatives 
-                    (component_id, alternative_component_id)
-                    VALUES (%s, %s)
-                    ON CONFLICT DO NOTHING
+                    SELECT id FROM t_p56372141_online_booking_integ.component_alternatives 
+                    WHERE component_id = %s AND alternative_component_id = %s
                 """, (component_id, alternative_id))
+                existing = cursor.fetchone()
+                
+                if not existing:
+                    cursor.execute("""
+                        INSERT INTO t_p56372141_online_booking_integ.component_alternatives 
+                        (component_id, alternative_component_id)
+                        VALUES (%s, %s)
+                    """, (component_id, alternative_id))
+                
                 conn.commit()
                 return {
                     'statusCode': 200,
