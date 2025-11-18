@@ -157,11 +157,11 @@ export default function GlassComponentManager() {
 
       const componentsToImport: GlassComponent[] = jsonData.map((row: any) => ({
         component_name: row['Наименование'] || row['название'] || '',
-        component_type: mapTypeFromExcel(row['Тип'] || row['тип'] || 'other'),
-        article: (row['Артикул'] || row['артикул'] || '').toString(),
+        component_type: mapTypeFromExcel(row['тип'] || row['Тип'] || 'other'),
+        article: (row['Артикул или партийный номер Поставщика'] || row['Артикул'] || row['артикул'] || '').toString(),
         characteristics: row['Характеристики'] || row['характеристики'] || '',
-        unit: row['Единица'] || row['единица'] || 'шт',
-        price_per_unit: parseFloat(row['Цена'] || row['цена'] || 0),
+        unit: row['Еденица измерения'] || row['Единица'] || row['единица'] || 'шт',
+        price_per_unit: parseFloat(row['Цена за еденицу ЗАКУП'] || row['Цена'] || row['цена'] || 0),
         is_active: true
       })).filter(c => c.component_name && c.price_per_unit > 0);
 
@@ -224,12 +224,25 @@ export default function GlassComponentManager() {
   const handleExportTemplate = () => {
     const template = [
       {
+        '№': 1,
+        'Товар 1': '',
+        'Товар 2': '',
+        'Группа 1': '',
+        'Фото': '',
+        'Группа 2': '',
         'Наименование': 'Профиль к-т',
-        'Тип': 'Профиль',
-        'Артикул': '6100-АД31 Т1',
         'Характеристики': '40, 2-е крышки Серебро матовое',
-        'Единица': 'погм',
-        'Цена': 700.00
+        'Артикул или партийный номер Поставщика': '6100-АД31 Т1',
+        'Еденица измерения': 'погм',
+        'Количество': 1,
+        'Цена за еденицу ЗАКУП': 700.00,
+        'Сумма': 700.00,
+        'Поставщик': '',
+        'Сайт Поставщика1': '',
+        'Сайт Поставщика 2': '',
+        'Сайт Поставщика 3': '',
+        'Ссылка на фото в Google диск': '',
+        'тип': 'Профиль'
       }
     ];
 
