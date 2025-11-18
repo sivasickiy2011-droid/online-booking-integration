@@ -565,26 +565,148 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'body': json.dumps({'success': True})
             }
     
-    if path == 'glass_components' and method == 'GET':
-        if not conn:
+    if path == 'glass_components':
+        if method == 'GET':
+            if not conn:
+                return {
+                    'statusCode': 503,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'isBase64Encoded': False,
+                    'body': json.dumps({'error': 'Database unavailable'})
+                }
+            
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM t_p56372141_online_booking_integ.glass_components WHERE is_active = true ORDER BY component_type, component_name")
+            components = [dict(row) for row in cursor.fetchall()]
+            conn.close()
+            
             return {
-                'statusCode': 503,
+                'statusCode': 200,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                 'isBase64Encoded': False,
-                'body': json.dumps({'error': 'Database unavailable'})
+                'body': json.dumps({'components': components})
             }
         
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM t_p56372141_online_booking_integ.glass_components WHERE is_active = true ORDER BY component_type, component_name")
-        components = [dict(row) for row in cursor.fetchall()]
-        conn.close()
+        elif method == 'POST':
+            body_data = json.loads(event.get('body', '{}'))
+            action_type = body_data.get('action_type', '')
+            
+            if not conn:
+                return {
+                    'statusCode': 503,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'isBase64Encoded': False,
+                    'body': json.dumps({'error': 'Database unavailable'})
+                }
+            
+            cursor = conn.cursor()
+            
+            if action_type == 'import':
+                components_data = body_data.get('components', [])
+                imported = 0
+                
+                for comp in components_data:
+                    cursor.execute(
+                        """INSERT INTO t_p56372141_online_booking_integ.glass_components 
+                        (component_name, component_type, article, characteristics, unit, price_per_unit, is_active)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s)""",
+                        (comp.get('component_name'), comp.get('component_type'), 
+                         comp.get('article', ''), comp.get('characteristics', ''),
+                         comp.get('unit', 'шт'), comp.get('price_per_unit', 0), True)
+                    )
+                    imported += 1
+                
+                conn.commit()
+                conn.close()
+                
+                return {
+                    'statusCode': 200,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'isBase64Encoded': False,
+                    'body': json.dumps({'success': True, 'imported': imported})
+                }
+            
+            elif action_type == 'create':
+                component = body_data.get('component', {})
+                cursor.execute(
+                    """INSERT INTO t_p56372141_online_booking_integ.glass_components 
+                    (component_name, component_type, article, characteristics, unit, price_per_unit, is_active)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    RETURNING component_id""",
+                    (component.get('component_name'), component.get('component_type'),
+                     component.get('article', ''), component.get('characteristics', ''),
+                     component.get('unit', 'шт'), component.get('price_per_unit', 0),
+                     component.get('is_active', True))
+                )
+                component_id = cursor.fetchone()['component_id']
+                conn.commit()
+                conn.close()
+                
+                return {
+                    'statusCode': 200,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'isBase64Encoded': False,
+                    'body': json.dumps({'success': True, 'component_id': component_id})
+                }
         
-        return {
-            'statusCode': 200,
-            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'isBase64Encoded': False,
-            'body': json.dumps({'components': components})
-        }
+        elif method == 'PUT':
+            body_data = json.loads(event.get('body', '{}'))
+            component = body_data.get('component', {})
+            
+            if not conn:
+                return {
+                    'statusCode': 503,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'isBase64Encoded': False,
+                    'body': json.dumps({'error': 'Database unavailable'})
+                }
+            
+            cursor = conn.cursor()
+            cursor.execute(
+                """UPDATE t_p56372141_online_booking_integ.glass_components 
+                SET component_name = %s, component_type = %s, article = %s, 
+                characteristics = %s, unit = %s, price_per_unit = %s, is_active = %s
+                WHERE component_id = %s""",
+                (component.get('component_name'), component.get('component_type'),
+                 component.get('article'), component.get('characteristics'),
+                 component.get('unit'), component.get('price_per_unit'),
+                 component.get('is_active'), component.get('component_id'))
+            )
+            conn.commit()
+            conn.close()
+            
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'isBase64Encoded': False,
+                'body': json.dumps({'success': True})
+            }
+        
+        elif method == 'DELETE':
+            component_id = event.get('queryStringParameters', {}).get('id', '')
+            
+            if not conn:
+                return {
+                    'statusCode': 503,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'isBase64Encoded': False,
+                    'body': json.dumps({'error': 'Database unavailable'})
+                }
+            
+            cursor = conn.cursor()
+            cursor.execute(
+                "UPDATE t_p56372141_online_booking_integ.glass_components SET is_active = false WHERE component_id = %s",
+                (component_id,)
+            )
+            conn.commit()
+            conn.close()
+            
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'isBase64Encoded': False,
+                'body': json.dumps({'success': True})
+            }
     
     if path == 'glass_order' and method == 'POST':
         body_data = json.loads(event.get('body', '{}'))
