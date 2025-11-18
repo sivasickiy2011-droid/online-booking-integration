@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
@@ -101,11 +101,8 @@ export default function PackageComponentsTableDialog({
                   </thead>
                   <tbody>
                     {components.map((item, index) => (
-                      <>
-                        <tr
-                          key={item.id}
-                          className="border-t bg-green-50/50 hover:bg-green-100/50 transition-colors"
-                        >
+                      <Fragment key={item.id}>
+                        <tr className="border-t bg-green-50/50 hover:bg-green-100/50 transition-colors">
                           <td className="p-3 border-r">
                             <div className="w-8 h-8 bg-yellow-400 rounded flex items-center justify-center font-bold">
                               {index + 1}
@@ -165,7 +162,7 @@ export default function PackageComponentsTableDialog({
                             </td>
                           </tr>
                         ))}
-                      </>
+                      </Fragment>
                     ))}
                     <tr className="border-t-2 border-primary bg-orange-50">
                       <td colSpan={6} className="p-3 text-right font-bold border-r">
