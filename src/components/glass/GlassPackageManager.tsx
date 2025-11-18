@@ -1,0 +1,393 @@
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
+import Icon from '@/components/ui/icon';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Switch } from '@/components/ui/switch';
+
+interface GlassPackage {
+  package_id: number;
+  package_name: string;
+  product_type: string;
+  glass_type: string;
+  glass_thickness: number;
+  glass_price_per_sqm: number;
+  hardware_set: string;
+  hardware_price: number;
+  markup_percent: number;
+  installation_price: number;
+  description: string;
+  is_active: boolean;
+}
+
+const PRODUCT_TYPES = [
+  { value: 'shower_cabin', label: 'Душевая кабина' },
+  { value: 'corner_shower', label: 'Угловая душевая' },
+  { value: 'swing_door', label: 'Распашная дверь' },
+  { value: 'sliding_door', label: 'Раздвижная дверь' },
+  { value: 'bath_screen', label: 'Шторка для ванной' },
+  { value: 'partition', label: 'Перегородка' },
+  { value: 'radius_door', label: 'Радиусная дверь' },
+  { value: 'p_shaped_shower', label: 'П-образная душевая' },
+  { value: 'folding_door', label: 'Складная дверь' },
+  { value: 'trapezoid_shower', label: 'Душевая трапеция' },
+  { value: 'round_shower', label: 'Круглая душевая' }
+];
+
+const GLASS_TYPES = [
+  'Прозрачное',
+  'Осветленное',
+  'Матовое',
+  'Матовое декор',
+  'Цветное'
+];
+
+export default function GlassPackageManager() {
+  const [packages, setPackages] = useState<GlassPackage[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [editingPackage, setEditingPackage] = useState<Partial<GlassPackage> | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { toast } = useToast();
+
+  const API_URL = 'https://functions.poehali.dev/da819482-69ab-4b27-954a-cd7ac2026f30';
+
+  useEffect(() => {
+    fetchPackages();
+  }, []);
+
+  const fetchPackages = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_URL}?action=glass_packages`);
+      const data = await response.json();
+      setPackages(data.packages || []);
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось загрузить комплекты',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSavePackage = async () => {
+    if (!editingPackage?.package_name || !editingPackage?.product_type) {
+      toast({
+        title: 'Ошибка',
+        description: 'Заполните обязательные поля',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    try {
+      const method = editingPackage.package_id ? 'PUT' : 'POST';
+      const response = await fetch(API_URL, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'glass_package',
+          package: editingPackage
+        })
+      });
+
+      if (response.ok) {
+        toast({
+          title: 'Успешно',
+          description: editingPackage.package_id ? 'Комплект обновлён' : 'Комплект создан'
+        });
+        setIsDialogOpen(false);
+        setEditingPackage(null);
+        fetchPackages();
+      }
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось сохранить комплект',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleDeletePackage = async (id: number) => {
+    if (!confirm('Удалить комплект?')) return;
+
+    try {
+      const response = await fetch(`${API_URL}?action=glass_package&id=${id}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        toast({ title: 'Комплект удалён' });
+        fetchPackages();
+      }
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось удалить комплект',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const openCreateDialog = () => {
+    setEditingPackage({
+      package_name: '',
+      product_type: 'shower_cabin',
+      glass_type: 'Прозрачное',
+      glass_thickness: 8,
+      glass_price_per_sqm: 4200,
+      hardware_set: '',
+      hardware_price: 5000,
+      markup_percent: 20,
+      installation_price: 3000,
+      description: '',
+      is_active: true
+    });
+    setIsDialogOpen(true);
+  };
+
+  const openEditDialog = (pkg: GlassPackage) => {
+    setEditingPackage(pkg);
+    setIsDialogOpen(true);
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-semibold">Управление комплектами</h2>
+          <p className="text-sm text-muted-foreground">Всего комплектов: {packages.length}</p>
+        </div>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button onClick={openCreateDialog}>
+              <Icon name="Plus" size={16} className="mr-2" />
+              Добавить комплект
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>
+                {editingPackage?.package_id ? 'Редактировать комплект' : 'Новый комплект'}
+              </DialogTitle>
+              <DialogDescription>
+                Заполните параметры комплекта для калькуляции
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="package_name">Название комплекта *</Label>
+                <Input
+                  id="package_name"
+                  value={editingPackage?.package_name || ''}
+                  onChange={(e) => setEditingPackage({ ...editingPackage, package_name: e.target.value })}
+                  placeholder="Душевая кабина Премиум"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="product_type">Тип изделия *</Label>
+                  <Select
+                    value={editingPackage?.product_type || ''}
+                    onValueChange={(value) => setEditingPackage({ ...editingPackage, product_type: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PRODUCT_TYPES.map(type => (
+                        <SelectItem key={type.value} value={type.value}>
+                          {type.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="glass_type">Тип стекла</Label>
+                  <Select
+                    value={editingPackage?.glass_type || ''}
+                    onValueChange={(value) => setEditingPackage({ ...editingPackage, glass_type: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {GLASS_TYPES.map(type => (
+                        <SelectItem key={type} value={type}>
+                          {type}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="glass_thickness">Толщина стекла (мм)</Label>
+                  <Input
+                    id="glass_thickness"
+                    type="number"
+                    value={editingPackage?.glass_thickness || ''}
+                    onChange={(e) => setEditingPackage({ ...editingPackage, glass_thickness: parseInt(e.target.value) })}
+                  />
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="glass_price_per_sqm">Цена стекла за м² (₽)</Label>
+                  <Input
+                    id="glass_price_per_sqm"
+                    type="number"
+                    value={editingPackage?.glass_price_per_sqm || ''}
+                    onChange={(e) => setEditingPackage({ ...editingPackage, glass_price_per_sqm: parseFloat(e.target.value) })}
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="hardware_set">Комплект фурнитуры</Label>
+                <Input
+                  id="hardware_set"
+                  value={editingPackage?.hardware_set || ''}
+                  onChange={(e) => setEditingPackage({ ...editingPackage, hardware_set: e.target.value })}
+                  placeholder="Петли, ручки, профили..."
+                />
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="hardware_price">Цена фурнитуры (₽)</Label>
+                  <Input
+                    id="hardware_price"
+                    type="number"
+                    value={editingPackage?.hardware_price || ''}
+                    onChange={(e) => setEditingPackage({ ...editingPackage, hardware_price: parseFloat(e.target.value) })}
+                  />
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="markup_percent">Наценка (%)</Label>
+                  <Input
+                    id="markup_percent"
+                    type="number"
+                    value={editingPackage?.markup_percent || ''}
+                    onChange={(e) => setEditingPackage({ ...editingPackage, markup_percent: parseFloat(e.target.value) })}
+                  />
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="installation_price">Монтаж (₽)</Label>
+                  <Input
+                    id="installation_price"
+                    type="number"
+                    value={editingPackage?.installation_price || ''}
+                    onChange={(e) => setEditingPackage({ ...editingPackage, installation_price: parseFloat(e.target.value) })}
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="description">Описание</Label>
+                <Textarea
+                  id="description"
+                  value={editingPackage?.description || ''}
+                  onChange={(e) => setEditingPackage({ ...editingPackage, description: e.target.value })}
+                  placeholder="Дополнительная информация о комплекте..."
+                />
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="is_active"
+                  checked={editingPackage?.is_active !== false}
+                  onCheckedChange={(checked) => setEditingPackage({ ...editingPackage, is_active: checked })}
+                />
+                <Label htmlFor="is_active">Активен</Label>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                Отмена
+              </Button>
+              <Button onClick={handleSavePackage}>
+                Сохранить
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {loading ? (
+        <div className="text-center py-12">
+          <Icon name="Loader2" size={48} className="animate-spin mx-auto text-muted-foreground" />
+        </div>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {packages.map(pkg => (
+            <Card key={pkg.package_id} className={!pkg.is_active ? 'opacity-50' : ''}>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between text-base">
+                  {pkg.package_name}
+                  <div className="flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => openEditDialog(pkg)}
+                    >
+                      <Icon name="Edit" size={16} />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeletePackage(pkg.package_id)}
+                    >
+                      <Icon name="Trash2" size={16} />
+                    </Button>
+                  </div>
+                </CardTitle>
+                <CardDescription>
+                  {PRODUCT_TYPES.find(t => t.value === pkg.product_type)?.label}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="text-sm space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Стекло:</span>
+                  <span className="font-medium">{pkg.glass_type} {pkg.glass_thickness}мм</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Цена за м²:</span>
+                  <span className="font-medium">{pkg.glass_price_per_sqm.toLocaleString()} ₽</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Фурнитура:</span>
+                  <span className="font-medium">{pkg.hardware_price.toLocaleString()} ₽</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Наценка:</span>
+                  <span className="font-medium">{pkg.markup_percent}%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Монтаж:</span>
+                  <span className="font-medium">{pkg.installation_price.toLocaleString()} ₽</span>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

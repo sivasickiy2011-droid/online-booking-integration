@@ -424,6 +424,171 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'body': json.dumps({'success': True, 'message': 'Запись успешно отменена'})
         }
     
+    if path == 'glass_packages':
+        if method == 'GET':
+            if not conn:
+                return {
+                    'statusCode': 503,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'isBase64Encoded': False,
+                    'body': json.dumps({'error': 'Database unavailable'})
+                }
+            
+            active_only = event.get('queryStringParameters', {}).get('active_only', '') == 'true'
+            cursor = conn.cursor()
+            
+            if active_only:
+                cursor.execute("SELECT * FROM t_p56372141_online_booking_integ.glass_packages WHERE is_active = true ORDER BY package_name")
+            else:
+                cursor.execute("SELECT * FROM t_p56372141_online_booking_integ.glass_packages ORDER BY package_name")
+            
+            packages = [dict(row) for row in cursor.fetchall()]
+            conn.close()
+            
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'isBase64Encoded': False,
+                'body': json.dumps({'packages': packages})
+            }
+    
+    if path == 'glass_package':
+        if method == 'POST':
+            body_data = json.loads(event.get('body', '{}'))
+            package = body_data.get('package', {})
+            
+            if not conn:
+                return {
+                    'statusCode': 503,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'isBase64Encoded': False,
+                    'body': json.dumps({'error': 'Database unavailable'})
+                }
+            
+            cursor = conn.cursor()
+            cursor.execute(
+                """INSERT INTO t_p56372141_online_booking_integ.glass_packages 
+                (package_name, product_type, glass_type, glass_thickness, glass_price_per_sqm, 
+                hardware_set, hardware_price, markup_percent, installation_price, description, is_active)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING package_id""",
+                (package.get('package_name'), package.get('product_type'), package.get('glass_type'),
+                 package.get('glass_thickness'), package.get('glass_price_per_sqm'),
+                 package.get('hardware_set'), package.get('hardware_price'),
+                 package.get('markup_percent'), package.get('installation_price'),
+                 package.get('description'), package.get('is_active', True))
+            )
+            package_id = cursor.fetchone()['package_id']
+            conn.commit()
+            conn.close()
+            
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'isBase64Encoded': False,
+                'body': json.dumps({'success': True, 'package_id': package_id})
+            }
+        
+        elif method == 'PUT':
+            body_data = json.loads(event.get('body', '{}'))
+            package = body_data.get('package', {})
+            
+            if not conn:
+                return {
+                    'statusCode': 503,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'isBase64Encoded': False,
+                    'body': json.dumps({'error': 'Database unavailable'})
+                }
+            
+            cursor = conn.cursor()
+            cursor.execute(
+                """UPDATE t_p56372141_online_booking_integ.glass_packages 
+                SET package_name = %s, product_type = %s, glass_type = %s, glass_thickness = %s,
+                glass_price_per_sqm = %s, hardware_set = %s, hardware_price = %s,
+                markup_percent = %s, installation_price = %s, description = %s,
+                is_active = %s, updated_at = CURRENT_TIMESTAMP
+                WHERE package_id = %s""",
+                (package.get('package_name'), package.get('product_type'), package.get('glass_type'),
+                 package.get('glass_thickness'), package.get('glass_price_per_sqm'),
+                 package.get('hardware_set'), package.get('hardware_price'),
+                 package.get('markup_percent'), package.get('installation_price'),
+                 package.get('description'), package.get('is_active', True),
+                 package.get('package_id'))
+            )
+            conn.commit()
+            conn.close()
+            
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'isBase64Encoded': False,
+                'body': json.dumps({'success': True})
+            }
+        
+        elif method == 'DELETE':
+            package_id = event.get('queryStringParameters', {}).get('id', '')
+            
+            if not conn:
+                return {
+                    'statusCode': 503,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'isBase64Encoded': False,
+                    'body': json.dumps({'error': 'Database unavailable'})
+                }
+            
+            cursor = conn.cursor()
+            cursor.execute(
+                "DELETE FROM t_p56372141_online_booking_integ.glass_packages WHERE package_id = %s",
+                (package_id,)
+            )
+            conn.commit()
+            conn.close()
+            
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'isBase64Encoded': False,
+                'body': json.dumps({'success': True})
+            }
+    
+    if path == 'glass_order' and method == 'POST':
+        body_data = json.loads(event.get('body', '{}'))
+        order = body_data.get('order', {})
+        
+        if not conn:
+            return {
+                'statusCode': 503,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'isBase64Encoded': False,
+                'body': json.dumps({'error': 'Database unavailable'})
+            }
+        
+        cursor = conn.cursor()
+        cursor.execute(
+            """INSERT INTO t_p56372141_online_booking_integ.glass_orders
+            (package_id, customer_name, customer_phone, customer_email, width, height,
+            square_meters, glass_cost, hardware_cost, installation_cost, markup_amount,
+            total_price, notes, status)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING order_id""",
+            (order.get('package_id'), order.get('customer_name'), order.get('customer_phone'),
+             order.get('customer_email'), order.get('width'), order.get('height'),
+             order.get('square_meters'), order.get('glass_cost'), order.get('hardware_cost'),
+             order.get('installation_cost'), order.get('markup_amount'), order.get('total_price'),
+             order.get('notes'), 'new')
+        )
+        order_id = cursor.fetchone()['order_id']
+        conn.commit()
+        conn.close()
+        
+        return {
+            'statusCode': 200,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'isBase64Encoded': False,
+            'body': json.dumps({'success': True, 'order_id': order_id})
+        }
+    
     if conn:
         conn.close()
     
