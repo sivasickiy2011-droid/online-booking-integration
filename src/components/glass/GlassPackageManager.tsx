@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import Icon from '@/components/ui/icon';
-import { DialogTrigger } from '@/components/ui/dialog';
 import { GlassPackage, API_URL } from './types';
 import PackageComponentsTableDialog from './PackageComponentsTableDialog';
 import PackageComponentsEditDialog from './PackageComponentsEditDialog';
@@ -165,12 +164,10 @@ export default function GlassPackageManager() {
             <Icon name="Upload" size={16} className="mr-2" />
             Импорт из Excel
           </Button>
-          <DialogTrigger asChild>
-            <Button onClick={openCreateDialog}>
-              <Icon name="Plus" size={16} className="mr-2" />
-              Добавить комплект
-            </Button>
-          </DialogTrigger>
+          <Button onClick={openCreateDialog}>
+            <Icon name="Plus" size={16} className="mr-2" />
+            Добавить комплект
+          </Button>
         </div>
       </div>
 
