@@ -89,7 +89,17 @@ export function useExcelImport(packages: GlassPackage[], fetchPackages: () => vo
 
   const handleExcelImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      console.log('No file selected');
+      return;
+    }
+
+    console.log('Starting Excel import for file:', file.name);
+    
+    toast({
+      title: 'Импорт начат',
+      description: `Обрабатываю файл ${file.name}...`
+    });
 
     try {
       const data = await file.arrayBuffer();
