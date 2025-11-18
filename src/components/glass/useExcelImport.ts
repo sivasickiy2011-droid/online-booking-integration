@@ -110,21 +110,39 @@ export function useExcelImport(packages: GlassPackage[], fetchPackages: () => vo
       let packageArticle = '';
       let packageName = '';
       
-      // Проверяем ячейку C2 (строка 1, столбец 2)
-      if (rows.length > 1 && rows[1] && rows[1][2]) {
-        const c2Value = String(rows[1][2]).trim();
-        if (c2Value) {
-          packageArticle = c2Value;
-          packageName = c2Value;
-          console.log('Found package in C2:', packageArticle);
+      // Ищем артикул комплекта в первых строках (обычно в столбце A или C)
+      for (let i = 0; i < Math.min(10, rows.length); i++) {
+        const row = rows[i];
+        if (!row) continue;
+        
+        // Проверяем первую ячейку и третью
+        for (const cellIndex of [0, 2]) {
+          const cellValue = row[cellIndex];
+          if (cellValue) {
+            const strValue = String(cellValue).trim();
+            // Артикул комплекта обычно содержит ДАП, ДКП или формат XXXX-XXXX
+            if (strValue.match(/^(ДАП|ДКП|дап|дкп)/i) || strValue.match(/^\d{4}-\d{4}$/)) {
+              packageArticle = strValue;
+              // Название ищем в соседних ячейках или используем артикул
+              packageName = row[cellIndex + 1] || row[cellIndex + 2] || packageArticle;
+              if (packageName && String(packageName).trim() && !packageName.toString().match(/^\d+$/)) {
+                packageName = String(packageName).trim();
+              } else {
+                packageName = packageArticle;
+              }
+              console.log('Found package:', packageArticle, '/', packageName);
+              break;
+            }
+          }
         }
+        if (packageArticle) break;
       }
       
       // Если не нашли - генерируем
       if (!packageArticle) {
         packageArticle = `ДАП-${Date.now().toString().slice(-6)}`;
-        packageName = packageArticle;
-        console.log('Generated package article:', packageArticle);
+        packageName = `Комплект ${packageArticle}`;
+        console.log('Generated package:', packageArticle);
       }
 
       const components: Array<{
@@ -249,18 +267,22 @@ export function useExcelImport(packages: GlassPackage[], fetchPackages: () => vo
         const componentId = await findOrCreateComponent(comp, allComponents, stats);
         componentMap.set(comp.article, componentId);
 
-        await fetch(API_URL, {
+        const pcResponse = await fetch(API_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             action: 'package_component',
-            action_type: 'add',
             package_id: targetPackageId,
             component_id: componentId,
             quantity: comp.quantity,
             is_required: true
           })
         });
+
+        if (!pcResponse.ok) {
+          const errorText = await pcResponse.text();
+          console.error('Failed to add component to package:', errorText);
+        }
       }
 
       for (const alt of components.filter(c => c.isAlternative)) {
