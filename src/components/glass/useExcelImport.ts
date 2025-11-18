@@ -287,11 +287,15 @@ export function useExcelImport(packages: GlassPackage[], fetchPackages: () => vo
 
       for (const alt of components.filter(c => c.isAlternative)) {
         const mainComponentId = componentMap.get(alt.mainComponentArticle!);
-        if (!mainComponentId) continue;
+        if (!mainComponentId) {
+          console.log(`Skipping alternative ${alt.article} - main component ${alt.mainComponentArticle} not found`);
+          continue;
+        }
 
         const altComponentId = await findOrCreateComponent(alt, allComponents, stats);
+        console.log(`Adding alternative: main=${mainComponentId}, alt=${altComponentId}, article=${alt.article}`);
 
-        await fetch(API_URL, {
+        const altResponse = await fetch(API_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -300,6 +304,11 @@ export function useExcelImport(packages: GlassPackage[], fetchPackages: () => vo
             alternative_component_id: altComponentId
           })
         });
+
+        if (!altResponse.ok) {
+          const errorText = await altResponse.text();
+          console.error(`Failed to add alternative ${alt.article}:`, errorText);
+        }
       }
 
       const mainCount = components.filter(c => !c.isAlternative).length;
