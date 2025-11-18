@@ -5,8 +5,22 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import Icon from '@/components/ui/icon';
+
+interface GlassComponent {
+  component_id: number;
+  component_name: string;
+  component_type: string;
+  article: string;
+  characteristics: string;
+  unit: string;
+  price_per_unit: number;
+  quantity: number;
+  is_required: boolean;
+}
 
 interface GlassPackage {
   package_id: number;
@@ -20,13 +34,14 @@ interface GlassPackage {
   markup_percent: number;
   installation_price: number;
   description: string;
+  components?: GlassComponent[];
 }
 
 interface CalculationResult {
   square_meters: number;
-  glass_cost: number;
-  hardware_cost: number;
-  installation_cost: number;
+  components_total: number;
+  services_total: number;
+  subtotal: number;
   markup_amount: number;
   total_price: number;
 }
@@ -52,7 +67,7 @@ export default function GlassCalculator() {
 
   const fetchPackages = async () => {
     try {
-      const response = await fetch(`${API_URL}?action=glass_packages&active_only=true`);
+      const response = await fetch(`${API_URL}?action=glass_packages&active_only=true&with_components=true`);
       const data = await response.json();
       setPackages(data.packages || []);
     } catch (error) {
@@ -84,18 +99,38 @@ export default function GlassCalculator() {
 
   const calculatePrice = (pkg: GlassPackage, w: number, h: number) => {
     const squareMeters = (w * h) / 10000;
-    const glassCost = squareMeters * pkg.glass_price_per_sqm;
-    const hardwareCost = pkg.hardware_price;
-    const installationCost = pkg.installation_price;
-    const subtotal = glassCost + hardwareCost + installationCost;
+    
+    let componentsTotal = 0;
+    let servicesTotal = 0;
+    
+    if (pkg.components && pkg.components.length > 0) {
+      pkg.components.forEach(comp => {
+        if (comp.is_required) {
+          const quantity = comp.unit === 'м²' ? squareMeters : comp.quantity;
+          const cost = quantity * comp.price_per_unit;
+          
+          if (comp.component_type === 'service') {
+            servicesTotal += cost;
+          } else {
+            componentsTotal += cost;
+          }
+        }
+      });
+    } else {
+      const glassCost = squareMeters * pkg.glass_price_per_sqm;
+      componentsTotal = glassCost + pkg.hardware_price;
+      servicesTotal = pkg.installation_price;
+    }
+    
+    const subtotal = componentsTotal + servicesTotal;
     const markupAmount = subtotal * (pkg.markup_percent / 100);
     const totalPrice = subtotal + markupAmount;
 
     setCalculation({
       square_meters: squareMeters,
-      glass_cost: glassCost,
-      hardware_cost: hardwareCost,
-      installation_cost: installationCost,
+      components_total: componentsTotal,
+      services_total: servicesTotal,
+      subtotal: subtotal,
       markup_amount: markupAmount,
       total_price: totalPrice
     });
@@ -126,9 +161,9 @@ export default function GlassCalculator() {
             width: parseFloat(width),
             height: parseFloat(height),
             square_meters: calculation.square_meters,
-            glass_cost: calculation.glass_cost,
-            hardware_cost: calculation.hardware_cost,
-            installation_cost: calculation.installation_cost,
+            glass_cost: calculation.components_total,
+            hardware_cost: 0,
+            installation_cost: calculation.services_total,
             markup_amount: calculation.markup_amount,
             total_price: calculation.total_price,
             notes
@@ -160,6 +195,22 @@ export default function GlassCalculator() {
     }
   };
 
+  const getComponentTypeLabel = (type: string) => {
+    const labels: Record<string, string> = {
+      profile: 'Профиль',
+      tape: 'Лента',
+      plug: 'Заглушка',
+      hinge: 'Петля',
+      axis: 'Ось',
+      lock: 'Замок',
+      handle: 'Ручка',
+      glass: 'Стекло',
+      service: 'Услуга',
+      glass_note: 'Примечание'
+    };
+    return labels[type] || type;
+  };
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <Card>
@@ -183,7 +234,7 @@ export default function GlassCalculator() {
                 <SelectContent>
                   {packages.map(pkg => (
                     <SelectItem key={pkg.package_id} value={pkg.package_id.toString()}>
-                      {pkg.package_name} - {pkg.glass_type} {pkg.glass_thickness}мм
+                      {pkg.package_name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -192,7 +243,7 @@ export default function GlassCalculator() {
 
             {selectedPackage && (
               <Card className="bg-muted/50">
-                <CardContent className="pt-4 space-y-2 text-sm">
+                <CardContent className="pt-4 space-y-3 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Тип стекла:</span>
                     <span className="font-medium">{selectedPackage.glass_type} {selectedPackage.glass_thickness}мм</span>
@@ -202,7 +253,31 @@ export default function GlassCalculator() {
                     <span className="font-medium">{selectedPackage.hardware_set}</span>
                   </div>
                   {selectedPackage.description && (
-                    <p className="text-muted-foreground text-xs pt-2">{selectedPackage.description}</p>
+                    <p className="text-muted-foreground text-xs pt-2 border-t">{selectedPackage.description}</p>
+                  )}
+                  
+                  {selectedPackage.components && selectedPackage.components.length > 0 && (
+                    <div className="pt-3 border-t space-y-2">
+                      <div className="font-medium text-foreground mb-2">Состав комплекта:</div>
+                      {selectedPackage.components.map((comp, idx) => (
+                        <div key={idx} className="grid grid-cols-12 gap-2 text-xs py-1">
+                          <div className="col-span-1 text-muted-foreground text-right">{idx + 1}.</div>
+                          <div className="col-span-7">
+                            <div className="font-medium">{comp.component_name}</div>
+                            {comp.article && <div className="text-muted-foreground">[{comp.article}]</div>}
+                            {comp.characteristics && (
+                              <div className="text-muted-foreground text-[10px]">{comp.characteristics}</div>
+                            )}
+                          </div>
+                          <div className="col-span-2 text-right text-muted-foreground">
+                            {comp.quantity} {comp.unit}
+                          </div>
+                          <div className="col-span-2 text-right font-medium">
+                            {comp.price_per_unit.toLocaleString('ru-RU')} ₽
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </CardContent>
               </Card>
@@ -217,7 +292,7 @@ export default function GlassCalculator() {
                   value={width}
                   onChange={(e) => setWidth(e.target.value)}
                   onBlur={handleDimensionChange}
-                  placeholder="1000"
+                  placeholder="3300"
                   min="100"
                 />
               </div>
@@ -229,7 +304,7 @@ export default function GlassCalculator() {
                   value={height}
                   onChange={(e) => setHeight(e.target.value)}
                   onBlur={handleDimensionChange}
-                  placeholder="2000"
+                  placeholder="2820"
                   min="100"
                 />
               </div>
@@ -237,60 +312,63 @@ export default function GlassCalculator() {
           </div>
 
           {calculation && (
-            <Card className="border-primary/50 bg-primary/5">
+            <Card className="bg-primary/5 border-primary/20">
               <CardHeader>
-                <CardTitle className="text-lg">Расчёт стоимости</CardTitle>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Icon name="Calculator" size={20} />
+                  Расчет стоимости
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Площадь:</span>
-                  <span className="font-medium">{calculation.square_meters.toFixed(2)} м²</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Стоимость стекла:</span>
-                  <span className="font-medium">{calculation.glass_cost.toLocaleString('ru-RU', { maximumFractionDigits: 0 })} ₽</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Фурнитура:</span>
-                  <span className="font-medium">{calculation.hardware_cost.toLocaleString('ru-RU')} ₽</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Монтаж:</span>
-                  <span className="font-medium">{calculation.installation_cost.toLocaleString('ru-RU')} ₽</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Наценка ({selectedPackage?.markup_percent}%):</span>
-                  <span className="font-medium">{calculation.markup_amount.toLocaleString('ru-RU', { maximumFractionDigits: 0 })} ₽</span>
-                </div>
-                <div className="border-t pt-3 flex justify-between">
-                  <span className="text-lg font-semibold">Итого:</span>
-                  <span className="text-2xl font-bold text-primary">
-                    {calculation.total_price.toLocaleString('ru-RU', { maximumFractionDigits: 0 })} ₽
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {calculation && (
-            <>
-              <div className="border-t pt-6">
-                <h3 className="text-lg font-semibold mb-4">Оформить заказ</h3>
-                <div className="grid gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="name">Ваше имя *</Label>
-                    <Input
-                      id="name"
-                      value={customerName}
-                      onChange={(e) => setCustomerName(e.target.value)}
-                      placeholder="Иван Иванов"
-                    />
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Площадь:</span>
+                    <span className="font-medium">{calculation.square_meters.toFixed(2)} м²</span>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <Separator />
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Материалы и фурнитура:</span>
+                    <span className="font-medium">{calculation.components_total.toLocaleString('ru-RU', { minimumFractionDigits: 2 })} ₽</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Услуги:</span>
+                    <span className="font-medium">{calculation.services_total.toLocaleString('ru-RU', { minimumFractionDigits: 2 })} ₽</span>
+                  </div>
+                  <Separator />
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Промежуточный итог:</span>
+                    <span className="font-medium">{calculation.subtotal.toLocaleString('ru-RU', { minimumFractionDigits: 2 })} ₽</span>
+                  </div>
+                  {calculation.markup_amount > 0 && (
+                    <div className="flex justify-between text-muted-foreground">
+                      <span>Наценка ({selectedPackage?.markup_percent}%):</span>
+                      <span>{calculation.markup_amount.toLocaleString('ru-RU', { minimumFractionDigits: 2 })} ₽</span>
+                    </div>
+                  )}
+                  <Separator className="my-3" />
+                  <div className="flex justify-between text-lg font-bold">
+                    <span>ИТОГО:</span>
+                    <span className="text-primary">{calculation.total_price.toLocaleString('ru-RU', { minimumFractionDigits: 2 })} ₽</span>
+                  </div>
+                </div>
+
+                <Separator className="my-4" />
+
+                <div className="space-y-4">
+                  <div className="grid gap-4">
                     <div className="grid gap-2">
-                      <Label htmlFor="phone">Телефон *</Label>
+                      <Label htmlFor="customerName">Ваше имя *</Label>
                       <Input
-                        id="phone"
+                        id="customerName"
+                        value={customerName}
+                        onChange={(e) => setCustomerName(e.target.value)}
+                        placeholder="Иван Иванов"
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="customerPhone">Телефон *</Label>
+                      <Input
+                        id="customerPhone"
                         type="tel"
                         value={customerPhone}
                         onChange={(e) => setCustomerPhone(e.target.value)}
@@ -298,48 +376,48 @@ export default function GlassCalculator() {
                       />
                     </div>
                     <div className="grid gap-2">
-                      <Label htmlFor="email">Email</Label>
+                      <Label htmlFor="customerEmail">Email</Label>
                       <Input
-                        id="email"
+                        id="customerEmail"
                         type="email"
                         value={customerEmail}
                         onChange={(e) => setCustomerEmail(e.target.value)}
-                        placeholder="mail@example.com"
+                        placeholder="ivan@example.com"
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="notes">Комментарий</Label>
+                      <Textarea
+                        id="notes"
+                        value={notes}
+                        onChange={(e) => setNotes(e.target.value)}
+                        placeholder="Дополнительные пожелания или вопросы"
+                        rows={3}
                       />
                     </div>
                   </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="notes">Комментарий</Label>
-                    <Textarea
-                      id="notes"
-                      value={notes}
-                      onChange={(e) => setNotes(e.target.value)}
-                      placeholder="Дополнительные пожелания..."
-                      rows={3}
-                    />
-                  </div>
-                </div>
-              </div>
 
-              <Button
-                className="w-full"
-                size="lg"
-                onClick={handleSubmitOrder}
-                disabled={loading}
-              >
-                {loading ? (
-                  <>
-                    <Icon name="Loader2" size={16} className="mr-2 animate-spin" />
-                    Отправка...
-                  </>
-                ) : (
-                  <>
-                    <Icon name="Send" size={16} className="mr-2" />
-                    Отправить заявку
-                  </>
-                )}
-              </Button>
-            </>
+                  <Button 
+                    onClick={handleSubmitOrder} 
+                    disabled={loading}
+                    className="w-full"
+                    size="lg"
+                  >
+                    {loading ? (
+                      <>
+                        <Icon name="Loader2" size={20} className="mr-2 animate-spin" />
+                        Отправка...
+                      </>
+                    ) : (
+                      <>
+                        <Icon name="Send" size={20} className="mr-2" />
+                        Отправить заявку
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           )}
         </CardContent>
       </Card>

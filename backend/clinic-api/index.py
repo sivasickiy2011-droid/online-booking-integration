@@ -435,6 +435,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 }
             
             active_only = event.get('queryStringParameters', {}).get('active_only', '') == 'true'
+            with_components = event.get('queryStringParameters', {}).get('with_components', '') == 'true'
             cursor = conn.cursor()
             
             if active_only:
@@ -443,6 +444,18 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 cursor.execute("SELECT * FROM t_p56372141_online_booking_integ.glass_packages ORDER BY package_name")
             
             packages = [dict(row) for row in cursor.fetchall()]
+            
+            if with_components:
+                for pkg in packages:
+                    cursor.execute("""
+                        SELECT c.*, pc.quantity, pc.is_required 
+                        FROM t_p56372141_online_booking_integ.glass_components c
+                        JOIN t_p56372141_online_booking_integ.package_components pc ON c.component_id = pc.component_id
+                        WHERE pc.package_id = %s AND c.is_active = true
+                        ORDER BY c.component_type, c.component_name
+                    """, (pkg['package_id'],))
+                    pkg['components'] = [dict(row) for row in cursor.fetchall()]
+            
             conn.close()
             
             return {
@@ -551,6 +564,27 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'isBase64Encoded': False,
                 'body': json.dumps({'success': True})
             }
+    
+    if path == 'glass_components' and method == 'GET':
+        if not conn:
+            return {
+                'statusCode': 503,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'isBase64Encoded': False,
+                'body': json.dumps({'error': 'Database unavailable'})
+            }
+        
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM t_p56372141_online_booking_integ.glass_components WHERE is_active = true ORDER BY component_type, component_name")
+        components = [dict(row) for row in cursor.fetchall()]
+        conn.close()
+        
+        return {
+            'statusCode': 200,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'isBase64Encoded': False,
+            'body': json.dumps({'components': components})
+        }
     
     if path == 'glass_order' and method == 'POST':
         body_data = json.loads(event.get('body', '{}'))
