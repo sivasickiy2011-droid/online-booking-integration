@@ -491,11 +491,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             cursor = conn.cursor()
             cursor.execute(
                 """INSERT INTO t_p56372141_online_booking_integ.glass_packages 
-                (package_name, product_type, glass_type, glass_thickness, glass_price_per_sqm, 
+                (package_name, package_article, product_type, glass_type, glass_thickness, glass_price_per_sqm, 
                 hardware_set, hardware_price, markup_percent, installation_price, description, is_active)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING package_id""",
-                (package.get('package_name'), package.get('product_type'), package.get('glass_type'),
+                (package.get('package_name'), package.get('package_article', ''),
+                 package.get('product_type'), package.get('glass_type'),
                  package.get('glass_thickness'), package.get('glass_price_per_sqm'),
                  package.get('hardware_set'), package.get('hardware_price'),
                  package.get('markup_percent'), package.get('installation_price'),
@@ -527,12 +528,13 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             cursor = conn.cursor()
             cursor.execute(
                 """UPDATE t_p56372141_online_booking_integ.glass_packages 
-                SET package_name = %s, product_type = %s, glass_type = %s, glass_thickness = %s,
+                SET package_name = %s, package_article = %s, product_type = %s, glass_type = %s, glass_thickness = %s,
                 glass_price_per_sqm = %s, hardware_set = %s, hardware_price = %s,
                 markup_percent = %s, installation_price = %s, description = %s,
                 is_active = %s, updated_at = CURRENT_TIMESTAMP
                 WHERE package_id = %s""",
-                (package.get('package_name'), package.get('product_type'), package.get('glass_type'),
+                (package.get('package_name'), package.get('package_article', ''),
+                 package.get('product_type'), package.get('glass_type'),
                  package.get('glass_thickness'), package.get('glass_price_per_sqm'),
                  package.get('hardware_set'), package.get('hardware_price'),
                  package.get('markup_percent'), package.get('installation_price'),
@@ -573,6 +575,71 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                 'isBase64Encoded': False,
                 'body': json.dumps({'success': True})
+            }
+    
+    if path == 'package_components':
+        if method == 'GET':
+            package_id = event.get('queryStringParameters', {}).get('package_id', '')
+            
+            if not conn:
+                return {
+                    'statusCode': 503,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'isBase64Encoded': False,
+                    'body': json.dumps({'error': 'Database unavailable'})
+                }
+            
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT 
+                    pc.id, 
+                    pc.package_id,
+                    pc.component_id,
+                    pc.quantity,
+                    pc.is_required,
+                    c.component_name,
+                    c.component_type,
+                    c.article,
+                    c.characteristics,
+                    c.unit,
+                    c.price_per_unit
+                FROM t_p56372141_online_booking_integ.package_components pc
+                JOIN t_p56372141_online_booking_integ.glass_components c ON pc.component_id = c.component_id
+                WHERE pc.package_id = %s AND c.is_active = true
+                ORDER BY c.component_type, c.component_name
+            """, (package_id,))
+            
+            components_data = []
+            for row in cursor.fetchall():
+                comp_dict = dict(row)
+                comp_id = comp_dict['component_id']
+                
+                cursor.execute("""
+                    SELECT 
+                        c.component_id,
+                        c.component_name,
+                        c.component_type,
+                        c.article,
+                        c.characteristics,
+                        c.unit,
+                        c.price_per_unit
+                    FROM t_p56372141_online_booking_integ.component_alternatives ca
+                    JOIN t_p56372141_online_booking_integ.glass_components c ON ca.alternative_component_id = c.component_id
+                    WHERE ca.component_id = %s AND c.is_active = true
+                    ORDER BY ca.priority
+                """, (comp_id,))
+                
+                alternatives = [dict(alt_row) for alt_row in cursor.fetchall()]
+                comp_dict['alternatives'] = alternatives
+                components_data.append(comp_dict)
+            
+            conn.close()
+            
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'isBase64Encoded': False,
+                'body': json.dumps(convert_decimals({'components': components_data}))
             }
     
     if path == 'glass_components':
@@ -717,6 +784,98 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'isBase64Encoded': False,
                 'body': json.dumps({'success': True})
             }
+    
+    if path == 'package_component':
+        if method == 'POST':
+            body_data = json.loads(event.get('body', '{}'))
+            action_type = body_data.get('action_type', '')
+            
+            if not conn:
+                return {
+                    'statusCode': 503,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'isBase64Encoded': False,
+                    'body': json.dumps({'error': 'Database unavailable'})
+                }
+            
+            cursor = conn.cursor()
+            
+            if action_type == 'add':
+                cursor.execute(
+                    """INSERT INTO t_p56372141_online_booking_integ.package_components 
+                    (package_id, component_id, quantity, is_required)
+                    VALUES (%s, %s, %s, %s)
+                    RETURNING id""",
+                    (body_data.get('package_id'), body_data.get('component_id'),
+                     body_data.get('quantity', 1), body_data.get('is_required', True))
+                )
+                pc_id = cursor.fetchone()['id']
+                conn.commit()
+                conn.close()
+                
+                return {
+                    'statusCode': 200,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'isBase64Encoded': False,
+                    'body': json.dumps({'success': True, 'id': pc_id})
+                }
+        
+        elif method == 'DELETE':
+            pc_id = event.get('queryStringParameters', {}).get('id', '')
+            
+            if not conn:
+                return {
+                    'statusCode': 503,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'isBase64Encoded': False,
+                    'body': json.dumps({'error': 'Database unavailable'})
+                }
+            
+            cursor = conn.cursor()
+            cursor.execute(
+                "DELETE FROM t_p56372141_online_booking_integ.package_components WHERE id = %s",
+                (pc_id,)
+            )
+            conn.commit()
+            conn.close()
+            
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'isBase64Encoded': False,
+                'body': json.dumps({'success': True})
+            }
+    
+    if path == 'component_alternative' and method == 'POST':
+        body_data = json.loads(event.get('body', '{}'))
+        
+        if not conn:
+            return {
+                'statusCode': 503,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'isBase64Encoded': False,
+                'body': json.dumps({'error': 'Database unavailable'})
+            }
+        
+        cursor = conn.cursor()
+        cursor.execute(
+            """INSERT INTO t_p56372141_online_booking_integ.component_alternatives 
+            (component_id, alternative_component_id, priority)
+            VALUES (%s, %s, %s)
+            RETURNING id""",
+            (body_data.get('component_id'), body_data.get('alternative_component_id'),
+             body_data.get('priority', 1))
+        )
+        alt_id = cursor.fetchone()['id']
+        conn.commit()
+        conn.close()
+        
+        return {
+            'statusCode': 200,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'isBase64Encoded': False,
+            'body': json.dumps({'success': True, 'id': alt_id})
+        }
     
     if path == 'glass_order' and method == 'POST':
         body_data = json.loads(event.get('body', '{}'))

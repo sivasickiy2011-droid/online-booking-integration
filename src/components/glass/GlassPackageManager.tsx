@@ -9,21 +9,9 @@ import { useToast } from '@/hooks/use-toast';
 import Icon from '@/components/ui/icon';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
-
-interface GlassPackage {
-  package_id: number;
-  package_name: string;
-  product_type: string;
-  glass_type: string;
-  glass_thickness: number;
-  glass_price_per_sqm: number;
-  hardware_set: string;
-  hardware_price: number;
-  markup_percent: number;
-  installation_price: number;
-  description: string;
-  is_active: boolean;
-}
+import { GlassPackage, API_URL } from './types';
+import PackageComponentsDialog from './PackageComponentsDialog';
+import PackageComponentsEditDialog from './PackageComponentsEditDialog';
 
 const PRODUCT_TYPES = [
   { value: 'shower_cabin', label: 'Душевая кабина' },
@@ -52,9 +40,14 @@ export default function GlassPackageManager() {
   const [loading, setLoading] = useState(false);
   const [editingPackage, setEditingPackage] = useState<Partial<GlassPackage> | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [viewPackageId, setViewPackageId] = useState<number | null>(null);
+  const [viewPackageName, setViewPackageName] = useState('');
+  const [viewPackageArticle, setViewPackageArticle] = useState('');
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [editComponentsPackageId, setEditComponentsPackageId] = useState<number | null>(null);
+  const [editComponentsPackageName, setEditComponentsPackageName] = useState('');
+  const [isEditComponentsDialogOpen, setIsEditComponentsDialogOpen] = useState(false);
   const { toast } = useToast();
-
-  const API_URL = 'https://functions.poehali.dev/da819482-69ab-4b27-954a-cd7ac2026f30';
 
   useEffect(() => {
     fetchPackages();
@@ -140,6 +133,7 @@ export default function GlassPackageManager() {
   const openCreateDialog = () => {
     setEditingPackage({
       package_name: '',
+      package_article: '',
       product_type: 'shower_cabin',
       glass_type: 'Прозрачное',
       glass_thickness: 8,
@@ -157,6 +151,19 @@ export default function GlassPackageManager() {
   const openEditDialog = (pkg: GlassPackage) => {
     setEditingPackage(pkg);
     setIsDialogOpen(true);
+  };
+
+  const openViewDialog = (pkg: GlassPackage) => {
+    setViewPackageId(pkg.package_id);
+    setViewPackageName(pkg.package_name);
+    setViewPackageArticle(pkg.package_article || 'Не указан');
+    setIsViewDialogOpen(true);
+  };
+
+  const openEditComponentsDialog = (pkg: GlassPackage) => {
+    setEditComponentsPackageId(pkg.package_id);
+    setEditComponentsPackageName(pkg.package_name);
+    setIsEditComponentsDialogOpen(true);
   };
 
   return (
@@ -184,14 +191,25 @@ export default function GlassPackageManager() {
             </DialogHeader>
 
             <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="package_name">Название комплекта *</Label>
-                <Input
-                  id="package_name"
-                  value={editingPackage?.package_name || ''}
-                  onChange={(e) => setEditingPackage({ ...editingPackage, package_name: e.target.value })}
-                  placeholder="Душевая кабина Премиум"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="package_name">Название комплекта *</Label>
+                  <Input
+                    id="package_name"
+                    value={editingPackage?.package_name || ''}
+                    onChange={(e) => setEditingPackage({ ...editingPackage, package_name: e.target.value })}
+                    placeholder="Душевая кабина Премиум"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="package_article">Артикул комплекта</Label>
+                  <Input
+                    id="package_article"
+                    value={editingPackage?.package_article || ''}
+                    onChange={(e) => setEditingPackage({ ...editingPackage, package_article: e.target.value })}
+                    placeholder="ДАПЛ2СДРС2"
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -345,6 +363,22 @@ export default function GlassPackageManager() {
                     <Button
                       variant="ghost"
                       size="sm"
+                      onClick={() => openViewDialog(pkg)}
+                      title="Посмотреть состав"
+                    >
+                      <Icon name="Package" size={16} />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => openEditComponentsDialog(pkg)}
+                      title="Редактировать фурнитуру"
+                    >
+                      <Icon name="Settings" size={16} />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       onClick={() => openEditDialog(pkg)}
                     >
                       <Icon name="Edit" size={16} />
@@ -358,8 +392,13 @@ export default function GlassPackageManager() {
                     </Button>
                   </div>
                 </CardTitle>
-                <CardDescription>
-                  {PRODUCT_TYPES.find(t => t.value === pkg.product_type)?.label}
+                <CardDescription className="flex items-center gap-2">
+                  <span>{PRODUCT_TYPES.find(t => t.value === pkg.product_type)?.label}</span>
+                  {pkg.package_article && (
+                    <span className="font-mono font-semibold text-xs bg-muted px-2 py-1 rounded">
+                      {pkg.package_article}
+                    </span>
+                  )}
                 </CardDescription>
               </CardHeader>
               <CardContent className="text-sm space-y-2">
@@ -387,6 +426,26 @@ export default function GlassPackageManager() {
             </Card>
           ))}
         </div>
+      )}
+
+      {viewPackageId && (
+        <PackageComponentsDialog
+          open={isViewDialogOpen}
+          onOpenChange={setIsViewDialogOpen}
+          packageId={viewPackageId}
+          packageName={viewPackageName}
+          packageArticle={viewPackageArticle}
+        />
+      )}
+
+      {editComponentsPackageId && (
+        <PackageComponentsEditDialog
+          open={isEditComponentsDialogOpen}
+          onOpenChange={setIsEditComponentsDialogOpen}
+          packageId={editComponentsPackageId}
+          packageName={editComponentsPackageName}
+          onSave={fetchPackages}
+        />
       )}
     </div>
   );

@@ -9,6 +9,38 @@ export interface GlassComponent {
   is_active: boolean;
 }
 
+export interface GlassPackage {
+  package_id?: number;
+  package_name: string;
+  package_article: string;
+  product_type: string;
+  glass_type: string;
+  glass_thickness: number;
+  glass_price_per_sqm: number;
+  hardware_set: string;
+  hardware_price: number;
+  markup_percent: number;
+  installation_price: number;
+  description: string;
+  is_active: boolean;
+}
+
+export interface PackageComponent {
+  id?: number;
+  package_id: number;
+  component_id: number;
+  quantity: number;
+  is_required: boolean;
+  component_name?: string;
+  component_type?: string;
+  article?: string;
+  characteristics?: string;
+  unit?: string;
+  price_per_unit?: number;
+  component?: GlassComponent;
+  alternatives?: GlassComponent[];
+}
+
 export const API_URL = 'https://functions.poehali.dev/da819482-69ab-4b27-954a-cd7ac2026f30';
 
 export const componentTypes = [
