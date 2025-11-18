@@ -22,12 +22,37 @@ export function useExcelImport(packages: GlassPackage[], fetchPackages: () => vo
     return 'other';
   };
 
-  const findOrCreateComponent = async (comp: any): Promise<number> => {
-    const componentsResponse = await fetch(`${API_URL}?action=glass_components`);
-    const componentsData = await componentsResponse.json();
-    const existingComponent = componentsData.components?.find((c: any) => c.article === comp.article);
+  const findOrCreateComponent = async (comp: any, allComponents: any[]): Promise<number> => {
+    const existingComponent = allComponents.find((c: any) => c.article === comp.article);
 
     if (existingComponent) {
+      const hasChanges = 
+        existingComponent.component_name !== comp.name ||
+        existingComponent.characteristics !== comp.characteristics ||
+        existingComponent.unit !== comp.unit ||
+        existingComponent.price_per_unit !== comp.price;
+
+      if (hasChanges) {
+        const componentType = detectComponentType(comp.name);
+        await fetch(API_URL, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'glass_component',
+            component: {
+              component_id: existingComponent.component_id,
+              component_name: comp.name,
+              component_type: componentType,
+              article: comp.article,
+              characteristics: comp.characteristics,
+              unit: comp.unit,
+              price_per_unit: comp.price,
+              is_active: existingComponent.is_active
+            }
+          })
+        });
+      }
+
       return existingComponent.component_id;
     }
 
@@ -178,10 +203,14 @@ export function useExcelImport(packages: GlassPackage[], fetchPackages: () => vo
         });
       }
 
+      const componentsResponse = await fetch(`${API_URL}?action=glass_components`);
+      const componentsData = await componentsResponse.json();
+      const allComponents = componentsData.components || [];
+
       const componentMap = new Map<string, number>();
 
       for (const comp of components.filter(c => !c.isAlternative)) {
-        const componentId = await findOrCreateComponent(comp);
+        const componentId = await findOrCreateComponent(comp, allComponents);
         componentMap.set(comp.article, componentId);
 
         await fetch(API_URL, {
@@ -202,7 +231,7 @@ export function useExcelImport(packages: GlassPackage[], fetchPackages: () => vo
         const mainComponentId = componentMap.get(alt.mainComponentArticle!);
         if (!mainComponentId) continue;
 
-        const altComponentId = await findOrCreateComponent(alt);
+        const altComponentId = await findOrCreateComponent(alt, allComponents);
 
         await fetch(API_URL, {
           method: 'POST',
