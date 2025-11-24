@@ -10,6 +10,8 @@ interface AmoCRMConnectionFormProps {
   amoCRMClientSecret: string;
   loading: boolean;
   authUrl: string;
+  redirectUrl: string;
+  disconnectUrl: string;
   setAmoCRMDomain: (value: string) => void;
   setAmoCRMClientId: (value: string) => void;
   setAmoCRMClientSecret: (value: string) => void;
@@ -23,12 +25,17 @@ export default function AmoCRMConnectionForm({
   amoCRMClientSecret,
   loading,
   authUrl,
+  redirectUrl,
+  disconnectUrl,
   setAmoCRMDomain,
   setAmoCRMClientId,
   setAmoCRMClientSecret,
   handleAmoCRMConnect,
   handleAuthorize,
 }: AmoCRMConnectionFormProps) {
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+  };
   return (
     <>
       <div className="space-y-3">
@@ -44,11 +51,44 @@ export default function AmoCRMConnectionForm({
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="font-semibold text-foreground">2.</span>
-                  <span>Укажите название "Калькулятор", оставьте "Предоставить доступ: Всё"</span>
+                  <span>Укажите название "Калькулятор", доступ: "Всё"</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="font-semibold text-foreground">3.</span>
-                  <span><strong>НЕ загружайте</strong> архив с кодом (оставьте пустым)</span>
+                  <div className="flex-1 space-y-1">
+                    <div><strong>НЕ загружайте</strong> архив с кодом</div>
+                    <div className="text-xs">Укажите эти ссылки:</div>
+                    <div className="space-y-1 mt-2">
+                      <div className="flex items-center gap-2 bg-background/50 p-2 rounded border">
+                        <div className="flex-1 overflow-hidden">
+                          <div className="text-xs font-medium mb-0.5">Ссылка для перенаправления:</div>
+                          <div className="text-xs font-mono truncate">{redirectUrl}</div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => copyToClipboard(redirectUrl)}
+                          className="shrink-0 h-7 w-7 p-0"
+                        >
+                          <Icon name="Copy" size={14} />
+                        </Button>
+                      </div>
+                      <div className="flex items-center gap-2 bg-background/50 p-2 rounded border">
+                        <div className="flex-1 overflow-hidden">
+                          <div className="text-xs font-medium mb-0.5">Ссылка хука об отключении:</div>
+                          <div className="text-xs font-mono truncate">{disconnectUrl}</div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => copyToClipboard(disconnectUrl)}
+                          className="shrink-0 h-7 w-7 p-0"
+                        >
+                          <Icon name="Copy" size={14} />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="font-semibold text-foreground">4.</span>

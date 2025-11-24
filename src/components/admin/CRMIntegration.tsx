@@ -180,6 +180,8 @@ export default function CRMIntegration() {
                 amoCRMClientSecret={amoCRMClientSecret}
                 loading={loading}
                 authUrl={authUrl}
+                redirectUrl={redirectUrl}
+                disconnectUrl={disconnectUrl}
                 setAmoCRMDomain={setAmoCRMDomain}
                 setAmoCRMClientId={setAmoCRMClientId}
                 setAmoCRMClientSecret={setAmoCRMClientSecret}
