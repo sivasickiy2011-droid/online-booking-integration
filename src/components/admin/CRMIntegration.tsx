@@ -103,7 +103,7 @@ export default function CRMIntegration() {
   };
 
   const handleAuthorize = () => {
-    if (!amoCRMDomain || !amoCRMClientId) {
+    if (!amoCRMClientId) {
       toast({
         title: 'Ошибка',
         description: 'Сначала сохраните данные интеграции',
@@ -112,20 +112,51 @@ export default function CRMIntegration() {
       return;
     }
 
-    const cleanDomain = amoCRMDomain.replace('https://', '').replace('http://', '').trim();
-    const fullDomain = cleanDomain.includes('.amocrm.ru') ? cleanDomain : `${cleanDomain}.amocrm.ru`;
-    const redirectUri = encodeURIComponent('https://functions.poehali.dev/1ef24008-864d-4313-add9-5085c0faed3b?action=callback&widget_type=' + mode);
-    const directAuthUrl = `https://${fullDomain}/oauth?client_id=${amoCRMClientId}&state=${mode}&redirect_uri=${redirectUri}&response_type=code`;
+    const redirectUri = encodeURIComponent('https://functions.poehali.dev/1ef24008-864d-4313-add9-5085c0faed3b');
+    const directAuthUrl = `https://www.amocrm.ru/oauth?client_id=${amoCRMClientId}&state=${mode}&mode=post_message`;
     
-    window.open(directAuthUrl, '_blank', 'width=600,height=700');
-    setTimeout(() => {
-      setAmoCRMConnected(true);
-      localStorage.setItem(`amocrm_connected_${mode}`, 'true');
-      toast({
-        title: 'Авторизация завершена',
-        description: 'Интеграция активна'
+    const authWindow = window.open(directAuthUrl, 'amoCRM Auth', 'width=600,height=700');
+    
+    window.addEventListener('message', (event) => {
+      if (event.origin !== 'https://www.amocrm.ru') return;
+      
+      if (event.data && event.data.code && event.data.referer) {
+        const code = event.data.code;
+        const referer = event.data.referer;
+        const domain = referer.replace('.amocrm.ru', '').replace('https://', '');
+        
+        authWindow?.close();
+        
+        setAmoCRMDomain(domain);
+        setAmoCRMConnected(true);
+        localStorage.setItem(`amocrm_domain_${mode}`, domain);
+        localStorage.setItem(`amocrm_connected_${mode}`, 'true');
+        
+        toast({
+          title: 'Авторизация завершена',
+          description: `Подключен аккаунт ${domain}`
+        });
+        
+        exchangeCodeForTokens(code, domain);
+      }
+    }, { once: true });
+  };
+
+  const exchangeCodeForTokens = async (code: string, domain: string) => {
+    try {
+      await fetch('https://functions.poehali.dev/1ef24008-864d-4313-add9-5085c0faed3b', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'exchange_code',
+          code: code,
+          widget_type: mode,
+          domain: domain
+        })
       });
-    }, 3000);
+    } catch (error) {
+      console.error('Failed to exchange code:', error);
+    }
   };
 
   const handleAmoCRMDisconnect = async () => {

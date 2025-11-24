@@ -101,6 +101,13 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             result = save_integration(integration)
             return json_response(result)
         
+        elif action == 'exchange_code':
+            code = body_data.get('code', '')
+            widget_type = body_data.get('widget_type', '')
+            domain = body_data.get('domain', '')
+            result = exchange_code_for_tokens_v2(code, widget_type, domain)
+            return json_response(result)
+        
         elif action == 'disconnect':
             widget_type = body_data.get('widget_type', '')
             domain = body_data.get('domain', '')
@@ -120,6 +127,68 @@ def get_base_url(event: Dict[str, Any]) -> str:
     headers = event.get('headers', {})
     host = headers.get('host') or headers.get('Host') or 'localhost:3000'
     return f"https://{host}"
+
+
+def exchange_code_for_tokens_v2(code: str, widget_type: str, domain: str) -> Dict[str, Any]:
+    """Обменять код авторизации на токены (новая версия с передачей домена)"""
+    conn = get_db_connection()
+    if not conn:
+        return {'success': False, 'error': 'Database connection failed'}
+    
+    try:
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        cursor.execute(
+            "SELECT client_id, client_secret FROM amocrm_integrations WHERE widget_type = %s AND is_active = true LIMIT 1",
+            (widget_type,)
+        )
+        integration = cursor.fetchone()
+        
+        if not integration:
+            return {'success': False, 'error': 'Integration not found'}
+        
+        client_id = integration['client_id']
+        client_secret = integration['client_secret']
+        
+        clean_domain = domain.replace('https://', '').replace('http://', '').strip()
+        if not clean_domain.endswith('.amocrm.ru'):
+            clean_domain = f"{clean_domain}.amocrm.ru"
+        
+        redirect_uri = "https://functions.poehali.dev/1ef24008-864d-4313-add9-5085c0faed3b"
+        
+        token_url = f"https://{clean_domain}/oauth2/access_token"
+        response = requests.post(token_url, json={
+            'client_id': client_id,
+            'client_secret': client_secret,
+            'grant_type': 'authorization_code',
+            'code': code,
+            'redirect_uri': redirect_uri
+        })
+        
+        if response.status_code != 200:
+            return {'success': False, 'error': f'Token exchange failed: {response.text}'}
+        
+        tokens = response.json()
+        access_token = tokens.get('access_token')
+        refresh_token = tokens.get('refresh_token')
+        expires_in = tokens.get('expires_in', 86400)
+        
+        expires_at = datetime.now() + timedelta(seconds=expires_in)
+        
+        cursor.execute(
+            """UPDATE amocrm_integrations 
+               SET access_token = %s, refresh_token = %s, token_expires_at = %s, domain = %s, updated_at = CURRENT_TIMESTAMP
+               WHERE widget_type = %s""",
+            (access_token, refresh_token, expires_at, clean_domain, widget_type)
+        )
+        conn.commit()
+        
+        return {'success': True}
+    
+    except Exception as e:
+        return {'success': False, 'error': str(e)}
+    
+    finally:
+        conn.close()
 
 
 def exchange_code_for_tokens(code: str, widget_type: str) -> Dict[str, Any]:
