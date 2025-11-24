@@ -117,8 +117,13 @@ export default function CRMIntegration() {
     
     const authWindow = window.open(directAuthUrl, 'amoCRM Auth', 'width=600,height=700');
     
-    window.addEventListener('message', (event) => {
-      if (event.origin !== 'https://www.amocrm.ru') return;
+    const messageHandler = (event: MessageEvent) => {
+      console.log('Received postMessage:', event.origin, event.data);
+      
+      if (event.origin !== 'https://www.amocrm.ru') {
+        console.log('Wrong origin, ignoring');
+        return;
+      }
       
       if (event.data && event.data.code && event.data.referer) {
         const code = event.data.code;
@@ -138,8 +143,11 @@ export default function CRMIntegration() {
         });
         
         exchangeCodeForTokens(code, domain);
+        window.removeEventListener('message', messageHandler);
       }
-    }, { once: true });
+    };
+    
+    window.addEventListener('message', messageHandler);
   };
 
   const exchangeCodeForTokens = async (code: string, domain: string) => {
