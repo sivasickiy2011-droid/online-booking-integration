@@ -1,0 +1,44 @@
+{
+  "tests": [
+    {
+      "name": "Test OPTIONS CORS",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Test save integration",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "save_integration",
+        "integration": {
+          "widget_type": "glass",
+          "domain": "test.amocrm.ru",
+          "client_id": "test-client",
+          "client_secret": "test-secret"
+        }
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Test disconnect integration",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "disconnect",
+        "widget_type": "glass",
+        "domain": "test.amocrm.ru"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

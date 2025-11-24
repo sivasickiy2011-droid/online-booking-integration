@@ -1,4 +1,5 @@
 {
+  "amocrm-oauth": "https://functions.poehali.dev/1ef24008-864d-4313-add9-5085c0faed3b",
   "amocrm-integration": "https://functions.poehali.dev/f2361ce7-1320-4407-a36c-6d917575c9a4",
   "glass-api": "https://functions.poehali.dev/ea1cedae-dffe-4589-a9c8-05fcc5e540be",
   "send-email": "https://functions.poehali.dev/96f87426-ceea-4c3f-8145-2924f5b55361",

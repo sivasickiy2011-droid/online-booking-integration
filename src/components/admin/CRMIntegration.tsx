@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,17 +6,31 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
+import { useAppMode } from '@/contexts/AppModeContext';
 import Icon from '@/components/ui/icon';
 
 export default function CRMIntegration() {
+  const { mode } = useAppMode();
   const [amoCRMConnected, setAmoCRMConnected] = useState(false);
   const [amoCRMDomain, setAmoCRMDomain] = useState('');
   const [amoCRMClientId, setAmoCRMClientId] = useState('');
   const [amoCRMClientSecret, setAmoCRMClientSecret] = useState('');
+  const [authUrl, setAuthUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
   const widgetUrl = `${window.location.origin}/widget`;
+  const redirectUrl = 'https://functions.poehali.dev/1ef24008-864d-4313-add9-5085c0faed3b';
+  const disconnectUrl = 'https://functions.poehali.dev/1ef24008-864d-4313-add9-5085c0faed3b';
+
+  useEffect(() => {
+    const savedDomain = localStorage.getItem(`amocrm_domain_${mode}`);
+    const savedConnected = localStorage.getItem(`amocrm_connected_${mode}`);
+    if (savedDomain && savedConnected === 'true') {
+      setAmoCRMDomain(savedDomain);
+      setAmoCRMConnected(true);
+    }
+  }, [mode]);
 
   const handleAmoCRMConnect = async () => {
     if (!amoCRMDomain || !amoCRMClientId || !amoCRMClientSecret) {
@@ -30,12 +44,13 @@ export default function CRMIntegration() {
 
     setLoading(true);
     try {
-      const response = await fetch('https://functions.poehali.dev/f2361ce7-1320-4407-a36c-6d917575c9a4', {
+      const response = await fetch('https://functions.poehali.dev/1ef24008-864d-4313-add9-5085c0faed3b', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          action: 'save_connection',
-          connection: {
+          action: 'save_integration',
+          integration: {
+            widget_type: mode,
             domain: amoCRMDomain,
             client_id: amoCRMClientId,
             client_secret: amoCRMClientSecret
@@ -45,20 +60,20 @@ export default function CRMIntegration() {
 
       const data = await response.json();
       
-      if (data.success) {
-        setAmoCRMConnected(true);
-        localStorage.setItem('amocrm_domain', amoCRMDomain);
+      if (data.success && data.auth_url) {
+        setAuthUrl(data.auth_url);
+        localStorage.setItem(`amocrm_domain_${mode}`, amoCRMDomain);
         toast({
-          title: 'Подключение установлено',
-          description: 'amoCRM успешно подключена'
+          title: 'Данные сохранены',
+          description: 'Теперь нажмите "Авторизоваться" для получения токенов'
         });
       } else {
-        throw new Error('Connection failed');
+        throw new Error('Save failed');
       }
     } catch (error) {
       toast({
         title: 'Ошибка',
-        description: 'Не удалось подключить amoCRM',
+        description: 'Не удалось сохранить данные',
         variant: 'destructive'
       });
     } finally {
@@ -66,15 +81,51 @@ export default function CRMIntegration() {
     }
   };
 
-  const handleAmoCRMDisconnect = () => {
-    setAmoCRMConnected(false);
-    setAmoCRMDomain('');
-    setAmoCRMClientId('');
-    setAmoCRMClientSecret('');
-    toast({
-      title: 'Отключено',
-      description: 'amoCRM отключена'
-    });
+  const handleAuthorize = () => {
+    if (authUrl) {
+      window.open(authUrl, '_blank', 'width=600,height=700');
+      setTimeout(() => {
+        setAmoCRMConnected(true);
+        localStorage.setItem(`amocrm_connected_${mode}`, 'true');
+        toast({
+          title: 'Авторизация завершена',
+          description: 'Интеграция активна'
+        });
+      }, 3000);
+    }
+  };
+
+  const handleAmoCRMDisconnect = async () => {
+    try {
+      await fetch('https://functions.poehali.dev/1ef24008-864d-4313-add9-5085c0faed3b', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'disconnect',
+          widget_type: mode,
+          domain: amoCRMDomain
+        })
+      });
+
+      setAmoCRMConnected(false);
+      setAmoCRMDomain('');
+      setAmoCRMClientId('');
+      setAmoCRMClientSecret('');
+      setAuthUrl('');
+      localStorage.removeItem(`amocrm_domain_${mode}`);
+      localStorage.removeItem(`amocrm_connected_${mode}`);
+      
+      toast({
+        title: 'Отключено',
+        description: 'amoCRM отключена'
+      });
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось отключить интеграцию',
+        variant: 'destructive'
+      });
+    }
   };
 
   const copyToClipboard = (text: string) => {
@@ -146,15 +197,26 @@ export default function CRMIntegration() {
                   {loading ? (
                     <>
                       <Icon name="Loader2" size={16} className="mr-2 animate-spin" />
-                      Подключение...
+                      Сохранение...
                     </>
                   ) : (
                     <>
-                      <Icon name="Link" size={16} className="mr-2" />
-                      Подключить к amoCRM
+                      <Icon name="Save" size={16} className="mr-2" />
+                      Сохранить данные
                     </>
                   )}
                 </Button>
+                
+                {authUrl && (
+                  <Button 
+                    onClick={handleAuthorize} 
+                    variant="default"
+                    className="w-full"
+                  >
+                    <Icon name="Key" size={16} className="mr-2" />
+                    Авторизоваться в amoCRM
+                  </Button>
+                )}
               </>
             ) : (
               <div className="space-y-4">
@@ -187,14 +249,70 @@ export default function CRMIntegration() {
                 <Separator />
 
                 <div className="space-y-2">
-                  <Label>Инструкция по подключению</Label>
-                  <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
-                    <li>Откройте настройки amoCRM → Настройки → API</li>
-                    <li>Создайте новую интеграцию</li>
-                    <li>В разделе "Виджеты" добавьте URL виджета</li>
-                    <li>Укажите права доступа: чтение и запись сделок</li>
-                    <li>Сохраните изменения</li>
-                  </ol>
+                  <Label>Данные для создания интеграции в amoCRM</Label>
+                  <div className="space-y-3 text-sm">
+                    <div className="space-y-1">
+                      <div className="text-muted-foreground">Ссылка для перенаправления (Redirect URI):</div>
+                      <div className="flex gap-2">
+                        <Input 
+                          value={redirectUrl} 
+                          readOnly 
+                          className="font-mono text-xs"
+                        />
+                        <Button 
+                          variant="outline" 
+                          size="icon"
+                          onClick={() => copyToClipboard(redirectUrl)}
+                        >
+                          <Icon name="Copy" size={16} />
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-1">
+                      <div className="text-muted-foreground">Ссылка для хука об отключении:</div>
+                      <div className="flex gap-2">
+                        <Input 
+                          value={disconnectUrl} 
+                          readOnly 
+                          className="font-mono text-xs"
+                        />
+                        <Button 
+                          variant="outline" 
+                          size="icon"
+                          onClick={() => copyToClipboard(disconnectUrl)}
+                        >
+                          <Icon name="Copy" size={16} />
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="text-muted-foreground font-medium">Права доступа (в разделе "Безопасность"):</div>
+                      <div className="space-y-1 ml-4">
+                        <div className="flex items-center gap-2">
+                          <Icon name="CheckCircle2" size={14} className="text-green-500" />
+                          <span>Чтение сделок</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Icon name="CheckCircle2" size={14} className="text-green-500" />
+                          <span>Запись сделок</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Icon name="CheckCircle2" size={14} className="text-green-500" />
+                          <span>Чтение контактов</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Icon name="CheckCircle2" size={14} className="text-green-500" />
+                          <span>Добавление примечаний</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Icon name="CheckCircle2" size={14} className="text-green-500" />
+                          <span>Работа с товарами</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 <Separator />
