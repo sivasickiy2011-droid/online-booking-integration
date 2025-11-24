@@ -21,8 +21,6 @@ export default function CRMIntegration() {
   const widgetUrl = `${window.location.origin}/widget`;
   const redirectUrl = 'https://functions.poehali.dev/1ef24008-864d-4313-add9-5085c0faed3b';
   const disconnectUrl = 'https://functions.poehali.dev/1ef24008-864d-4313-add9-5085c0faed3b';
-  const secretsWebhookUrl = 'https://functions.poehali.dev/b36ed86d-725e-46cf-ae17-357a926d3a4d';
-  const [showOAuthButton, setShowOAuthButton] = useState(false);
 
   useEffect(() => {
     const savedDomain = localStorage.getItem(`amocrm_domain_${mode}`);
@@ -53,56 +51,7 @@ export default function CRMIntegration() {
     }
   }, [mode, toast]);
 
-  useEffect(() => {
-    if (showOAuthButton && !amoCRMConnected) {
-      const loadOAuthButton = () => {
-        const container = document.getElementById('amocrm-oauth-button');
-        
-        if (!container) {
-          console.error('OAuth button container not found');
-          return;
-        }
 
-        console.log('Loading amoCRM OAuth button...');
-        
-        const script = document.createElement('script');
-        script.className = 'amocrm_oauth';
-        script.charset = 'utf-8';
-        script.setAttribute('data-name', 'Калькулятор');
-        script.setAttribute('data-description', 'Виджет калькулятора в карточке сделки');
-        script.setAttribute('data-redirect_uri', redirectUrl);
-        script.setAttribute('data-secrets_uri', secretsWebhookUrl);
-        script.setAttribute('data-logo', `${window.location.origin}/amocrm-integration-logo.svg`);
-        script.setAttribute('data-scopes', 'crm');
-        script.setAttribute('data-title', 'Подключить amoCRM');
-        script.setAttribute('data-compact', 'false');
-        script.setAttribute('data-color', 'blue');
-        script.setAttribute('data-mode', 'popup');
-        script.setAttribute('data-state', mode);
-        script.src = 'https://www.amocrm.ru/auth/button.min.js';
-        
-        script.onload = () => {
-          console.log('amoCRM OAuth script loaded successfully');
-        };
-        
-        script.onerror = () => {
-          console.error('Failed to load amoCRM OAuth script');
-        };
-        
-        container.innerHTML = '';
-        container.appendChild(script);
-      };
-
-      setTimeout(loadOAuthButton, 100);
-      
-      return () => {
-        const container = document.getElementById('amocrm-oauth-button');
-        if (container) {
-          container.innerHTML = '';
-        }
-      };
-    }
-  }, [showOAuthButton, amoCRMConnected, mode, redirectUrl, secretsWebhookUrl]);
 
   const handleAmoCRMConnect = async () => {
     if (!amoCRMDomain || !amoCRMClientId || !amoCRMClientSecret) {
@@ -231,11 +180,9 @@ export default function CRMIntegration() {
                 amoCRMClientSecret={amoCRMClientSecret}
                 loading={loading}
                 authUrl={authUrl}
-                showOAuthButton={showOAuthButton}
                 setAmoCRMDomain={setAmoCRMDomain}
                 setAmoCRMClientId={setAmoCRMClientId}
                 setAmoCRMClientSecret={setAmoCRMClientSecret}
-                setShowOAuthButton={setShowOAuthButton}
                 handleAmoCRMConnect={handleAmoCRMConnect}
                 handleAuthorize={handleAuthorize}
               />

@@ -10,11 +10,9 @@ interface AmoCRMConnectionFormProps {
   amoCRMClientSecret: string;
   loading: boolean;
   authUrl: string;
-  showOAuthButton: boolean;
   setAmoCRMDomain: (value: string) => void;
   setAmoCRMClientId: (value: string) => void;
   setAmoCRMClientSecret: (value: string) => void;
-  setShowOAuthButton: (value: boolean) => void;
   handleAmoCRMConnect: () => void;
   handleAuthorize: () => void;
 }
@@ -25,11 +23,9 @@ export default function AmoCRMConnectionForm({
   amoCRMClientSecret,
   loading,
   authUrl,
-  showOAuthButton,
   setAmoCRMDomain,
   setAmoCRMClientId,
   setAmoCRMClientSecret,
-  setShowOAuthButton,
   handleAmoCRMConnect,
   handleAuthorize,
 }: AmoCRMConnectionFormProps) {
@@ -38,46 +34,30 @@ export default function AmoCRMConnectionForm({
       <div className="space-y-3">
         <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
           <div className="flex items-start gap-3">
-            <Icon name="Zap" size={20} className="text-blue-500 mt-0.5" />
-            <div className="space-y-2 flex-1">
-              <div className="font-medium">Быстрая установка (рекомендуется)</div>
-              <div className="text-xs text-muted-foreground">
-                Подключите amoCRM одним кликом. Интеграция создастся автоматически.
-              </div>
-              
-              {!showOAuthButton ? (
-                <Button
-                  onClick={() => setShowOAuthButton(true)}
-                  className="w-full mt-2"
-                >
-                  <Icon name="Link" size={16} className="mr-2" />
-                  Показать кнопку подключения
-                </Button>
-              ) : (
-                <div className="space-y-2 mt-2">
-                  <a
-                    href="https://www.amocrm.ru/oauth/register"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-all hover:shadow-lg"
-                  >
-                    <Icon name="Link" size={16} className="mr-2" />
-                    Подключить amoCRM через OAuth
-                  </a>
-                  <p className="text-xs text-muted-foreground text-center">
-                    Откроется страница регистрации интеграции в amoCRM
-                  </p>
-                </div>
-              )}
+            <Icon name="Info" size={20} className="text-blue-500 mt-0.5" />
+            <div className="space-y-3 flex-1">
+              <div className="font-medium">Как подключить amoCRM</div>
+              <ol className="space-y-2 text-sm text-muted-foreground ml-4">
+                <li className="flex items-start gap-2">
+                  <span className="font-semibold text-foreground">1.</span>
+                  <span>Войдите в amoCRM → Настройки → Интеграции</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="font-semibold text-foreground">2.</span>
+                  <span>Нажмите "Создать интеграцию" (название: "Калькулятор")</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="font-semibold text-foreground">3.</span>
+                  <span>Скопируйте Client ID и Secret в поля ниже</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="font-semibold text-foreground">4.</span>
+                  <span>Нажмите "Сохранить данные" и "Авторизоваться"</span>
+                </li>
+              </ol>
             </div>
           </div>
         </div>
-      </div>
-
-      <Separator />
-
-      <div className="text-center text-sm text-muted-foreground">
-        или настройте вручную
       </div>
 
       <Separator />
