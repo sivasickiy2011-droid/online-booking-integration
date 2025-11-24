@@ -1,0 +1,38 @@
+{
+  "tests": [
+    {
+      "name": "Test OPTIONS request for CORS",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Test GET without params",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 400,
+      "expectedBody": {
+        "error": "Invalid request"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Test POST save connection",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "save_connection",
+        "connection": {
+          "domain": "test.amocrm.ru",
+          "client_id": "test-client-id",
+          "client_secret": "test-secret"
+        }
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

@@ -30,12 +30,31 @@ export default function CRMIntegration() {
 
     setLoading(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setAmoCRMConnected(true);
-      toast({
-        title: 'Подключение установлено',
-        description: 'amoCRM успешно подключена'
+      const response = await fetch('https://functions.poehali.dev/f2361ce7-1320-4407-a36c-6d917575c9a4', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'save_connection',
+          connection: {
+            domain: amoCRMDomain,
+            client_id: amoCRMClientId,
+            client_secret: amoCRMClientSecret
+          }
+        })
       });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        setAmoCRMConnected(true);
+        localStorage.setItem('amocrm_domain', amoCRMDomain);
+        toast({
+          title: 'Подключение установлено',
+          description: 'amoCRM успешно подключена'
+        });
+      } else {
+        throw new Error('Connection failed');
+      }
     } catch (error) {
       toast({
         title: 'Ошибка',
