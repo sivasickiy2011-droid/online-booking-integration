@@ -3,7 +3,7 @@
     "name": "widget.calculator",
     "description": "Калькулятор стоимости прямо в сделке",
     "short_description": "Калькулятор",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "init_once": false,
     "locale": ["ru"],
     "is_crm": true,
@@ -16,7 +16,7 @@
   "locations": [
     "lcard"
   ],
-  "version": "1.0.1",
+  "version": "1.0.2",
   "locale": {
     "ru": {
       "widget": {
