@@ -3,7 +3,7 @@
     "name": "widget.calculator",
     "description": "widget.description",
     "short_description": "widget.short_description",
-    "version": "1.0.5",
+    "version": "1.0.6",
     "init_once": false,
     "locale": ["ru"],
     "is_crm": true,
@@ -11,10 +11,11 @@
       "link": "https://t.me/+QgiLIa1gFRY4Y2Iy",
       "email": "support@poehali.dev"
     },
-    "installation": true
+    "installation": true,
+    "settings": {}
   },
   "locations": [
     "lcard"
   ],
-  "version": "1.0.5"
+  "version": "1.0.6"
 }
