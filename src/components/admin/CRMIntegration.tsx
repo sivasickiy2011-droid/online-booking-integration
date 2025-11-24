@@ -103,17 +103,29 @@ export default function CRMIntegration() {
   };
 
   const handleAuthorize = () => {
-    if (authUrl) {
-      window.open(authUrl, '_blank', 'width=600,height=700');
-      setTimeout(() => {
-        setAmoCRMConnected(true);
-        localStorage.setItem(`amocrm_connected_${mode}`, 'true');
-        toast({
-          title: 'Авторизация завершена',
-          description: 'Интеграция активна'
-        });
-      }, 3000);
+    if (!amoCRMDomain || !amoCRMClientId) {
+      toast({
+        title: 'Ошибка',
+        description: 'Сначала сохраните данные интеграции',
+        variant: 'destructive'
+      });
+      return;
     }
+
+    const cleanDomain = amoCRMDomain.replace('https://', '').replace('http://', '').trim();
+    const fullDomain = cleanDomain.includes('.amocrm.ru') ? cleanDomain : `${cleanDomain}.amocrm.ru`;
+    const redirectUri = encodeURIComponent('https://functions.poehali.dev/1ef24008-864d-4313-add9-5085c0faed3b?action=callback&widget_type=' + mode);
+    const directAuthUrl = `https://${fullDomain}/oauth?client_id=${amoCRMClientId}&state=${mode}&redirect_uri=${redirectUri}&response_type=code`;
+    
+    window.open(directAuthUrl, '_blank', 'width=600,height=700');
+    setTimeout(() => {
+      setAmoCRMConnected(true);
+      localStorage.setItem(`amocrm_connected_${mode}`, 'true');
+      toast({
+        title: 'Авторизация завершена',
+        description: 'Интеграция активна'
+      });
+    }, 3000);
   };
 
   const handleAmoCRMDisconnect = async () => {
