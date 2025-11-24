@@ -92,7 +92,13 @@ export default function AmoCRMConnectionForm({
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="font-semibold text-foreground">4.</span>
-                  <span>Скопируйте Client ID и Client Secret в форму ниже</span>
+                  <div className="flex-1">
+                    <div>Скопируйте данные из amoCRM:</div>
+                    <ul className="text-xs mt-1 space-y-0.5 ml-4">
+                      <li>• <strong>ID интеграции</strong> → Client ID</li>
+                      <li>• Нажмите "Сгенерировать ключ" → <strong>Секретный ключ</strong> → Client Secret</li>
+                    </ul>
+                  </div>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="font-semibold text-foreground">5.</span>
@@ -116,20 +122,26 @@ export default function AmoCRMConnectionForm({
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="amocrm-client-id">Client ID</Label>
+        <Label htmlFor="amocrm-client-id">
+          Client ID
+          <span className="text-xs text-muted-foreground ml-2">(ID интеграции из amoCRM)</span>
+        </Label>
         <Input
           id="amocrm-client-id"
-          placeholder="Введите Client ID"
+          placeholder="ff4f3486-8682-4b04-ad35-62e23ba8d839"
           value={amoCRMClientId}
           onChange={(e) => setAmoCRMClientId(e.target.value)}
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="amocrm-client-secret">Client Secret</Label>
+        <Label htmlFor="amocrm-client-secret">
+          Client Secret
+          <span className="text-xs text-muted-foreground ml-2">(Секретный ключ из amoCRM)</span>
+        </Label>
         <Input
           id="amocrm-client-secret"
           type="password"
-          placeholder="Введите Client Secret"
+          placeholder="Сгенерируйте и вставьте секретный ключ"
           value={amoCRMClientSecret}
           onChange={(e) => setAmoCRMClientSecret(e.target.value)}
         />
