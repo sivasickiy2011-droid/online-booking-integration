@@ -49,7 +49,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             
             redirect_uri = f"https://functions.poehali.dev/1ef24008-864d-4313-add9-5085c0faed3b?action=callback&widget_type={widget_type}"
             encoded_redirect_uri = quote(redirect_uri, safe='')
-            auth_url = f"https://{clean_domain}/oauth?client_id={client_id}&state={widget_type}&redirect_uri={encoded_redirect_uri}&response_type=code"
+            auth_url = f"https://{clean_domain}/oauth2/authorize?client_id={client_id}&state={widget_type}&redirect_uri={encoded_redirect_uri}&response_type=code&mode=post_message"
             
             print(f"[DEBUG] Redirecting to: {auth_url}")
             
