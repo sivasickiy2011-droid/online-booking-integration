@@ -175,9 +175,9 @@ def exchange_code_for_tokens_v2(code: str, widget_type: str, domain: str) -> Dic
         
         cursor.execute(
             """UPDATE amocrm_integrations 
-               SET access_token = %s, refresh_token = %s, token_expires_at = %s, domain = %s, updated_at = CURRENT_TIMESTAMP
-               WHERE widget_type = %s""",
-            (access_token, refresh_token, expires_at, clean_domain, widget_type)
+               SET access_token = %s, refresh_token = %s, token_expires_at = %s, updated_at = CURRENT_TIMESTAMP
+               WHERE widget_type = %s AND is_active = true""",
+            (access_token, refresh_token, expires_at, widget_type)
         )
         conn.commit()
         
