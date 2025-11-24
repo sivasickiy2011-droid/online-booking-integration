@@ -42,8 +42,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             if not domain or not client_id:
                 return error_response('Missing domain or client_id')
             
-            redirect_uri = f"{get_base_url(event)}/amocrm-oauth?action=callback&widget_type={widget_type}"
-            auth_url = f"https://{domain}/oauth?client_id={client_id}&state={widget_type}&redirect_uri={redirect_uri}&response_type=code"
+            clean_domain = domain.replace('https://', '').replace('http://', '')
+            redirect_uri = f"https://functions.poehali.dev/1ef24008-864d-4313-add9-5085c0faed3b?action=callback&widget_type={widget_type}"
+            auth_url = f"https://{clean_domain}/oauth?client_id={client_id}&state={widget_type}&redirect_uri={redirect_uri}&response_type=code"
             
             return {
                 'statusCode': 302,
@@ -135,7 +136,7 @@ def exchange_code_for_tokens(code: str, widget_type: str) -> Dict[str, Any]:
         client_id = integration['client_id']
         client_secret = integration['client_secret']
         
-        redirect_uri = f"https://functions.poehali.dev/amocrm-oauth?action=callback&widget_type={widget_type}"
+        redirect_uri = f"https://functions.poehali.dev/1ef24008-864d-4313-add9-5085c0faed3b?action=callback&widget_type={widget_type}"
         
         token_url = f"https://{domain}/oauth2/access_token"
         response = requests.post(token_url, json={
@@ -173,7 +174,7 @@ def exchange_code_for_tokens(code: str, widget_type: str) -> Dict[str, Any]:
 def save_integration(integration: Dict[str, Any]) -> Dict[str, Any]:
     """Сохранить данные интеграции"""
     widget_type = integration.get('widget_type', 'glass')
-    domain = integration.get('domain', '')
+    domain = integration.get('domain', '').replace('https://', '').replace('http://', '')
     client_id = integration.get('client_id', '')
     client_secret = integration.get('client_secret', '')
     
@@ -201,7 +202,7 @@ def save_integration(integration: Dict[str, Any]) -> Dict[str, Any]:
         return {
             'success': True,
             'message': 'Integration saved',
-            'auth_url': f"https://functions.poehali.dev/amocrm-oauth?action=authorize&widget_type={widget_type}&domain={domain}&client_id={client_id}"
+            'auth_url': f"https://functions.poehali.dev/1ef24008-864d-4313-add9-5085c0faed3b?action=authorize&widget_type={widget_type}&domain={domain}&client_id={client_id}"
         }
     
     finally:
@@ -250,7 +251,7 @@ def refresh_access_token(widget_type: str) -> Dict[str, Any]:
         client_secret = integration['client_secret']
         refresh_token = integration['refresh_token']
         
-        redirect_uri = f"https://functions.poehali.dev/amocrm-oauth?action=callback&widget_type={widget_type}"
+        redirect_uri = f"https://functions.poehali.dev/1ef24008-864d-4313-add9-5085c0faed3b?action=callback&widget_type={widget_type}"
         
         token_url = f"https://{domain}/oauth2/access_token"
         response = requests.post(token_url, json={
