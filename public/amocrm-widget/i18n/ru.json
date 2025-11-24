@@ -1,8 +1,6 @@
 {
-  "widget.calculator": {
-    "name": "Калькулятор",
-    "description": "Расчет стоимости изделий прямо в карточке сделки",
-    "short_description": "Калькулятор стоимости"
+  "widget": {
+    "calculator": "Калькулятор"
   },
   "settings": {
     "title": "Настройки калькулятора"
