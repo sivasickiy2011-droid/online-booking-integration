@@ -14,9 +14,7 @@
     "installation": true
   },
   "locations": [
-    "lcard-1",
-    "lcard-2",
-    "lcard-3"
+    "lcard"
   ],
   "version": "1.0.0",
   "locale": {
