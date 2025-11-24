@@ -343,12 +343,11 @@ export default function CRMIntegration() {
                       </div>
 
                       <div className="space-y-2">
-                        <div className="text-sm font-medium">Шаг 3: Настройка карточки</div>
+                        <div className="text-sm font-medium">Шаг 3: Проверка работы</div>
                         <div className="text-xs text-muted-foreground space-y-1">
-                          <div>1. Откройте любую сделку</div>
-                          <div>2. Справа нажмите "Настроить карточку" (⚙️)</div>
-                          <div>3. Перетащите виджет "Калькулятор" в правую колонку</div>
-                          <div>4. Сохраните</div>
+                          <div>1. Откройте любую сделку в amoCRM</div>
+                          <div>2. В правой колонке автоматически появится виджет "Калькулятор"</div>
+                          <div>3. Виджет будет отображаться во всех сделках автоматически</div>
                         </div>
                       </div>
 
