@@ -8,6 +8,7 @@ Returns: HTTP response dict или редирект
 import json
 import os
 from typing import Dict, Any, Optional
+from urllib.parse import quote
 import requests
 from datetime import datetime, timedelta
 import psycopg2
@@ -44,7 +45,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             
             clean_domain = domain.replace('https://', '').replace('http://', '')
             redirect_uri = f"https://functions.poehali.dev/1ef24008-864d-4313-add9-5085c0faed3b?action=callback&widget_type={widget_type}"
-            auth_url = f"https://{clean_domain}/oauth?client_id={client_id}&state={widget_type}&redirect_uri={redirect_uri}&response_type=code"
+            encoded_redirect_uri = quote(redirect_uri, safe='')
+            auth_url = f"https://{clean_domain}/oauth?client_id={client_id}&state={widget_type}&redirect_uri={encoded_redirect_uri}&response_type=code"
             
             return {
                 'statusCode': 302,
