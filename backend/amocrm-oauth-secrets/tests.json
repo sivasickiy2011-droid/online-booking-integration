@@ -1,0 +1,34 @@
+{
+  "tests": [
+    {
+      "name": "Receive amoCRM credentials webhook",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "client_id": "abc123-def456",
+        "client_secret": "secret_key_example",
+        "state": "calculator"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "status": "ok",
+        "message": "string",
+        "widget_type": "calculator"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Handle missing credentials",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "state": "calculator"
+      },
+      "expectedStatus": 400,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

@@ -22,6 +22,8 @@ export default function CRMIntegration() {
   const widgetUrl = `${window.location.origin}/widget`;
   const redirectUrl = 'https://functions.poehali.dev/1ef24008-864d-4313-add9-5085c0faed3b';
   const disconnectUrl = 'https://functions.poehali.dev/1ef24008-864d-4313-add9-5085c0faed3b';
+  const secretsWebhookUrl = 'https://functions.poehali.dev/b36ed86d-725e-46cf-ae17-357a926d3a4d';
+  const [showOAuthButton, setShowOAuthButton] = useState(false);
 
   useEffect(() => {
     const savedDomain = localStorage.getItem(`amocrm_domain_${mode}`);
@@ -30,7 +32,63 @@ export default function CRMIntegration() {
       setAmoCRMDomain(savedDomain);
       setAmoCRMConnected(true);
     }
-  }, [mode]);
+
+    // Проверяем URL на наличие параметров OAuth callback
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+    const referer = urlParams.get('referer');
+    const state = urlParams.get('state');
+    
+    if (code && referer && state === mode) {
+      // Успешная авторизация через OAuth button
+      const domain = referer.replace('.amocrm.ru', '').replace('https://', '');
+      setAmoCRMDomain(domain);
+      setAmoCRMConnected(true);
+      localStorage.setItem(`amocrm_domain_${mode}`, domain);
+      localStorage.setItem(`amocrm_connected_${mode}`, 'true');
+      
+      // Очищаем URL от параметров
+      window.history.replaceState({}, document.title, window.location.pathname);
+      
+      toast({
+        title: 'Успешно подключено!',
+        description: `amoCRM домен ${domain} подключен`,
+      });
+    }
+  }, [mode, toast]);
+
+  useEffect(() => {
+    if (showOAuthButton && !amoCRMConnected) {
+      // Динамически загружаем скрипт кнопки amoCRM
+      const script = document.createElement('script');
+      script.className = 'amocrm_oauth';
+      script.charset = 'utf-8';
+      script.setAttribute('data-name', 'Калькулятор');
+      script.setAttribute('data-description', 'Виджет калькулятора в карточке сделки');
+      script.setAttribute('data-redirect_uri', redirectUrl);
+      script.setAttribute('data-secrets_uri', secretsWebhookUrl);
+      script.setAttribute('data-logo', `${window.location.origin}/amocrm-integration-logo.svg`);
+      script.setAttribute('data-scopes', 'crm');
+      script.setAttribute('data-title', 'Подключить amoCRM');
+      script.setAttribute('data-compact', 'false');
+      script.setAttribute('data-color', 'blue');
+      script.setAttribute('data-mode', 'popup');
+      script.setAttribute('data-state', mode);
+      script.src = 'https://www.amocrm.ru/auth/button.min.js';
+      
+      const container = document.getElementById('amocrm-oauth-button');
+      if (container) {
+        container.innerHTML = '';
+        container.appendChild(script);
+      }
+      
+      return () => {
+        if (container) {
+          container.innerHTML = '';
+        }
+      };
+    }
+  }, [showOAuthButton, amoCRMConnected, mode, redirectUrl, secretsWebhookUrl]);
 
   const handleAmoCRMConnect = async () => {
     if (!amoCRMDomain || !amoCRMClientId || !amoCRMClientSecret) {
@@ -161,6 +219,37 @@ export default function CRMIntegration() {
           <CardContent className="space-y-4">
             {!amoCRMConnected ? (
               <>
+                <div className="space-y-3">
+                  <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                    <div className="flex items-start gap-3">
+                      <Icon name="Zap" size={20} className="text-blue-500 mt-0.5" />
+                      <div className="space-y-2 flex-1">
+                        <div className="font-medium">Быстрая установка (рекомендуется)</div>
+                        <div className="text-xs text-muted-foreground">
+                          Подключите amoCRM одним кликом. Интеграция создастся автоматически.
+                        </div>
+                        <div id="amocrm-oauth-button" className="mt-3"></div>
+                        <Button
+                          onClick={() => setShowOAuthButton(true)}
+                          className="w-full mt-2"
+                          disabled={showOAuthButton}
+                        >
+                          <Icon name="Link" size={16} className="mr-2" />
+                          {showOAuthButton ? 'Нажмите кнопку выше для подключения' : 'Показать кнопку подключения'}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <Separator />
+
+                <div className="text-center text-sm text-muted-foreground">
+                  или настройте вручную
+                </div>
+
+                <Separator />
+
                 <div className="space-y-2">
                   <Label htmlFor="amocrm-domain">Домен amoCRM</Label>
                   <Input
@@ -317,42 +406,63 @@ export default function CRMIntegration() {
 
                 <Separator />
 
+                <Alert className="bg-green-500/10 border-green-500/20">
+                  <Icon name="CheckCircle2" size={16} className="text-green-500" />
+                  <AlertDescription className="ml-2">
+                    <div className="space-y-2">
+                      <div className="font-medium">✅ Интеграция подключена автоматически!</div>
+                      <div className="text-xs text-muted-foreground space-y-1">
+                        <div>• Интеграция создана в вашем аккаунте amoCRM</div>
+                        <div>• Client ID и Client Secret получены автоматически</div>
+                        <div>• Теперь добавьте виджет в интеграцию (см. ниже)</div>
+                      </div>
+                    </div>
+                  </AlertDescription>
+                </Alert>
+
+                <Separator />
+
                 <Alert>
                   <Icon name="Info" size={16} />
                   <AlertDescription className="ml-2">
                     <div className="space-y-3">
-                      <div className="font-medium">Как встроить калькулятор в amoCRM:</div>
+                      <div className="font-medium">Следующий шаг: Добавить виджет в интеграцию</div>
                       
                       <div className="space-y-2">
-                        <div className="text-sm font-medium">Шаг 1: Подготовка файлов виджета</div>
-                        <div className="text-xs text-muted-foreground space-y-1">
-                          <div>• Файлы виджета находятся в <code className="bg-muted px-1 rounded">public/amocrm-widget/</code></div>
-                          <div>• Разместите их на вашем домене по HTTPS</div>
-                          <div>• Проверьте доступность: <code className="bg-muted px-1 rounded">{window.location.origin}/amocrm-widget/manifest.json</code></div>
+                        <div className="text-sm font-medium">1. Проверьте доступность файлов виджета</div>
+                        <div className="text-xs text-muted-foreground">
+                          <div>Файлы должны быть доступны по HTTPS:</div>
+                          <div className="mt-1">
+                            <code className="bg-muted px-1 py-0.5 rounded text-xs block">
+                              {window.location.origin}/amocrm-widget/manifest.json
+                            </code>
+                          </div>
                         </div>
                       </div>
 
                       <div className="space-y-2">
-                        <div className="text-sm font-medium">Шаг 2: Добавление виджета в интеграцию</div>
+                        <div className="text-sm font-medium">2. Зайдите в настройки интеграции в amoCRM</div>
                         <div className="text-xs text-muted-foreground space-y-1">
-                          <div>1. В настройках вашей интеграции → раздел "Виджеты"</div>
-                          <div>2. Нажмите "Добавить виджет"</div>
-                          <div>3. Укажите путь к manifest.json: <code className="bg-muted px-1 rounded">{window.location.origin}/amocrm-widget/manifest.json</code></div>
-                          <div>4. Сохраните и установите виджет</div>
+                          <div>• Настройки → Интеграции</div>
+                          <div>• Найдите интеграцию "Калькулятор"</div>
+                          <div>• Перейдите в раздел "Виджеты"</div>
                         </div>
                       </div>
 
                       <div className="space-y-2">
-                        <div className="text-sm font-medium">Шаг 3: Проверка работы</div>
+                        <div className="text-sm font-medium">3. Добавьте виджет</div>
                         <div className="text-xs text-muted-foreground space-y-1">
-                          <div>1. Откройте любую сделку в amoCRM</div>
-                          <div>2. В правой колонке автоматически появится виджет "Калькулятор"</div>
-                          <div>3. Виджет будет отображаться во всех сделках автоматически</div>
+                          <div>• Нажмите "Добавить виджет"</div>
+                          <div>• Путь к manifest: <code className="bg-muted px-1 rounded">{window.location.origin}/amocrm-widget/manifest.json</code></div>
+                          <div>• Сохраните изменения</div>
                         </div>
                       </div>
 
-                      <div className="mt-3 p-2 bg-yellow-500/10 rounded text-xs">
-                        <strong>Важно:</strong> Виджет должен быть размещен на HTTPS и доступен публично без авторизации
+                      <div className="space-y-2">
+                        <div className="text-sm font-medium">4. Проверьте работу</div>
+                        <div className="text-xs text-muted-foreground">
+                          Откройте любую сделку — виджет появится справа автоматически!
+                        </div>
                       </div>
                     </div>
                   </AlertDescription>

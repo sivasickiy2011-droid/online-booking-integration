@@ -1,0 +1,21 @@
+<svg width="400" height="272" viewBox="0 0 400 272" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="272" fill="#3B82F6"/>
+  <g transform="translate(100, 76)">
+    <!-- Calculator icon -->
+    <rect x="0" y="0" width="200" height="120" rx="12" fill="white"/>
+    
+    <!-- Display -->
+    <rect x="16" y="16" width="168" height="32" rx="6" fill="#E0E7FF"/>
+    
+    <!-- Buttons grid -->
+    <circle cx="36" cy="72" r="12" fill="#3B82F6"/>
+    <circle cx="72" cy="72" r="12" fill="#3B82F6"/>
+    <circle cx="108" cy="72" r="12" fill="#3B82F6"/>
+    <circle cx="144" cy="72" r="12" fill="#3B82F6"/>
+    
+    <circle cx="36" cy="100" r="12" fill="#3B82F6"/>
+    <circle cx="72" cy="100" r="12" fill="#3B82F6"/>
+    <circle cx="108" cy="100" r="12" fill="#3B82F6"/>
+    <circle cx="144" cy="100" r="12" fill="#10B981"/>
+  </g>
+</svg>
