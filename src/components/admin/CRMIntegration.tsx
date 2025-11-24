@@ -112,59 +112,34 @@ export default function CRMIntegration() {
       return;
     }
 
-    const redirectUri = encodeURIComponent('https://functions.poehali.dev/1ef24008-864d-4313-add9-5085c0faed3b');
     const directAuthUrl = `https://www.amocrm.ru/oauth?client_id=${amoCRMClientId}&state=${mode}&mode=post_message`;
     
     const authWindow = window.open(directAuthUrl, 'amoCRM Auth', 'width=600,height=700');
     
-    const messageHandler = (event: MessageEvent) => {
-      console.log('Received postMessage:', event.origin, event.data);
-      
-      if (event.origin !== 'https://www.amocrm.ru') {
-        console.log('Wrong origin, ignoring');
-        return;
+    const checkAuthInterval = setInterval(() => {
+      try {
+        if (authWindow?.closed) {
+          clearInterval(checkAuthInterval);
+          const connected = localStorage.getItem(`amocrm_connected_${mode}`);
+          const domain = localStorage.getItem(`amocrm_domain_${mode}`);
+          
+          if (connected === 'true' && domain) {
+            setAmoCRMDomain(domain);
+            setAmoCRMConnected(true);
+            toast({
+              title: 'Авторизация завершена',
+              description: `Подключен аккаунт ${domain}`
+            });
+          }
+        }
+      } catch (e) {
+        // Ignore cross-origin errors
       }
-      
-      if (event.data && event.data.code && event.data.referer) {
-        const code = event.data.code;
-        const referer = event.data.referer;
-        const domain = referer.replace('.amocrm.ru', '').replace('https://', '');
-        
-        authWindow?.close();
-        
-        setAmoCRMDomain(domain);
-        setAmoCRMConnected(true);
-        localStorage.setItem(`amocrm_domain_${mode}`, domain);
-        localStorage.setItem(`amocrm_connected_${mode}`, 'true');
-        
-        toast({
-          title: 'Авторизация завершена',
-          description: `Подключен аккаунт ${domain}`
-        });
-        
-        exchangeCodeForTokens(code, domain);
-        window.removeEventListener('message', messageHandler);
-      }
-    };
+    }, 500);
     
-    window.addEventListener('message', messageHandler);
-  };
-
-  const exchangeCodeForTokens = async (code: string, domain: string) => {
-    try {
-      await fetch('https://functions.poehali.dev/1ef24008-864d-4313-add9-5085c0faed3b', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'exchange_code',
-          code: code,
-          widget_type: mode,
-          domain: domain
-        })
-      });
-    } catch (error) {
-      console.error('Failed to exchange code:', error);
-    }
+    setTimeout(() => {
+      clearInterval(checkAuthInterval);
+    }, 120000);
   };
 
   const handleAmoCRMDisconnect = async () => {

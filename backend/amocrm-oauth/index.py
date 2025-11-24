@@ -35,42 +35,17 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     action = params.get('action', '')
     
     if method == 'GET':
-        if action == 'authorize':
-            widget_type = params.get('widget_type', 'glass')
-            domain = params.get('domain', '')
-            client_id = params.get('client_id', '')
-            
-            if not domain or not client_id:
-                return error_response('Missing domain or client_id')
-            
-            clean_domain = domain.replace('https://', '').replace('http://', '').strip()
-            if not clean_domain.endswith('.amocrm.ru'):
-                clean_domain = f"{clean_domain}.amocrm.ru"
-            
-            redirect_uri = f"https://functions.poehali.dev/1ef24008-864d-4313-add9-5085c0faed3b?action=callback&widget_type={widget_type}"
-            encoded_redirect_uri = quote(redirect_uri, safe='')
-            auth_url = f"https://{clean_domain}/oauth2/authorize?client_id={client_id}&state={widget_type}&redirect_uri={encoded_redirect_uri}&response_type=code&mode=post_message"
-            
-            print(f"[DEBUG] Redirecting to: {auth_url}")
-            
-            return {
-                'statusCode': 302,
-                'headers': {
-                    'Location': auth_url,
-                    'Access-Control-Allow-Origin': '*'
-                },
-                'body': ''
-            }
+        code = params.get('code', '')
+        referer = params.get('referer', '')
+        state = params.get('state', '')
         
-        elif action == 'callback':
-            code = params.get('code', '')
-            widget_type = params.get('widget_type', 'glass')
-            state = params.get('state', '')
+        if code and referer:
+            widget_type = state if state else 'glass'
+            domain = referer.replace('https://', '').replace('http://', '').replace('.amocrm.ru', '').strip()
             
-            if not code:
-                return error_response('Authorization failed')
+            print(f"[DEBUG] OAuth callback: code={code[:10]}..., domain={domain}, state={widget_type}")
             
-            result = exchange_code_for_tokens(code, widget_type)
+            result = exchange_code_for_tokens_v2(code, widget_type, domain)
             
             if result.get('success'):
                 return {
@@ -79,18 +54,42 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         'Content-Type': 'text/html',
                         'Access-Control-Allow-Origin': '*'
                     },
-                    'body': '''
+                    'body': f'''
                         <html>
-                        <body>
-                            <h2>✅ Авторизация успешна!</h2>
-                            <p>Токены получены и сохранены. Можно закрыть это окно.</p>
-                            <script>window.close();</script>
+                        <head><meta charset="utf-8"></head>
+                        <body style="font-family: Arial; text-align: center; padding: 50px;">
+                            <h2 style="color: #4CAF50;">✅ Авторизация успешна!</h2>
+                            <p>Токены получены и сохранены.</p>
+                            <p>Домен: {domain}</p>
+                            <p>Окно закроется автоматически...</p>
+                            <script>
+                                localStorage.setItem('amocrm_connected_{widget_type}', 'true');
+                                localStorage.setItem('amocrm_domain_{widget_type}', '{domain}');
+                                setTimeout(() => window.close(), 1500);
+                            </script>
                         </body>
                         </html>
                     '''
                 }
             else:
-                return error_response('Failed to get tokens')
+                error_msg = result.get('error', 'Unknown error')
+                return {
+                    'statusCode': 400,
+                    'headers': {
+                        'Content-Type': 'text/html',
+                        'Access-Control-Allow-Origin': '*'
+                    },
+                    'body': f'''
+                        <html>
+                        <head><meta charset="utf-8"></head>
+                        <body style="font-family: Arial; text-align: center; padding: 50px;">
+                            <h2 style="color: #f44336;">❌ Ошибка авторизации</h2>
+                            <p>{error_msg}</p>
+                            <p>Закройте окно и попробуйте снова.</p>
+                        </body>
+                        </html>
+                    '''
+                }
     
     if method == 'POST':
         body_data = json.loads(event.get('body', '{}'))
