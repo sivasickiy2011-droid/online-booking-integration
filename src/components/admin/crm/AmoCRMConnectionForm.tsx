@@ -40,19 +40,23 @@ export default function AmoCRMConnectionForm({
               <ol className="space-y-2 text-sm text-muted-foreground ml-4">
                 <li className="flex items-start gap-2">
                   <span className="font-semibold text-foreground">1.</span>
-                  <span>Войдите в amoCRM → Настройки → Интеграции</span>
+                  <span>В amoCRM: Настройки → Интеграции → Создать интеграцию</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="font-semibold text-foreground">2.</span>
-                  <span>Нажмите "Создать интеграцию" (название: "Калькулятор")</span>
+                  <span>Укажите название "Калькулятор", оставьте "Предоставить доступ: Всё"</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="font-semibold text-foreground">3.</span>
-                  <span>Скопируйте Client ID и Secret в поля ниже</span>
+                  <span><strong>НЕ загружайте</strong> архив с кодом (оставьте пустым)</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="font-semibold text-foreground">4.</span>
-                  <span>Нажмите "Сохранить данные" и "Авторизоваться"</span>
+                  <span>Скопируйте Client ID и Client Secret в форму ниже</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="font-semibold text-foreground">5.</span>
+                  <span>Нажмите "Сохранить данные", затем "Авторизоваться"</span>
                 </li>
               </ol>
             </div>
