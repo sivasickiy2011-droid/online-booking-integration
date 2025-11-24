@@ -320,17 +320,40 @@ export default function CRMIntegration() {
                 <Alert>
                   <Icon name="Info" size={16} />
                   <AlertDescription className="ml-2">
-                    <div className="space-y-2">
-                      <div className="font-medium">Как добавить калькулятор в карточку сделки:</div>
-                      <ol className="text-sm space-y-1 ml-4 list-decimal">
-                        <li>Настройки → Поля → Сделки</li>
-                        <li>Добавить поле типа "Кнопка" или "Ссылка"</li>
-                        <li>URL: <code className="bg-muted px-1 py-0.5 rounded text-xs">{widgetUrl}</code></li>
-                        <li>Открывать в: "Модальном окне"</li>
-                        <li>Добавить поле в воронку</li>
-                      </ol>
-                      <div className="text-xs text-muted-foreground mt-2">
-                        Теперь в каждой сделке будет кнопка для открытия калькулятора! 
+                    <div className="space-y-3">
+                      <div className="font-medium">Как встроить калькулятор в amoCRM:</div>
+                      
+                      <div className="space-y-2">
+                        <div className="text-sm font-medium">Шаг 1: Подготовка файлов виджета</div>
+                        <div className="text-xs text-muted-foreground space-y-1">
+                          <div>• Файлы виджета находятся в <code className="bg-muted px-1 rounded">public/amocrm-widget/</code></div>
+                          <div>• Разместите их на вашем домене по HTTPS</div>
+                          <div>• Проверьте доступность: <code className="bg-muted px-1 rounded">{window.location.origin}/amocrm-widget/manifest.json</code></div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="text-sm font-medium">Шаг 2: Добавление виджета в интеграцию</div>
+                        <div className="text-xs text-muted-foreground space-y-1">
+                          <div>1. В настройках вашей интеграции → раздел "Виджеты"</div>
+                          <div>2. Нажмите "Добавить виджет"</div>
+                          <div>3. Укажите путь к manifest.json: <code className="bg-muted px-1 rounded">{window.location.origin}/amocrm-widget/manifest.json</code></div>
+                          <div>4. Сохраните и установите виджет</div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="text-sm font-medium">Шаг 3: Настройка карточки</div>
+                        <div className="text-xs text-muted-foreground space-y-1">
+                          <div>1. Откройте любую сделку</div>
+                          <div>2. Справа нажмите "Настроить карточку" (⚙️)</div>
+                          <div>3. Перетащите виджет "Калькулятор" в правую колонку</div>
+                          <div>4. Сохраните</div>
+                        </div>
+                      </div>
+
+                      <div className="mt-3 p-2 bg-yellow-500/10 rounded text-xs">
+                        <strong>Важно:</strong> Виджет должен быть размещен на HTTPS и доступен публично без авторизации
                       </div>
                     </div>
                   </AlertDescription>
