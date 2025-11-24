@@ -44,15 +44,23 @@ export default function AmoCRMConnectionForm({
               <div className="text-xs text-muted-foreground">
                 Подключите amoCRM одним кликом. Интеграция создастся автоматически.
               </div>
-              <div id="amocrm-oauth-button" className="mt-3"></div>
-              <Button
-                onClick={() => setShowOAuthButton(true)}
-                className="w-full mt-2"
-                disabled={showOAuthButton}
-              >
-                <Icon name="Link" size={16} className="mr-2" />
-                {showOAuthButton ? 'Нажмите кнопку выше для подключения' : 'Показать кнопку подключения'}
-              </Button>
+              
+              {!showOAuthButton ? (
+                <Button
+                  onClick={() => setShowOAuthButton(true)}
+                  className="w-full mt-2"
+                >
+                  <Icon name="Link" size={16} className="mr-2" />
+                  Показать кнопку подключения
+                </Button>
+              ) : (
+                <div className="space-y-2 mt-2">
+                  <div id="amocrm-oauth-button" className="min-h-[44px]"></div>
+                  <p className="text-xs text-muted-foreground text-center">
+                    Если кнопка не появилась, используйте ручную настройку ниже
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>

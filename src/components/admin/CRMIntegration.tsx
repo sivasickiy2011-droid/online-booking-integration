@@ -55,29 +55,48 @@ export default function CRMIntegration() {
 
   useEffect(() => {
     if (showOAuthButton && !amoCRMConnected) {
-      const script = document.createElement('script');
-      script.className = 'amocrm_oauth';
-      script.charset = 'utf-8';
-      script.setAttribute('data-name', 'Калькулятор');
-      script.setAttribute('data-description', 'Виджет калькулятора в карточке сделки');
-      script.setAttribute('data-redirect_uri', redirectUrl);
-      script.setAttribute('data-secrets_uri', secretsWebhookUrl);
-      script.setAttribute('data-logo', `${window.location.origin}/amocrm-integration-logo.svg`);
-      script.setAttribute('data-scopes', 'crm');
-      script.setAttribute('data-title', 'Подключить amoCRM');
-      script.setAttribute('data-compact', 'false');
-      script.setAttribute('data-color', 'blue');
-      script.setAttribute('data-mode', 'popup');
-      script.setAttribute('data-state', mode);
-      script.src = 'https://www.amocrm.ru/auth/button.min.js';
-      
-      const container = document.getElementById('amocrm-oauth-button');
-      if (container) {
+      const loadOAuthButton = () => {
+        const container = document.getElementById('amocrm-oauth-button');
+        
+        if (!container) {
+          console.error('OAuth button container not found');
+          return;
+        }
+
+        console.log('Loading amoCRM OAuth button...');
+        
+        const script = document.createElement('script');
+        script.className = 'amocrm_oauth';
+        script.charset = 'utf-8';
+        script.setAttribute('data-name', 'Калькулятор');
+        script.setAttribute('data-description', 'Виджет калькулятора в карточке сделки');
+        script.setAttribute('data-redirect_uri', redirectUrl);
+        script.setAttribute('data-secrets_uri', secretsWebhookUrl);
+        script.setAttribute('data-logo', `${window.location.origin}/amocrm-integration-logo.svg`);
+        script.setAttribute('data-scopes', 'crm');
+        script.setAttribute('data-title', 'Подключить amoCRM');
+        script.setAttribute('data-compact', 'false');
+        script.setAttribute('data-color', 'blue');
+        script.setAttribute('data-mode', 'popup');
+        script.setAttribute('data-state', mode);
+        script.src = 'https://www.amocrm.ru/auth/button.min.js';
+        
+        script.onload = () => {
+          console.log('amoCRM OAuth script loaded successfully');
+        };
+        
+        script.onerror = () => {
+          console.error('Failed to load amoCRM OAuth script');
+        };
+        
         container.innerHTML = '';
         container.appendChild(script);
-      }
+      };
+
+      setTimeout(loadOAuthButton, 100);
       
       return () => {
+        const container = document.getElementById('amocrm-oauth-button');
         if (container) {
           container.innerHTML = '';
         }
