@@ -317,24 +317,45 @@ export default function CRMIntegration() {
 
                 <Separator />
 
+                <Alert>
+                  <Icon name="Info" size={16} />
+                  <AlertDescription className="ml-2">
+                    <div className="space-y-2">
+                      <div className="font-medium">Как добавить калькулятор в карточку сделки:</div>
+                      <ol className="text-sm space-y-1 ml-4 list-decimal">
+                        <li>Настройки → Поля → Сделки</li>
+                        <li>Добавить поле типа "Кнопка" или "Ссылка"</li>
+                        <li>URL: <code className="bg-muted px-1 py-0.5 rounded text-xs">{widgetUrl}</code></li>
+                        <li>Открывать в: "Модальном окне"</li>
+                        <li>Добавить поле в воронку</li>
+                      </ol>
+                      <div className="text-xs text-muted-foreground mt-2">
+                        Теперь в каждой сделке будет кнопка для открытия калькулятора! 
+                      </div>
+                    </div>
+                  </AlertDescription>
+                </Alert>
+
+                <Separator />
+
                 <div className="space-y-2">
-                  <Label>Настройки передачи данных</Label>
+                  <Label>Что умеет интеграция</Label>
                   <div className="space-y-2 text-sm text-muted-foreground">
                     <div className="flex items-start gap-2">
                       <Icon name="CheckCircle2" size={16} className="text-green-500 mt-0.5" />
-                      <span>Результаты калькуляции сохраняются в комментарий сделки</span>
+                      <span>Подгружает данные клиента из сделки автоматически</span>
                     </div>
                     <div className="flex items-start gap-2">
                       <Icon name="CheckCircle2" size={16} className="text-green-500 mt-0.5" />
-                      <span>Товары по калькуляции добавляются в сделку</span>
+                      <span>Сохраняет результаты расчета в примечания сделки</span>
                     </div>
                     <div className="flex items-start gap-2">
                       <Icon name="CheckCircle2" size={16} className="text-green-500 mt-0.5" />
-                      <span>PDF коммерческого предложения прикрепляется к сделке</span>
+                      <span>Добавляет товары по калькуляции в сделку</span>
                     </div>
                     <div className="flex items-start gap-2">
                       <Icon name="CheckCircle2" size={16} className="text-green-500 mt-0.5" />
-                      <span>Контактные данные клиента берутся из сделки</span>
+                      <span>Генерирует PDF коммерческого предложения</span>
                     </div>
                   </div>
                 </div>

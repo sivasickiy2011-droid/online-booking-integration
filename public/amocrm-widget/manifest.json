@@ -1,0 +1,31 @@
+{
+  "widget": {
+    "name": "widget.calculator",
+    "description": "Калькулятор стоимости прямо в сделке",
+    "short_description": "Калькулятор",
+    "version": "1.0.0",
+    "init_once": false,
+    "locale": ["ru"],
+    "is_crm": true,
+    "support": {
+      "link": "https://t.me/+QgiLIa1gFRY4Y2Iy",
+      "email": "support@poehali.dev"
+    }
+  },
+  "locations": [
+    "lcard-1",
+    "lcard-2",
+    "lcard-3"
+  ],
+  "version": "1.0.0",
+  "locale": {
+    "ru": {
+      "widget": {
+        "name": "Калькулятор",
+        "description": "Расчет стоимости изделий",
+        "short_description": "Калькулятор"
+      }
+    }
+  },
+  "settings": []
+}
