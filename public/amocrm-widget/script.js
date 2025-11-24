@@ -13,7 +13,7 @@ define(['jquery'], function($) {
         console.log('AmoCRM Widget bind_actions');
         
         var widget = this;
-        var widgetUrl = window.location.origin + '/widget';
+        var widgetUrl = 'https://043bf-rho.poehali.page/widget';
         
         // Получить текущую сделку
         var currentCard = widget.system().area;
