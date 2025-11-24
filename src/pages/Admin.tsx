@@ -11,6 +11,7 @@ import AdminLogin from '@/components/admin/AdminLogin';
 import AdminStats from '@/components/admin/AdminStats';
 import AdminAppointments from '@/components/admin/AdminAppointments';
 import AdminLogs from '@/components/admin/AdminLogs';
+import CRMIntegration from '@/components/admin/CRMIntegration';
 import GlassDashboard from '@/components/dashboards/GlassDashboard';
 import CountertopDashboard from '@/components/dashboards/CountertopDashboard';
 
@@ -26,7 +27,15 @@ export default function Admin() {
   const [appointments, setAppointments] = useState<any[]>([]);
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('stats');
+  const [activeTab, setActiveTab] = useState<string>('stats');
+
+  useEffect(() => {
+    if (mode === 'glass' || mode === 'countertop') {
+      setActiveTab('dashboard');
+    } else {
+      setActiveTab('stats');
+    }
+  }, [mode]);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -241,7 +250,7 @@ export default function Admin() {
 
         {mode === 'clinic' && (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3 max-w-2xl">
+            <TabsList className="grid w-full grid-cols-4 max-w-3xl">
               <TabsTrigger value="stats" className="flex items-center gap-2">
                 <Icon name="BarChart3" size={16} />
                 Статистика
@@ -249,6 +258,10 @@ export default function Admin() {
               <TabsTrigger value="appointments" className="flex items-center gap-2">
                 <Icon name="Calendar" size={16} />
                 Записи
+              </TabsTrigger>
+              <TabsTrigger value="crm" className="flex items-center gap-2">
+                <Icon name="Link" size={16} />
+                CRM
               </TabsTrigger>
               <TabsTrigger value="logs" className="flex items-center gap-2">
                 <Icon name="FileText" size={16} />
@@ -269,6 +282,10 @@ export default function Admin() {
               />
             </TabsContent>
 
+            <TabsContent value="crm">
+              <CRMIntegration />
+            </TabsContent>
+
             <TabsContent value="logs">
               <AdminLogs 
                 logs={logs}
@@ -279,9 +296,51 @@ export default function Admin() {
           </Tabs>
         )}
 
-        {mode === 'glass' && <GlassDashboard />}
+        {mode === 'glass' && (
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+            <TabsList className="grid w-full grid-cols-2 max-w-md">
+              <TabsTrigger value="dashboard" className="flex items-center gap-2">
+                <Icon name="LayoutDashboard" size={16} />
+                Управление
+              </TabsTrigger>
+              <TabsTrigger value="crm" className="flex items-center gap-2">
+                <Icon name="Link" size={16} />
+                CRM
+              </TabsTrigger>
+            </TabsList>
 
-        {mode === 'countertop' && <CountertopDashboard />}
+            <TabsContent value="dashboard">
+              <GlassDashboard />
+            </TabsContent>
+
+            <TabsContent value="crm">
+              <CRMIntegration />
+            </TabsContent>
+          </Tabs>
+        )}
+
+        {mode === 'countertop' && (
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+            <TabsList className="grid w-full grid-cols-2 max-w-md">
+              <TabsTrigger value="dashboard" className="flex items-center gap-2">
+                <Icon name="LayoutDashboard" size={16} />
+                Управление
+              </TabsTrigger>
+              <TabsTrigger value="crm" className="flex items-center gap-2">
+                <Icon name="Link" size={16} />
+                CRM
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="dashboard">
+              <CountertopDashboard />
+            </TabsContent>
+
+            <TabsContent value="crm">
+              <CRMIntegration />
+            </TabsContent>
+          </Tabs>
+        )}
       </div>
     </div>
   );
