@@ -55,9 +55,17 @@ export default function AmoCRMConnectionForm({
                 </Button>
               ) : (
                 <div className="space-y-2 mt-2">
-                  <div id="amocrm-oauth-button" className="min-h-[44px]"></div>
+                  <a
+                    href="https://www.amocrm.ru/oauth/register"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-all hover:shadow-lg"
+                  >
+                    <Icon name="Link" size={16} className="mr-2" />
+                    Подключить amoCRM через OAuth
+                  </a>
                   <p className="text-xs text-muted-foreground text-center">
-                    Если кнопка не появилась, используйте ручную настройку ниже
+                    Откроется страница регистрации интеграции в amoCRM
                   </p>
                 </div>
               )}
