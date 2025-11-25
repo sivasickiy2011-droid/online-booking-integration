@@ -9,21 +9,32 @@
     "logo_medium": "images/logo_medium.png",
     "logo_min": "images/logo_min.png",
     "logo_dp": "images/logo_dp.png",
-    "version": "1.2.0",
+    "version": "1.2.1",
     "interface_version": 2,
     "init_once": false,
     "locale": ["ru"],
     "installation": true,
     "support": {
       "email": "support@poehali.dev"
-    },
-    "tour": {
-      "is_tour": false
     }
   },
   "locations": [
     "lcard"
   ],
-  "lcard": {},
-  "settings": {}
+  "lcard": {
+    "menu": [
+      {
+        "title": "Открыть калькулятор",
+        "icon": "images/logo_min.png",
+        "id": "open_calculator"
+      }
+    ]
+  },
+  "settings": {
+    "widget_url": {
+      "name": "settings.widget_url",
+      "type": "text",
+      "required": false
+    }
+  }
 }
