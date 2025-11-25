@@ -1,6 +1,6 @@
 {
   "widget": {
-    "name": "widget.calculator",
+    "name": "widget.name",
     "description": "widget.description",
     "short_description": "widget.short_description",
     "logo": "images/logo.png",
@@ -9,22 +9,21 @@
     "logo_medium": "images/logo_medium.png",
     "logo_min": "images/logo_min.png",
     "logo_dp": "images/logo_dp.png",
-    "version": "1.1.5",
+    "version": "1.2.0",
     "interface_version": 2,
     "init_once": false,
     "locale": ["ru"],
     "installation": true,
     "support": {
-      "link": "https://t.me/+QgiLIa1gFRY4Y2Iy",
       "email": "support@poehali.dev"
+    },
+    "tour": {
+      "is_tour": false
     }
   },
-  "locations": ["lcard"],
-  "settings": {
-    "widget_enabled": {
-      "name": "settings.enabled",
-      "type": "text",
-      "required": false
-    }
-  }
+  "locations": [
+    "lcard"
+  ],
+  "lcard": {},
+  "settings": {}
 }
