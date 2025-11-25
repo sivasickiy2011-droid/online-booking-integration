@@ -10,10 +10,13 @@ define(['jquery'], function($) {
         return true;
       },
       bind_actions: function() {
-        console.log('AmoCRM Widget bind_actions');
+        console.log('AmoCRM Widget bind_actions START');
         
         var widget = this;
         var widgetUrl = 'https://043bf-rho.poehali.page/widget';
+        
+        console.log('Widget system:', widget.system());
+        console.log('Widget settings:', widget.get_settings());
         
         // Получить текущую сделку
         var currentCard = widget.system().area;
@@ -24,6 +27,8 @@ define(['jquery'], function($) {
           leadId = currentCard.id;
         }
         
+        console.log('Lead ID:', leadId, 'Domain:', accountDomain);
+        
         // Создать iframe с виджетом
         var $container = $('<div>', {
           'class': 'widget-calculator-container',
@@ -33,11 +38,13 @@ define(['jquery'], function($) {
             'border': '1px solid #e0e0e0',
             'border-radius': '4px',
             'overflow': 'hidden',
-            'margin-top': '10px'
+            'margin-top': '10px',
+            'background': '#f5f5f5'
           }
         });
         
         var iframeUrl = widgetUrl + '?lead_id=' + leadId + '&domain=' + accountDomain;
+        console.log('Iframe URL:', iframeUrl);
         
         var $iframe = $('<iframe>', {
           'src': iframeUrl,
@@ -51,8 +58,18 @@ define(['jquery'], function($) {
         
         $container.append($iframe);
         
-        // Добавить в правую колонку карточки сделки
-        $('.card-widgets__item_' + widget.get_settings().widget_code).append($container);
+        // Попробовать найти контейнер виджета
+        var widgetContainer = $('.card-widgets__item_' + widget.get_settings().widget_code);
+        console.log('Widget container found:', widgetContainer.length);
+        
+        if (widgetContainer.length > 0) {
+          widgetContainer.append($container);
+          console.log('Widget appended successfully');
+        } else {
+          // Альтернативный способ - добавить в основной контейнер виджетов
+          console.log('Trying alternative container');
+          $('.card-widgets').append($container);
+        }
         
         return true;
       },

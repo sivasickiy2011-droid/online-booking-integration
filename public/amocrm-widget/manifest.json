@@ -9,7 +9,7 @@
     "logo_medium": "images/logo_medium.png",
     "logo_min": "images/logo_min.png",
     "logo_dp": "images/logo_dp.png",
-    "version": "1.1.4",
+    "version": "1.1.5",
     "interface_version": 2,
     "init_once": false,
     "locale": ["ru"],
