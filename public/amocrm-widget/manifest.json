@@ -16,7 +16,8 @@
     "installation": true
   },
   "locations": [
-    "lcard"
+    "lcard",
+    "tlbar"
   ],
   "lcard": {
     "menu": [
@@ -26,6 +27,10 @@
         "handler": "open_calculator"
       }
     ]
+  },
+  "tlbar": {
+    "title": "Калькулятор",
+    "icon": "images/logo_min.png"
   },
   "settings": {
     "widget_url": {
