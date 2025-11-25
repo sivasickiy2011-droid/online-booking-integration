@@ -20,22 +20,8 @@
     }
   },
   "locations": [
-    "lcard",
-    "tlbar"
+    "lcard-1"
   ],
-  "lcard": {
-    "menu": [
-      {
-        "title": "Открыть калькулятор",
-        "icon": "images/logo_min.png",
-        "handler": "open_calculator"
-      }
-    ]
-  },
-  "tlbar": {
-    "title": "Калькулятор",
-    "icon": "images/logo_min.png"
-  },
   "settings": {
     "widget_url": {
       "name": "settings.widget_url",
