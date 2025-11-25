@@ -13,10 +13,7 @@
     "interface_version": 2,
     "init_once": false,
     "locale": ["ru"],
-    "installation": true,
-    "support": {
-      "email": "support@poehali.dev"
-    }
+    "installation": true
   },
   "locations": [
     "lcard"
@@ -26,7 +23,7 @@
       {
         "title": "Открыть калькулятор",
         "icon": "images/logo_min.png",
-        "id": "open_calculator"
+        "handler": "open_calculator"
       }
     ]
   },
