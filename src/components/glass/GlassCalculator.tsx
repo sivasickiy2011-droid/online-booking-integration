@@ -74,36 +74,40 @@ export default function GlassCalculator() {
             </div>
 
             {selectedPackage && (
-              <>
-                <PackageDetails
-                  selectedPackage={selectedPackage}
-                  selectedAlternatives={selectedAlternatives}
-                  expandedComponents={expandedComponents}
-                  onAlternativeSelect={handleAlternativeSelect}
-                  onToggleExpand={toggleComponentExpand}
-                />
+              <div className="flex flex-col lg:flex-row gap-6">
+                <div className="lg:w-1/3">
+                  <PackageDetails
+                    selectedPackage={selectedPackage}
+                    selectedAlternatives={selectedAlternatives}
+                    expandedComponents={expandedComponents}
+                    onAlternativeSelect={handleAlternativeSelect}
+                    onToggleExpand={toggleComponentExpand}
+                  />
+                </div>
 
-                <DimensionInputs
-                  unit={unit}
-                  partitionWidth={partitionWidth}
-                  partitionHeight={partitionHeight}
-                  doorWidth={doorWidth}
-                  doorHeight={doorHeight}
-                  hasDoor={selectedPackage.has_door || false}
-                  partitionCount={partitionCount}
-                  sectionWidths={sectionWidths}
-                  calculation={calculation}
-                  onUnitChange={handleUnitChange}
-                  onPartitionWidthChange={setPartitionWidth}
-                  onPartitionHeightChange={setPartitionHeight}
-                  onDoorWidthChange={setDoorWidth}
-                  onDoorHeightChange={setDoorHeight}
-                  onPartitionCountChange={handlePartitionCountChange}
-                  onSectionWidthChange={handleSectionWidthChange}
-                  onDimensionBlur={handleDimensionChange}
-                  convertToMm={convertToMm}
-                />
-              </>
+                <div className="lg:w-2/3">
+                  <DimensionInputs
+                    unit={unit}
+                    partitionWidth={partitionWidth}
+                    partitionHeight={partitionHeight}
+                    doorWidth={doorWidth}
+                    doorHeight={doorHeight}
+                    hasDoor={selectedPackage.has_door || false}
+                    partitionCount={partitionCount}
+                    sectionWidths={sectionWidths}
+                    calculation={calculation}
+                    onUnitChange={handleUnitChange}
+                    onPartitionWidthChange={setPartitionWidth}
+                    onPartitionHeightChange={setPartitionHeight}
+                    onDoorWidthChange={setDoorWidth}
+                    onDoorHeightChange={setDoorHeight}
+                    onPartitionCountChange={handlePartitionCountChange}
+                    onSectionWidthChange={handleSectionWidthChange}
+                    onDimensionBlur={handleDimensionChange}
+                    convertToMm={convertToMm}
+                  />
+                </div>
+              </div>
             )}
           </div>
 
