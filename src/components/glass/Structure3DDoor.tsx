@@ -5,7 +5,6 @@ interface Structure3DDoorProps {
   doorTL: { x: number; y: number };
   doorWidthPx: number;
   isDouble: boolean;
-  scaledHeight: number;
   doorFrameColor: string;
   doorGlassColor: string;
   handleColor: string;
@@ -18,12 +17,12 @@ export default function Structure3DDoor({
   doorTL,
   doorWidthPx,
   isDouble,
-  scaledHeight,
   doorFrameColor,
   doorGlassColor,
   handleColor
 }: Structure3DDoorProps) {
   const frameThickness = 8;
+  const doorHeight = Math.abs(doorTL.y - doorBL.y);
 
   return (
     <g>
@@ -109,17 +108,17 @@ export default function Structure3DDoor({
 
       <rect
         x={doorBL.x - 3}
-        y={doorBL.y + scaledHeight * 0.05}
+        y={doorBL.y + (doorTL.y - doorBL.y) * 0.05}
         width="6"
-        height={scaledHeight * 0.08}
+        height={doorHeight * 0.08}
         fill={handleColor}
         rx="2"
       />
       <rect
         x={doorBL.x - 3}
-        y={doorBL.y + scaledHeight * 0.87}
+        y={doorBL.y + (doorTL.y - doorBL.y) * 0.87}
         width="6"
-        height={scaledHeight * 0.08}
+        height={doorHeight * 0.08}
         fill={handleColor}
         rx="2"
       />

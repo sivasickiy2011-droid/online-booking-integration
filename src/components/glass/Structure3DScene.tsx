@@ -100,7 +100,6 @@ export default function Structure3DScene({
         doorTL={doorTL}
         doorWidthPx={doorWidthPx}
         isDouble={isDouble}
-        scaledHeight={scaledHeight}
         doorFrameColor={doorFrameColor}
         doorGlassColor={doorGlassColor}
         handleColor={handleColor}
@@ -229,33 +228,33 @@ export default function Structure3DScene({
                   
                   <rect
                     x={bottomLeft.x - 4}
-                    y={bottomLeft.y + scaledHeight * 0.05}
+                    y={bottomLeft.y + (topLeft.y - bottomLeft.y) * 0.05}
                     width="8"
-                    height={scaledHeight * 0.08}
+                    height={Math.abs(topLeft.y - bottomLeft.y) * 0.08}
                     fill="#334155"
                     rx="2"
                   />
                   <rect
                     x={bottomLeft.x - 4}
-                    y={bottomLeft.y + scaledHeight * 0.87}
+                    y={bottomLeft.y + (topLeft.y - bottomLeft.y) * 0.87}
                     width="8"
-                    height={scaledHeight * 0.08}
+                    height={Math.abs(topLeft.y - bottomLeft.y) * 0.08}
                     fill="#334155"
                     rx="2"
                   />
                   <rect
                     x={bottomRight.x - 4}
-                    y={bottomRight.y + scaledHeight * 0.05}
+                    y={bottomRight.y + (topRight.y - bottomRight.y) * 0.05}
                     width="8"
-                    height={scaledHeight * 0.08}
+                    height={Math.abs(topRight.y - bottomRight.y) * 0.08}
                     fill="#334155"
                     rx="2"
                   />
                   <rect
                     x={bottomRight.x - 4}
-                    y={bottomRight.y + scaledHeight * 0.87}
+                    y={bottomRight.y + (topRight.y - bottomRight.y) * 0.87}
                     width="8"
-                    height={scaledHeight * 0.08}
+                    height={Math.abs(topRight.y - bottomRight.y) * 0.08}
                     fill="#334155"
                     rx="2"
                   />
