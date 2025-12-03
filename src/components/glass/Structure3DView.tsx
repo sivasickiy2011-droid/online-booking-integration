@@ -11,22 +11,31 @@ export default function Structure3DView({ config, unit }: Structure3DViewProps) 
     return unit === 'cm' ? num * 10 : num;
   };
 
-  const height = convertToMm(config.height);
+  // Проверка на пустую конфигурацию
+  if (!config.sections || config.sections.length === 0) {
+    return (
+      <div className="bg-muted/30 rounded-lg p-6 border-2 text-center text-muted-foreground">
+        Добавьте хотя бы одну секцию для отображения 3D-визуализации
+      </div>
+    );
+  }
+
+  const height = convertToMm(config.height) || 1900;
   const maxWidth = 800;
-  const maxHeight = 500;
+  const maxHeight = 600;
   
   // Изометрическая проекция (перспектива)
-  const depth = 300; // глубина помещения
-  const scale = Math.min(maxWidth / 1000, maxHeight / (height || 1900)) * 0.6;
+  const depth = 400; // глубина помещения в пикселях
+  const scale = 0.3; // фиксированный масштаб для стабильности
   
   const scaledHeight = height * scale;
   const scaledDepth = depth;
 
-  // Точки для изометрии
+  // Точки для изометрии (более выраженная перспектива)
   const to3D = (x: number, y: number, z: number) => {
-    // Изометрическая проекция: x вправо, y вверх, z вглубь
-    const isoX = x * 0.866 - z * 0.866; // cos(30°)
-    const isoY = -y + x * 0.5 + z * 0.5; // sin(30°)
+    // x - ширина (вправо), y - высота (вверх), z - глубина (вглубь)
+    const isoX = x - z * 0.6; // перспектива глубины влево
+    const isoY = y + x * 0.2 + z * 0.3; // небольшой подъем
     return { x: isoX, y: isoY };
   };
 
@@ -53,11 +62,11 @@ export default function Structure3DView({ config, unit }: Structure3DViewProps) 
     return result;
   });
 
-  const totalWidth = sections[sections.length - 1].endX;
+  const totalWidth = sections.length > 0 ? sections[sections.length - 1].endX : 0;
   
-  // Центрируем по экрану
-  const offsetX = maxWidth / 2;
-  const offsetY = maxHeight / 2 + scaledHeight / 2;
+  // Центрируем по экрану с учётом перспективы
+  const offsetX = maxWidth / 2 - totalWidth / 2 + scaledDepth * 0.3;
+  const offsetY = maxHeight - 100;
 
   // Цвета
   const glassColor = '#60a5fa'; // синее стекло
@@ -195,10 +204,17 @@ export default function Structure3DView({ config, unit }: Structure3DViewProps) 
 
           {/* СТЕКЛЯННЫЕ СЕКЦИИ (лицевая сторона) */}
           {sections.map((section, index) => {
+            // Координаты углов лицевой панели
             const bottomLeft = to3D(section.startX, 0, 0);
             const bottomRight = to3D(section.endX, 0, 0);
             const topRight = to3D(section.endX, -scaledHeight, 0);
             const topLeft = to3D(section.startX, -scaledHeight, 0);
+
+            // Для объёма - задняя грань
+            const bottomLeftBack = to3D(section.startX, 0, 10);
+            const bottomRightBack = to3D(section.endX, 0, 10);
+            const topRightBack = to3D(section.endX, -scaledHeight, 10);
+            const topLeftBack = to3D(section.startX, -scaledHeight, 10);
 
             const hasDoor = section.type === 'door' || section.type === 'glass-with-door';
             const doorWidth = section.doorWidth || section.width * 0.6;
@@ -207,6 +223,33 @@ export default function Structure3DView({ config, unit }: Structure3DViewProps) 
 
             return (
               <g key={section.id}>
+                {/* БОКОВАЯ ГРАНЬ (для объёма) */}
+                <path
+                  d={`
+                    M ${bottomRight.x} ${bottomRight.y}
+                    L ${bottomRightBack.x} ${bottomRightBack.y}
+                    L ${topRightBack.x} ${topRightBack.y}
+                    L ${topRight.x} ${topRight.y}
+                    Z
+                  `}
+                  fill={section.type === 'glass' || section.type === 'glass-with-door' ? glassColor : doorColor}
+                  fillOpacity="0.2"
+                  stroke="none"
+                />
+                
+                {/* ВЕРХНЯЯ ГРАНЬ (для объёма) */}
+                <path
+                  d={`
+                    M ${topLeft.x} ${topLeft.y}
+                    L ${topRight.x} ${topRight.y}
+                    L ${topRightBack.x} ${topRightBack.y}
+                    L ${topLeftBack.x} ${topLeftBack.y}
+                    Z
+                  `}
+                  fill={section.type === 'glass' || section.type === 'glass-with-door' ? glassColor : doorColor}
+                  fillOpacity="0.15"
+                  stroke="none"
+                />
                 {/* Стеклянная панель или дверь */}
                 {section.type === 'glass' && (
                   <>
