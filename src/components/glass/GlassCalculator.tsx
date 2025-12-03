@@ -253,7 +253,7 @@ export default function GlassCalculator() {
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="grid gap-2">
-                      <Label htmlFor="partitionWidth">Ширина перегородки (мм) *</Label>
+                      <Label htmlFor="partitionWidth">Ширина изделия (мм) *</Label>
                       <Input
                         id="partitionWidth"
                         type="number"
@@ -263,20 +263,23 @@ export default function GlassCalculator() {
                         placeholder="1000"
                         min="100"
                       />
+                      <p className="text-xs text-muted-foreground">
+                        {partitionWidth ? `(${(parseInt(partitionWidth) / 10).toFixed(0)} см)` : ''}
+                      </p>
                     </div>
                     <div className="grid gap-2">
-                      <Label htmlFor="partitionHeight">Высота перегородки (мм) *</Label>
+                      <Label htmlFor="partitionHeight">Высота изделия (мм) *</Label>
                       <Input
                         id="partitionHeight"
                         type="number"
                         value={partitionHeight}
                         onChange={(e) => setPartitionHeight(e.target.value)}
                         onBlur={handleDimensionChange}
-                        placeholder="1900 (190 см)"
+                        placeholder="1900"
                         min="100"
                       />
                       <p className="text-xs text-muted-foreground">
-                        {partitionHeight ? `${(parseInt(partitionHeight) / 10).toFixed(0)} см` : ''}
+                        {partitionHeight ? `(${(parseInt(partitionHeight) / 10).toFixed(0)} см)` : ''}
                       </p>
                     </div>
                   </div>
@@ -294,6 +297,9 @@ export default function GlassCalculator() {
                           placeholder="800"
                           min="100"
                         />
+                        <p className="text-xs text-muted-foreground">
+                          {doorWidth ? `(${(parseInt(doorWidth) / 10).toFixed(0)} см)` : ''}
+                        </p>
                       </div>
                       <div className="grid gap-2">
                         <Label htmlFor="doorHeight">Высота двери (мм) *</Label>
@@ -303,11 +309,11 @@ export default function GlassCalculator() {
                           value={doorHeight}
                           onChange={(e) => setDoorHeight(e.target.value)}
                           onBlur={handleDimensionChange}
-                          placeholder="1900 (190 см)"
+                          placeholder="1900"
                           min="100"
                         />
                         <p className="text-xs text-muted-foreground">
-                          {doorHeight ? `${(parseInt(doorHeight) / 10).toFixed(0)} см` : ''}
+                          {doorHeight ? `(${(parseInt(doorHeight) / 10).toFixed(0)} см)` : ''}
                         </p>
                       </div>
                     </div>
