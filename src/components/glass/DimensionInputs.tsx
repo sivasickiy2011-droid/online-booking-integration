@@ -9,6 +9,7 @@ interface DimensionInputsProps {
   doorWidth: string;
   doorHeight: string;
   hasDoor: boolean;
+  partitionCount?: number;
   onUnitChange: (unit: 'mm' | 'cm') => void;
   onPartitionWidthChange: (value: string) => void;
   onPartitionHeightChange: (value: string) => void;
@@ -25,6 +26,7 @@ export default function DimensionInputs({
   doorWidth,
   doorHeight,
   hasDoor,
+  partitionCount = 1,
   onUnitChange,
   onPartitionWidthChange,
   onPartitionHeightChange,
@@ -145,6 +147,7 @@ export default function DimensionInputs({
         doorWidth={parseInt(convertToMm(doorWidth, unit)) || 0}
         doorHeight={parseInt(convertToMm(doorHeight, unit)) || 0}
         hasDoor={hasDoor}
+        partitionCount={partitionCount}
       />
     </div>
   );

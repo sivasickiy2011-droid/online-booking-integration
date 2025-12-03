@@ -86,6 +86,7 @@ export default function GlassCalculator() {
                   doorWidth={doorWidth}
                   doorHeight={doorHeight}
                   hasDoor={selectedPackage.has_door || false}
+                  partitionCount={selectedPackage.partition_count || 1}
                   onUnitChange={handleUnitChange}
                   onPartitionWidthChange={setPartitionWidth}
                   onPartitionHeightChange={setPartitionHeight}

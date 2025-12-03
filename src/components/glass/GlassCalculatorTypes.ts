@@ -31,6 +31,7 @@ export interface GlassPackage {
   default_door_height?: number;
   default_door_width?: number;
   sketch_svg?: string;
+  partition_count?: number;
 }
 
 export interface CalculationResult {
