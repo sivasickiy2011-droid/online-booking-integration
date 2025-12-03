@@ -43,7 +43,7 @@ export default function GlassWidget() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="w-full">
       {isAmoCRM && leadData && (
         <div className="mb-4 p-4 bg-primary/5 rounded-lg">
           <div className="flex items-center gap-2 text-sm">
