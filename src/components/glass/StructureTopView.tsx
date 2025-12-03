@@ -50,9 +50,10 @@ export default function StructureTopView({ config, unit }: StructureTopViewProps
       currentX = endX;
     } else {
       if (angle === 180) {
-        // Прямо
-        endX = currentX + sectionWidth;
-        currentX = endX;
+        // Прямо (вглубь, параллельно первой)
+        endZ = currentZ + Math.min(sectionWidth, scaledDepth);
+        currentZ = endZ;
+        endX = currentX;
       } else if (angle === 90) {
         // Поворот на 90° вглубь
         endZ = currentZ + sectionWidth;

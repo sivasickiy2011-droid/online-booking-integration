@@ -109,7 +109,7 @@ export default function Structure3DDoor({
 
       <rect
         x={doorBL.x - 3}
-        y={doorBL.y - scaledHeight * 0.15}
+        y={doorBL.y - scaledHeight * 0.08}
         width="6"
         height={scaledHeight * 0.08}
         fill={handleColor}
@@ -117,7 +117,7 @@ export default function Structure3DDoor({
       />
       <rect
         x={doorBL.x - 3}
-        y={doorBL.y - scaledHeight * 0.85}
+        y={doorTL.y - scaledHeight * 0.08}
         width="6"
         height={scaledHeight * 0.08}
         fill={handleColor}

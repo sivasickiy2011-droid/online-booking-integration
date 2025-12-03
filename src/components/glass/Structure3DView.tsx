@@ -81,8 +81,9 @@ export default function Structure3DView({ config, unit }: Structure3DViewProps) 
       currentX = endX;
     } else {
       if (angle === 180) {
-        endX = currentX + sectionWidth;
-        currentX = endX;
+        endZ = currentZ + Math.min(sectionWidth, scaledDepth);
+        currentZ = endZ;
+        endX = currentX;
       } else if (angle === 90) {
         endZ = currentZ + sectionWidth;
         currentZ = endZ;
