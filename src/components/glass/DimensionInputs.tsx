@@ -134,8 +134,7 @@ export default function DimensionInputs({
         </>
       ) : (
         <>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="grid gap-2">
           <Label htmlFor="partitionHeight">Высота изделия *</Label>
           <Input
@@ -257,37 +256,37 @@ export default function DimensionInputs({
         </div>
       )}
 
-{!useAdvancedMode && (
-        <div className="space-y-4">
-          <PartitionSketch
-            partitionWidth={parseInt(convertToMm(partitionWidth, unit)) || 1000}
-            partitionHeight={parseInt(convertToMm(partitionHeight, unit)) || 1900}
-            doorWidth={parseInt(convertToMm(doorWidth, unit)) || 0}
-            doorHeight={parseInt(convertToMm(doorHeight, unit)) || 0}
-            hasDoor={hasDoor}
-            partitionCount={partitionCount}
-            sectionWidths={sectionWidths.map(w => parseInt(convertToMm(w, unit)) || 0)}
-          />
+          <div className="space-y-4">
+            <PartitionSketch
+              partitionWidth={parseInt(convertToMm(partitionWidth, unit)) || 1000}
+              partitionHeight={parseInt(convertToMm(partitionHeight, unit)) || 1900}
+              doorWidth={parseInt(convertToMm(doorWidth, unit)) || 0}
+              doorHeight={parseInt(convertToMm(doorHeight, unit)) || 0}
+              hasDoor={hasDoor}
+              partitionCount={partitionCount}
+              sectionWidths={sectionWidths.map(w => parseInt(convertToMm(w, unit)) || 0)}
+            />
 
-          {calculation && partitionCount > 1 && (
-            <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <div className="text-muted-foreground mb-1">Стоимость одной секции</div>
-                  <div className="text-xl font-bold text-primary">
-                    {(calculation.total_price / partitionCount).toLocaleString('ru-RU', { maximumFractionDigits: 0 })} ₽
+            {calculation && partitionCount > 1 && (
+              <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <div className="text-muted-foreground mb-1">Стоимость одной секции</div>
+                    <div className="text-xl font-bold text-primary">
+                      {(calculation.total_price / partitionCount).toLocaleString('ru-RU', { maximumFractionDigits: 0 })} ₽
+                    </div>
                   </div>
-                </div>
-                <div>
-                  <div className="text-muted-foreground mb-1">Общая стоимость ({partitionCount} {partitionCount === 1 ? 'секция' : partitionCount < 5 ? 'секции' : 'секций'})</div>
-                  <div className="text-xl font-bold text-primary">
-                    {calculation.total_price.toLocaleString('ru-RU', { maximumFractionDigits: 0 })} ₽
+                  <div>
+                    <div className="text-muted-foreground mb-1">Общая стоимость ({partitionCount} {partitionCount === 1 ? 'секция' : partitionCount < 5 ? 'секции' : 'секций'})</div>
+                    <div className="text-xl font-bold text-primary">
+                      {calculation.total_price.toLocaleString('ru-RU', { maximumFractionDigits: 0 })} ₽
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        </>
       )}
     </div>
   );
