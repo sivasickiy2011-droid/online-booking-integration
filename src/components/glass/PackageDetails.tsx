@@ -56,13 +56,15 @@ export default function PackageDetails({
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium text-sm">{activeComponent.component_name}</div>
-                      {activeComponent.article && (
-                        <div className="text-muted-foreground text-xs">[{activeComponent.article}]</div>
-                      )}
-                      {activeComponent.characteristics && (
-                        <div className="text-muted-foreground text-xs">{activeComponent.characteristics}</div>
-                      )}
+                      <div className="font-medium text-sm">
+                        <span>{activeComponent.component_name}</span>
+                        {activeComponent.article && (
+                          <span className="text-muted-foreground"> {activeComponent.article}</span>
+                        )}
+                        {activeComponent.characteristics && (
+                          <span className="text-muted-foreground"> {activeComponent.characteristics}</span>
+                        )}
+                      </div>
                     </div>
                     <div className="text-right shrink-0">
                       <div className="text-xs text-muted-foreground">
