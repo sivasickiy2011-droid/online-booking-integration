@@ -256,7 +256,6 @@ export default function DimensionInputs({
           </div>
         </div>
       )}
-      )}
 
       {!useAdvancedMode && (
       <div className="space-y-4">
