@@ -64,74 +64,82 @@ export default function PackageDetails({
                     <div className="ml-8 space-y-1 mt-2">
                       <button
                         onClick={() => onToggleExpand(comp.component_id)}
-                        className="text-[10px] text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 mb-1"
+                        className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 mb-2 font-medium"
                       >
                         <Icon 
                           name={expandedComponents[comp.component_id] ? "ChevronDown" : "ChevronRight"} 
-                          size={12} 
+                          size={14} 
                         />
                         Доступные варианты ({comp.alternatives?.length || 0})
                       </button>
                       {expandedComponents[comp.component_id] && (
-                        <>
-                          <div 
-                            className={`flex items-start gap-2 p-2 rounded border cursor-pointer transition-colors ${
-                              !selectedAltId ? 'bg-primary/10 border-primary' : 'bg-background hover:bg-accent'
-                            }`}
+                        <div className="flex flex-wrap gap-2">
+                          <button
                             onClick={() => onAlternativeSelect(comp.component_id, comp.component_id)}
+                            className={`group flex-1 min-w-[200px] px-4 py-3 rounded-2xl border-2 transition-all text-left ${
+                              !selectedAltId 
+                                ? 'bg-primary/10 border-primary shadow-sm' 
+                                : 'bg-background border-border hover:border-primary/50 hover:bg-accent'
+                            }`}
                           >
-                            <div className="mt-0.5">
-                              {!selectedAltId ? (
-                                <Icon name="CheckCircle2" size={14} className="text-primary" />
-                              ) : (
-                                <Icon name="Circle" size={14} className="text-muted-foreground" />
-                              )}
+                            <div className="flex items-start gap-3">
+                              <div className="mt-0.5 shrink-0">
+                                {!selectedAltId ? (
+                                  <Icon name="CheckCircle2" size={18} className="text-primary" />
+                                ) : (
+                                  <Icon name="Circle" size={18} className="text-muted-foreground group-hover:text-primary/50" />
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="text-sm font-semibold text-foreground mb-0.5">{comp.component_name}</div>
+                                {comp.article && <div className="text-xs text-muted-foreground">{comp.article}</div>}
+                              </div>
+                              <div className="text-sm font-bold text-foreground whitespace-nowrap">
+                                {comp.price_per_unit.toLocaleString('ru-RU')} ₽
+                              </div>
                             </div>
-                            <div className="flex-1 text-xs">
-                              <div className="font-medium">{comp.component_name}</div>
-                              <div className="text-muted-foreground text-[10px]">{comp.article}</div>
-                            </div>
-                            <div className="text-xs font-medium whitespace-nowrap">
-                              {comp.price_per_unit.toLocaleString('ru-RU')} ₽
-                            </div>
-                          </div>
+                          </button>
                           {comp.alternatives?.map(alt => {
                             const priceDiff = alt.price_per_unit - comp.price_per_unit;
                             return (
-                              <div 
+                              <button
                                 key={alt.component_id}
-                                className={`flex items-start gap-2 p-2 rounded border cursor-pointer transition-colors ${
-                                  selectedAltId === alt.component_id ? 'bg-primary/10 border-primary' : 'bg-background hover:bg-accent'
-                                }`}
                                 onClick={() => onAlternativeSelect(comp.component_id, alt.component_id)}
+                                className={`group flex-1 min-w-[200px] px-4 py-3 rounded-2xl border-2 transition-all text-left ${
+                                  selectedAltId === alt.component_id 
+                                    ? 'bg-primary/10 border-primary shadow-sm' 
+                                    : 'bg-background border-border hover:border-primary/50 hover:bg-accent'
+                                }`}
                               >
-                                <div className="mt-0.5">
-                                  {selectedAltId === alt.component_id ? (
-                                    <Icon name="CheckCircle2" size={14} className="text-primary" />
-                                  ) : (
-                                    <Icon name="Circle" size={14} className="text-muted-foreground" />
-                                  )}
-                                </div>
-                                <div className="flex-1 text-xs">
-                                  <div className="font-medium">{alt.component_name}</div>
-                                  <div className="text-muted-foreground text-[10px]">{alt.article}</div>
-                                </div>
-                                <div className="flex flex-col items-end gap-0.5">
-                                  <div className="text-xs font-medium whitespace-nowrap">
-                                    {alt.price_per_unit.toLocaleString('ru-RU')} ₽
+                                <div className="flex items-start gap-3">
+                                  <div className="mt-0.5 shrink-0">
+                                    {selectedAltId === alt.component_id ? (
+                                      <Icon name="CheckCircle2" size={18} className="text-primary" />
+                                    ) : (
+                                      <Icon name="Circle" size={18} className="text-muted-foreground group-hover:text-primary/50" />
+                                    )}
                                   </div>
-                                  {priceDiff !== 0 && (
-                                    <div className={`text-[10px] font-medium ${
-                                      priceDiff > 0 ? 'text-red-600' : 'text-green-600'
-                                    }`}>
-                                      {priceDiff > 0 ? '+' : ''}{priceDiff.toLocaleString('ru-RU')} ₽
+                                  <div className="flex-1 min-w-0">
+                                    <div className="text-sm font-semibold text-foreground mb-0.5">{alt.component_name}</div>
+                                    {alt.article && <div className="text-xs text-muted-foreground">{alt.article}</div>}
+                                  </div>
+                                  <div className="flex flex-col items-end gap-0.5">
+                                    <div className="text-sm font-bold text-foreground whitespace-nowrap">
+                                      {alt.price_per_unit.toLocaleString('ru-RU')} ₽
                                     </div>
-                                  )}
+                                    {priceDiff !== 0 && (
+                                      <div className={`text-xs font-semibold ${
+                                        priceDiff > 0 ? 'text-red-600' : 'text-green-600'
+                                      }`}>
+                                        {priceDiff > 0 ? '+' : ''}{priceDiff.toLocaleString('ru-RU')} ₽
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
-                              </div>
+                              </button>
                             );
                           })}
-                        </>
+                        </div>
                       )}
                     </div>
                   )}

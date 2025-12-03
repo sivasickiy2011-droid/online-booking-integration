@@ -18,6 +18,7 @@ export default function GlassCalculator() {
   const [partitionHeight, setPartitionHeight] = useState<string>('1900');
   const [doorWidth, setDoorWidth] = useState<string>('');
   const [doorHeight, setDoorHeight] = useState<string>('');
+  const [unit, setUnit] = useState<'mm' | 'cm'>('mm');
   const [calculation, setCalculation] = useState<CalculationResult | null>(null);
   const [selectedAlternatives, setSelectedAlternatives] = useState<Record<number, number>>({});
   const [expandedComponents, setExpandedComponents] = useState<Record<number, boolean>>({});
@@ -43,17 +44,41 @@ export default function GlassCalculator() {
     }
   };
 
+  const convertToMm = (value: string, fromUnit: 'mm' | 'cm'): string => {
+    if (!value) return '';
+    const num = parseFloat(value);
+    return fromUnit === 'cm' ? (num * 10).toString() : value;
+  };
+
+  const convertFromMm = (value: string, toUnit: 'mm' | 'cm'): string => {
+    if (!value) return '';
+    const num = parseFloat(value);
+    return toUnit === 'cm' ? (num / 10).toString() : value;
+  };
+
+  const handleUnitChange = (newUnit: 'mm' | 'cm') => {
+    setUnit(newUnit);
+    setPartitionWidth(convertFromMm(convertToMm(partitionWidth, unit), newUnit));
+    setPartitionHeight(convertFromMm(convertToMm(partitionHeight, unit), newUnit));
+    setDoorWidth(convertFromMm(convertToMm(doorWidth, unit), newUnit));
+    setDoorHeight(convertFromMm(convertToMm(doorHeight, unit), newUnit));
+  };
+
   const handlePackageChange = (packageId: string) => {
     const pkg = packages.find(p => p.package_id === parseInt(packageId));
     setSelectedPackage(pkg || null);
     setSelectedAlternatives({});
     
     if (pkg) {
-      setPartitionHeight((pkg.default_partition_height || 1900).toString());
-      setPartitionWidth((pkg.default_partition_width || 1000).toString());
+      const defaultHeight = (pkg.default_partition_height || 1900).toString();
+      const defaultWidth = (pkg.default_partition_width || 1000).toString();
+      setPartitionHeight(convertFromMm(defaultHeight, unit));
+      setPartitionWidth(convertFromMm(defaultWidth, unit));
       if (pkg.has_door) {
-        setDoorHeight((pkg.default_door_height || 1900).toString());
-        setDoorWidth((pkg.default_door_width || 800).toString());
+        const defaultDoorHeight = (pkg.default_door_height || 1900).toString();
+        const defaultDoorWidth = (pkg.default_door_width || 800).toString();
+        setDoorHeight(convertFromMm(defaultDoorHeight, unit));
+        setDoorWidth(convertFromMm(defaultDoorWidth, unit));
       } else {
         setDoorHeight('');
         setDoorWidth('');
@@ -88,8 +113,8 @@ export default function GlassCalculator() {
 
   const handleDimensionChange = () => {
     if (selectedPackage && partitionWidth && partitionHeight) {
-      const pw = parseFloat(partitionWidth);
-      const ph = parseFloat(partitionHeight);
+      const pw = parseFloat(convertToMm(partitionWidth, unit));
+      const ph = parseFloat(convertToMm(partitionHeight, unit));
       if (pw > 0 && ph > 0) {
         calculatePrice(selectedPackage);
       }
@@ -97,10 +122,10 @@ export default function GlassCalculator() {
   };
 
   const calculatePrice = (pkg: GlassPackage) => {
-    const pw = parseFloat(partitionWidth);
-    const ph = parseFloat(partitionHeight);
-    const dw = doorWidth ? parseFloat(doorWidth) : 0;
-    const dh = doorHeight ? parseFloat(doorHeight) : 0;
+    const pw = parseFloat(convertToMm(partitionWidth, unit));
+    const ph = parseFloat(convertToMm(partitionHeight, unit));
+    const dw = doorWidth ? parseFloat(convertToMm(doorWidth, unit)) : 0;
+    const dh = doorHeight ? parseFloat(convertToMm(doorHeight, unit)) : 0;
     
     const partitionArea = (pw * ph) / 1000000;
     const doorArea = pkg.has_door && dw > 0 && dh > 0 ? (dw * dh) / 1000000 : 0;
@@ -171,10 +196,10 @@ export default function GlassCalculator() {
             customer_name: customerName,
             customer_phone: customerPhone,
             customer_email: customerEmail,
-            partition_width: parseFloat(partitionWidth),
-            partition_height: parseFloat(partitionHeight),
-            door_width: doorWidth ? parseFloat(doorWidth) : null,
-            door_height: doorHeight ? parseFloat(doorHeight) : null,
+            partition_width: parseFloat(convertToMm(partitionWidth, unit)),
+            partition_height: parseFloat(convertToMm(partitionHeight, unit)),
+            door_width: doorWidth ? parseFloat(convertToMm(doorWidth, unit)) : null,
+            door_height: doorHeight ? parseFloat(convertToMm(doorHeight, unit)) : null,
             has_door: selectedPackage.has_door,
             square_meters: calculation.square_meters,
             glass_cost: calculation.components_total,
@@ -251,35 +276,67 @@ export default function GlassCalculator() {
                 />
 
                 <div className="space-y-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <Label>Единицы измерения</Label>
+                    <div className="inline-flex rounded-full bg-muted p-1">
+                      <button
+                        type="button"
+                        onClick={() => handleUnitChange('mm')}
+                        className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                          unit === 'mm' 
+                            ? 'bg-primary text-primary-foreground shadow-sm' 
+                            : 'text-muted-foreground hover:text-foreground'
+                        }`}
+                      >
+                        мм
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleUnitChange('cm')}
+                        className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                          unit === 'cm' 
+                            ? 'bg-primary text-primary-foreground shadow-sm' 
+                            : 'text-muted-foreground hover:text-foreground'
+                        }`}
+                      >
+                        см
+                      </button>
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-2 gap-4">
                     <div className="grid gap-2">
-                      <Label htmlFor="partitionWidth">Ширина изделия (мм) *</Label>
+                      <Label htmlFor="partitionWidth">Ширина изделия *</Label>
                       <Input
                         id="partitionWidth"
                         type="number"
                         value={partitionWidth}
                         onChange={(e) => setPartitionWidth(e.target.value)}
                         onBlur={handleDimensionChange}
-                        placeholder="1000"
-                        min="100"
+                        placeholder={unit === 'mm' ? '1000' : '100'}
+                        min="1"
+                        step={unit === 'mm' ? '1' : '0.1'}
                       />
                       <p className="text-xs text-muted-foreground">
-                        {partitionWidth ? `(${(parseInt(partitionWidth) / 10).toFixed(0)} см)` : ''}
+                        {partitionWidth && unit === 'mm' ? `(${(parseFloat(partitionWidth) / 10).toFixed(1)} см)` : ''}
+                        {partitionWidth && unit === 'cm' ? `(${(parseFloat(partitionWidth) * 10).toFixed(0)} мм)` : ''}
                       </p>
                     </div>
                     <div className="grid gap-2">
-                      <Label htmlFor="partitionHeight">Высота изделия (мм) *</Label>
+                      <Label htmlFor="partitionHeight">Высота изделия *</Label>
                       <Input
                         id="partitionHeight"
                         type="number"
                         value={partitionHeight}
                         onChange={(e) => setPartitionHeight(e.target.value)}
                         onBlur={handleDimensionChange}
-                        placeholder="1900"
-                        min="100"
+                        placeholder={unit === 'mm' ? '1900' : '190'}
+                        min="1"
+                        step={unit === 'mm' ? '1' : '0.1'}
                       />
                       <p className="text-xs text-muted-foreground">
-                        {partitionHeight ? `(${(parseInt(partitionHeight) / 10).toFixed(0)} см)` : ''}
+                        {partitionHeight && unit === 'mm' ? `(${(parseFloat(partitionHeight) / 10).toFixed(1)} см)` : ''}
+                        {partitionHeight && unit === 'cm' ? `(${(parseFloat(partitionHeight) * 10).toFixed(0)} мм)` : ''}
                       </p>
                     </div>
                   </div>
@@ -287,43 +344,47 @@ export default function GlassCalculator() {
                   {selectedPackage.has_door && (
                     <div className="grid grid-cols-2 gap-4">
                       <div className="grid gap-2">
-                        <Label htmlFor="doorWidth">Ширина двери (мм) *</Label>
+                        <Label htmlFor="doorWidth">Ширина двери *</Label>
                         <Input
                           id="doorWidth"
                           type="number"
                           value={doorWidth}
                           onChange={(e) => setDoorWidth(e.target.value)}
                           onBlur={handleDimensionChange}
-                          placeholder="800"
-                          min="100"
+                          placeholder={unit === 'mm' ? '800' : '80'}
+                          min="1"
+                          step={unit === 'mm' ? '1' : '0.1'}
                         />
                         <p className="text-xs text-muted-foreground">
-                          {doorWidth ? `(${(parseInt(doorWidth) / 10).toFixed(0)} см)` : ''}
+                          {doorWidth && unit === 'mm' ? `(${(parseFloat(doorWidth) / 10).toFixed(1)} см)` : ''}
+                          {doorWidth && unit === 'cm' ? `(${(parseFloat(doorWidth) * 10).toFixed(0)} мм)` : ''}
                         </p>
                       </div>
                       <div className="grid gap-2">
-                        <Label htmlFor="doorHeight">Высота двери (мм) *</Label>
+                        <Label htmlFor="doorHeight">Высота двери *</Label>
                         <Input
                           id="doorHeight"
                           type="number"
                           value={doorHeight}
                           onChange={(e) => setDoorHeight(e.target.value)}
                           onBlur={handleDimensionChange}
-                          placeholder="1900"
-                          min="100"
+                          placeholder={unit === 'mm' ? '1900' : '190'}
+                          min="1"
+                          step={unit === 'mm' ? '1' : '0.1'}
                         />
                         <p className="text-xs text-muted-foreground">
-                          {doorHeight ? `(${(parseInt(doorHeight) / 10).toFixed(0)} см)` : ''}
+                          {doorHeight && unit === 'mm' ? `(${(parseFloat(doorHeight) / 10).toFixed(1)} см)` : ''}
+                          {doorHeight && unit === 'cm' ? `(${(parseFloat(doorHeight) * 10).toFixed(0)} мм)` : ''}
                         </p>
                       </div>
                     </div>
                   )}
 
                   <PartitionSketch
-                    partitionWidth={parseInt(partitionWidth) || 1000}
-                    partitionHeight={parseInt(partitionHeight) || 1900}
-                    doorWidth={parseInt(doorWidth) || 0}
-                    doorHeight={parseInt(doorHeight) || 0}
+                    partitionWidth={parseInt(convertToMm(partitionWidth, unit)) || 1000}
+                    partitionHeight={parseInt(convertToMm(partitionHeight, unit)) || 1900}
+                    doorWidth={parseInt(convertToMm(doorWidth, unit)) || 0}
+                    doorHeight={parseInt(convertToMm(doorHeight, unit)) || 0}
                     hasDoor={selectedPackage.has_door || false}
                   />
                 </div>
