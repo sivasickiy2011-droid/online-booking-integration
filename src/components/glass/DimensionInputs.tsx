@@ -1,6 +1,10 @@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import PartitionSketch from './PartitionSketch';
+import StructureConfigurator, { StructureConfig } from './StructureConfigurator';
+import StructureVisualization from './StructureVisualization';
+import { Button } from '@/components/ui/button';
+import { useState } from 'react';
 
 import { CalculationResult } from './GlassCalculatorTypes';
 
@@ -45,35 +49,91 @@ export default function DimensionInputs({
   onDimensionBlur,
   convertToMm
 }: DimensionInputsProps) {
+  const [useAdvancedMode, setUseAdvancedMode] = useState(false);
+  const [structureConfig, setStructureConfig] = useState<StructureConfig>({
+    height: partitionHeight,
+    sections: [{
+      id: 'section-1',
+      width: partitionWidth,
+      type: hasDoor ? 'glass-with-door' : 'glass',
+      doorWidth: doorWidth,
+    }],
+    solidWalls: []
+  });
+
+  const handleStructureChange = (config: StructureConfig) => {
+    setStructureConfig(config);
+    onPartitionHeightChange(config.height);
+    
+    // Обновляем ширину и количество секций для обратной совместимости
+    const totalWidth = config.sections.reduce((sum, s) => {
+      const w = parseFloat(s.width) || 0;
+      return sum + w;
+    }, 0);
+    onPartitionWidthChange(totalWidth.toString());
+    onPartitionCountChange(config.sections.length);
+    
+    // Обновляем ширины секций
+    config.sections.forEach((section, index) => {
+      onSectionWidthChange(index, section.width);
+    });
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-2">
         <Label>Единицы измерения</Label>
-        <div className="inline-flex rounded-full bg-muted p-1">
-          <button
+        <div className="flex items-center gap-3">
+          <Button
             type="button"
-            onClick={() => onUnitChange('mm')}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
-              unit === 'mm' 
-                ? 'bg-primary text-primary-foreground shadow-sm' 
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
+            variant={useAdvancedMode ? "default" : "outline"}
+            size="sm"
+            onClick={() => setUseAdvancedMode(!useAdvancedMode)}
           >
-            мм
-          </button>
-          <button
-            type="button"
-            onClick={() => onUnitChange('cm')}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
-              unit === 'cm' 
-                ? 'bg-primary text-primary-foreground shadow-sm' 
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            см
-          </button>
+            {useAdvancedMode ? 'Расширенный режим' : 'Простой режим'}
+          </Button>
+          <div className="inline-flex rounded-full bg-muted p-1">
+            <button
+              type="button"
+              onClick={() => onUnitChange('mm')}
+              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                unit === 'mm' 
+                  ? 'bg-primary text-primary-foreground shadow-sm' 
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              мм
+            </button>
+            <button
+              type="button"
+              onClick={() => onUnitChange('cm')}
+              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                unit === 'cm' 
+                  ? 'bg-primary text-primary-foreground shadow-sm' 
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              см
+            </button>
+          </div>
         </div>
       </div>
+
+      {useAdvancedMode ? (
+        <>
+          <StructureConfigurator
+            unit={unit}
+            config={structureConfig}
+            onChange={handleStructureChange}
+            onBlur={onDimensionBlur}
+          />
+          <StructureVisualization
+            config={structureConfig}
+            unit={unit}
+          />
+        </>
+      ) : (
+        <>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="grid gap-2">
@@ -196,7 +256,9 @@ export default function DimensionInputs({
           </div>
         </div>
       )}
+      )}
 
+      {!useAdvancedMode && (
       <div className="space-y-4">
         <PartitionSketch
           partitionWidth={parseInt(convertToMm(partitionWidth, unit)) || 1000}
@@ -227,6 +289,7 @@ export default function DimensionInputs({
           </div>
         )}
       </div>
+      )}
     </div>
   );
 }
