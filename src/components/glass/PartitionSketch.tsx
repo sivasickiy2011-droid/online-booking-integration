@@ -5,6 +5,7 @@ interface PartitionSketchProps {
   doorHeight?: number;
   hasDoor: boolean;
   partitionCount?: number;
+  sectionWidths?: number[];
 }
 
 export default function PartitionSketch({
@@ -13,7 +14,8 @@ export default function PartitionSketch({
   doorWidth = 0,
   doorHeight = 0,
   hasDoor,
-  partitionCount = 1
+  partitionCount = 1,
+  sectionWidths = []
 }: PartitionSketchProps) {
   const renderFrontView = () => {
     const scale = 0.12;
@@ -328,7 +330,10 @@ export default function PartitionSketch({
     
     const wallWidth = partitionWidth * scale;
     const depth = 100;
-    const sectionWidth = wallWidth / partitionCount;
+    const hasCustomWidths = sectionWidths.length === partitionCount && sectionWidths.some(w => w > 0);
+    const scaledSectionWidths = hasCustomWidths 
+      ? sectionWidths.map(w => w * scale)
+      : Array(partitionCount).fill(wallWidth / partitionCount);
     
     const offsetX = (svgWidth - wallWidth) / 2;
     const offsetY = 50;
@@ -357,40 +362,58 @@ export default function PartitionSketch({
           Вид сверху
         </text>
 
-        {Array.from({ length: partitionCount }, (_, i) => (
-          <g key={`section-${i}`}>
-            <rect 
-              x={offsetX + i * sectionWidth} 
-              y={offsetY} 
-              width={sectionWidth} 
-              height={depth}
-              fill="url(#top-gradient)"
-              stroke="#2563eb"
-              strokeWidth="2.5"
-              rx="1"
-            />
-            
-            <rect 
-              x={offsetX + i * sectionWidth} 
-              y={offsetY} 
-              width={sectionWidth} 
-              height={glassThickness}
-              fill="#93c5fd"
-              opacity="0.8"
-            />
-            
-            <text
-              x={offsetX + i * sectionWidth + sectionWidth / 2}
-              y={offsetY + depth / 2}
-              textAnchor="middle"
-              fill="#1e40af"
-              fontSize="10"
-              fontWeight="600"
-            >
-              {i + 1}
-            </text>
-          </g>
-        ))}
+        {Array.from({ length: partitionCount }, (_, i) => {
+          const sectionX = i === 0 ? offsetX : offsetX + scaledSectionWidths.slice(0, i).reduce((sum, w) => sum + w, 0);
+          const sectionW = scaledSectionWidths[i];
+          
+          return (
+            <g key={`section-${i}`}>
+              <rect 
+                x={sectionX} 
+                y={offsetY} 
+                width={sectionW} 
+                height={depth}
+                fill="url(#top-gradient)"
+                stroke="#2563eb"
+                strokeWidth="2.5"
+                rx="1"
+              />
+              
+              <rect 
+                x={sectionX} 
+                y={offsetY} 
+                width={sectionW} 
+                height={glassThickness}
+                fill="#93c5fd"
+                opacity="0.8"
+              />
+              
+              <text
+                x={sectionX + sectionW / 2}
+                y={offsetY + depth / 2}
+                textAnchor="middle"
+                fill="#1e40af"
+                fontSize="10"
+                fontWeight="600"
+              >
+                {i + 1}
+              </text>
+              
+              {hasCustomWidths && sectionWidths[i] > 0 && (
+                <text
+                  x={sectionX + sectionW / 2}
+                  y={offsetY + depth / 2 + 12}
+                  textAnchor="middle"
+                  fill="#0369a1"
+                  fontSize="8"
+                  fontWeight="500"
+                >
+                  {sectionWidths[i]} мм
+                </text>
+              )}
+            </g>
+          );
+        })}
 
         <line
           x1={offsetX}
@@ -435,7 +458,7 @@ export default function PartitionSketch({
           Глубина {depth} мм
         </text>
 
-        {partitionCount > 1 && (
+        {partitionCount > 1 && !hasCustomWidths && (
           <text
             x={svgWidth / 2}
             y={offsetY + depth + 50}

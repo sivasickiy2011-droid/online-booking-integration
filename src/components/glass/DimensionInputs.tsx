@@ -12,6 +12,7 @@ interface DimensionInputsProps {
   doorHeight: string;
   hasDoor: boolean;
   partitionCount: number;
+  sectionWidths: string[];
   calculation: CalculationResult | null;
   onUnitChange: (unit: 'mm' | 'cm') => void;
   onPartitionWidthChange: (value: string) => void;
@@ -19,6 +20,7 @@ interface DimensionInputsProps {
   onDoorWidthChange: (value: string) => void;
   onDoorHeightChange: (value: string) => void;
   onPartitionCountChange: (value: number) => void;
+  onSectionWidthChange: (index: number, value: string) => void;
   onDimensionBlur: () => void;
   convertToMm: (value: string, fromUnit: 'mm' | 'cm') => string;
 }
@@ -31,6 +33,7 @@ export default function DimensionInputs({
   doorHeight,
   hasDoor,
   partitionCount,
+  sectionWidths,
   calculation,
   onUnitChange,
   onPartitionWidthChange,
@@ -38,6 +41,7 @@ export default function DimensionInputs({
   onDoorWidthChange,
   onDoorHeightChange,
   onPartitionCountChange,
+  onSectionWidthChange,
   onDimensionBlur,
   convertToMm
 }: DimensionInputsProps) {
@@ -71,24 +75,7 @@ export default function DimensionInputs({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="grid gap-2">
-          <Label htmlFor="partitionWidth">Ширина изделия *</Label>
-          <Input
-            id="partitionWidth"
-            type="number"
-            value={partitionWidth}
-            onChange={(e) => onPartitionWidthChange(e.target.value)}
-            onBlur={onDimensionBlur}
-            placeholder={unit === 'mm' ? '1000' : '100'}
-            min="1"
-            step={unit === 'mm' ? '1' : '0.1'}
-          />
-          <p className="text-xs text-muted-foreground">
-            {partitionWidth && unit === 'mm' ? `(${(parseFloat(partitionWidth) / 10).toFixed(1)} см)` : ''}
-            {partitionWidth && unit === 'cm' ? `(${(parseFloat(partitionWidth) * 10).toFixed(0)} мм)` : ''}
-          </p>
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="grid gap-2">
           <Label htmlFor="partitionHeight">Высота изделия *</Label>
           <Input
@@ -136,10 +123,40 @@ export default function DimensionInputs({
             </button>
           </div>
           <p className="text-xs text-muted-foreground">
-            {partitionCount > 1 ? `${partitionCount} секций по ${partitionWidth} ${unit}` : 'Одна секция'}
+            Общая ширина: {partitionWidth} {unit}
           </p>
         </div>
       </div>
+
+      {partitionCount > 1 && (
+        <div className="border-2 border-blue-200 rounded-lg p-4 bg-blue-50">
+          <Label className="mb-3 block text-sm font-semibold text-blue-900">Ширина каждой секции</Label>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            {sectionWidths.map((width, index) => (
+              <div key={index} className="grid gap-1.5">
+                <Label htmlFor={`section-${index}`} className="text-xs text-muted-foreground">
+                  Секция {index + 1}
+                </Label>
+                <Input
+                  id={`section-${index}`}
+                  type="number"
+                  value={width}
+                  onChange={(e) => onSectionWidthChange(index, e.target.value)}
+                  onBlur={onDimensionBlur}
+                  placeholder={unit === 'mm' ? '1000' : '100'}
+                  min="1"
+                  step={unit === 'mm' ? '1' : '0.1'}
+                  className="text-sm"
+                />
+                <p className="text-xs text-muted-foreground">
+                  {width && unit === 'mm' ? `${(parseFloat(width) / 10).toFixed(1)} см` : ''}
+                  {width && unit === 'cm' ? `${(parseFloat(width) * 10).toFixed(0)} мм` : ''}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {hasDoor && (
         <div className="grid grid-cols-2 gap-4">
@@ -188,6 +205,7 @@ export default function DimensionInputs({
           doorHeight={parseInt(convertToMm(doorHeight, unit)) || 0}
           hasDoor={hasDoor}
           partitionCount={partitionCount}
+          sectionWidths={sectionWidths.map(w => parseInt(convertToMm(w, unit)) || 0)}
         />
 
         {calculation && partitionCount > 1 && (

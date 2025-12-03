@@ -12,6 +12,7 @@ export function useCalculatorLogic() {
   const [doorWidth, setDoorWidth] = useState<string>('');
   const [doorHeight, setDoorHeight] = useState<string>('');
   const [partitionCount, setPartitionCount] = useState<number>(1);
+  const [sectionWidths, setSectionWidths] = useState<string[]>(['']);
   const [unit, setUnit] = useState<'mm' | 'cm'>('mm');
   const [calculation, setCalculation] = useState<CalculationResult | null>(null);
   const [selectedAlternatives, setSelectedAlternatives] = useState<Record<number, number>>({});
@@ -56,6 +57,7 @@ export function useCalculatorLogic() {
     setPartitionHeight(convertFromMm(convertToMm(partitionHeight, unit), newUnit));
     setDoorWidth(convertFromMm(convertToMm(doorWidth, unit), newUnit));
     setDoorHeight(convertFromMm(convertToMm(doorHeight, unit), newUnit));
+    setSectionWidths(sectionWidths.map(w => convertFromMm(convertToMm(w, unit), newUnit)));
   };
 
   const handlePackageChange = (packageId: string) => {
@@ -68,7 +70,9 @@ export function useCalculatorLogic() {
       const defaultWidth = (pkg.default_partition_width || 1000).toString();
       setPartitionHeight(convertFromMm(defaultHeight, unit));
       setPartitionWidth(convertFromMm(defaultWidth, unit));
-      setPartitionCount(pkg.partition_count || 1);
+      const count = pkg.partition_count || 1;
+      setPartitionCount(count);
+      setSectionWidths(Array(count).fill(convertFromMm(defaultWidth, unit)));
       if (pkg.has_door) {
         const defaultDoorHeight = (pkg.default_door_height || 1900).toString();
         const defaultDoorWidth = (pkg.default_door_width || 800).toString();
@@ -116,8 +120,32 @@ export function useCalculatorLogic() {
     }
   };
 
+  const handlePartitionCountChange = (newCount: number) => {
+    setPartitionCount(newCount);
+    const currentWidth = parseFloat(convertToMm(partitionWidth, unit)) || 1000;
+    const sectionWidth = currentWidth / newCount;
+    setSectionWidths(Array(newCount).fill(convertFromMm(sectionWidth.toString(), unit)));
+    if (selectedPackage && partitionHeight) {
+      calculatePrice(selectedPackage);
+    }
+  };
+
+  const handleSectionWidthChange = (index: number, value: string) => {
+    const newWidths = [...sectionWidths];
+    newWidths[index] = value;
+    setSectionWidths(newWidths);
+    
+    const totalWidth = newWidths
+      .filter(w => w && parseFloat(w) > 0)
+      .reduce((sum, w) => sum + parseFloat(convertToMm(w, unit)), 0);
+    setPartitionWidth(convertFromMm(totalWidth.toString(), unit));
+  };
+
   const calculatePrice = (pkg: GlassPackage) => {
-    const pw = parseFloat(convertToMm(partitionWidth, unit));
+    const totalWidth = sectionWidths
+      .filter(w => w && parseFloat(w) > 0)
+      .reduce((sum, w) => sum + parseFloat(convertToMm(w, unit)), 0);
+    const pw = totalWidth || parseFloat(convertToMm(partitionWidth, unit));
     const ph = parseFloat(convertToMm(partitionHeight, unit));
     const dw = doorWidth ? parseFloat(convertToMm(doorWidth, unit)) : 0;
     const dh = doorHeight ? parseFloat(convertToMm(doorHeight, unit)) : 0;
@@ -292,6 +320,7 @@ export function useCalculatorLogic() {
     setDoorHeight,
     partitionCount,
     setPartitionCount,
+    sectionWidths,
     unit,
     calculation,
     selectedAlternatives,
@@ -308,6 +337,8 @@ export function useCalculatorLogic() {
     handleSubmitOrder,
     handleSaveCalculation,
     handleLoadCalculation,
-    handleDeleteCalculation
+    handleDeleteCalculation,
+    handlePartitionCountChange,
+    handleSectionWidthChange
   };
 }
