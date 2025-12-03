@@ -9,12 +9,13 @@ interface DimensionInputsProps {
   doorWidth: string;
   doorHeight: string;
   hasDoor: boolean;
-  partitionCount?: number;
+  partitionCount: number;
   onUnitChange: (unit: 'mm' | 'cm') => void;
   onPartitionWidthChange: (value: string) => void;
   onPartitionHeightChange: (value: string) => void;
   onDoorWidthChange: (value: string) => void;
   onDoorHeightChange: (value: string) => void;
+  onPartitionCountChange: (value: number) => void;
   onDimensionBlur: () => void;
   convertToMm: (value: string, fromUnit: 'mm' | 'cm') => string;
 }
@@ -26,12 +27,13 @@ export default function DimensionInputs({
   doorWidth,
   doorHeight,
   hasDoor,
-  partitionCount = 1,
+  partitionCount,
   onUnitChange,
   onPartitionWidthChange,
   onPartitionHeightChange,
   onDoorWidthChange,
   onDoorHeightChange,
+  onPartitionCountChange,
   onDimensionBlur,
   convertToMm
 }: DimensionInputsProps) {
@@ -65,7 +67,7 @@ export default function DimensionInputs({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="grid gap-2">
           <Label htmlFor="partitionWidth">Ширина изделия *</Label>
           <Input
@@ -98,6 +100,39 @@ export default function DimensionInputs({
           <p className="text-xs text-muted-foreground">
             {partitionHeight && unit === 'mm' ? `(${(parseFloat(partitionHeight) / 10).toFixed(1)} см)` : ''}
             {partitionHeight && unit === 'cm' ? `(${(parseFloat(partitionHeight) * 10).toFixed(0)} мм)` : ''}
+          </p>
+        </div>
+        <div className="grid gap-2">
+          <Label htmlFor="partitionCount">Количество секций *</Label>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => onPartitionCountChange(Math.max(1, partitionCount - 1))}
+              className="h-10 w-10 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground disabled:opacity-50"
+              disabled={partitionCount <= 1}
+            >
+              −
+            </button>
+            <Input
+              id="partitionCount"
+              type="number"
+              value={partitionCount}
+              onChange={(e) => onPartitionCountChange(Math.max(1, Math.min(10, parseInt(e.target.value) || 1)))}
+              className="text-center"
+              min="1"
+              max="10"
+            />
+            <button
+              type="button"
+              onClick={() => onPartitionCountChange(Math.min(10, partitionCount + 1))}
+              className="h-10 w-10 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground disabled:opacity-50"
+              disabled={partitionCount >= 10}
+            >
+              +
+            </button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {partitionCount > 1 ? `${partitionCount} секций по ${partitionWidth} ${unit}` : 'Одна секция'}
           </p>
         </div>
       </div>

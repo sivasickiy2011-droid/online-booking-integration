@@ -11,6 +11,7 @@ export function useCalculatorLogic() {
   const [partitionHeight, setPartitionHeight] = useState<string>('1900');
   const [doorWidth, setDoorWidth] = useState<string>('');
   const [doorHeight, setDoorHeight] = useState<string>('');
+  const [partitionCount, setPartitionCount] = useState<number>(1);
   const [unit, setUnit] = useState<'mm' | 'cm'>('mm');
   const [calculation, setCalculation] = useState<CalculationResult | null>(null);
   const [selectedAlternatives, setSelectedAlternatives] = useState<Record<number, number>>({});
@@ -67,6 +68,7 @@ export function useCalculatorLogic() {
       const defaultWidth = (pkg.default_partition_width || 1000).toString();
       setPartitionHeight(convertFromMm(defaultHeight, unit));
       setPartitionWidth(convertFromMm(defaultWidth, unit));
+      setPartitionCount(pkg.partition_count || 1);
       if (pkg.has_door) {
         const defaultDoorHeight = (pkg.default_door_height || 1900).toString();
         const defaultDoorWidth = (pkg.default_door_width || 800).toString();
@@ -288,6 +290,8 @@ export function useCalculatorLogic() {
     setDoorWidth,
     doorHeight,
     setDoorHeight,
+    partitionCount,
+    setPartitionCount,
     unit,
     calculation,
     selectedAlternatives,
