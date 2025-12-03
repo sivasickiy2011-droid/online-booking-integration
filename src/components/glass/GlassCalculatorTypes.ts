@@ -24,6 +24,12 @@ export interface GlassPackage {
   installation_price: number;
   description: string;
   components?: GlassComponent[];
+  has_door?: boolean;
+  default_partition_height?: number;
+  default_partition_width?: number;
+  default_door_height?: number;
+  default_door_width?: number;
+  sketch_svg?: string;
 }
 
 export interface CalculationResult {
@@ -33,4 +39,6 @@ export interface CalculationResult {
   subtotal: number;
   markup_amount: number;
   total_price: number;
+  partition_area?: number;
+  door_area?: number;
 }

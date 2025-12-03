@@ -46,9 +46,23 @@ export default function CalculationResultCard({
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="space-y-2 text-sm">
+          {calculation.partition_area && calculation.partition_area > 0 && (
+            <>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Площадь перегородки:</span>
+                <span className="font-medium">{calculation.partition_area.toFixed(2)} м²</span>
+              </div>
+              {calculation.door_area && calculation.door_area > 0 && (
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Минус дверь:</span>
+                  <span className="font-medium">-{calculation.door_area.toFixed(2)} м²</span>
+                </div>
+              )}
+            </>
+          )}
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Площадь:</span>
-            <span className="font-medium">{calculation.square_meters.toFixed(2)} м²</span>
+            <span className="text-muted-foreground">Площадь для расчёта:</span>
+            <span className="font-bold text-lg">{calculation.square_meters.toFixed(2)} м²</span>
           </div>
           <Separator />
           <div className="flex justify-between">

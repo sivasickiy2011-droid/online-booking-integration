@@ -156,15 +156,20 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     INSERT INTO t_p56372141_online_booking_integ.glass_packages 
                     (package_name, package_article, product_type, glass_type, glass_thickness, 
                      glass_price_per_sqm, hardware_set, hardware_price, markup_percent, 
-                     installation_price, description, sketch_image_url, is_active)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                     installation_price, description, sketch_image_url, is_active,
+                     has_door, default_partition_height, default_partition_width,
+                     default_door_height, default_door_width, sketch_svg)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     RETURNING package_id
                 """, (
                     pkg.get('package_name'), pkg.get('package_article'), pkg.get('product_type'),
                     pkg.get('glass_type'), pkg.get('glass_thickness'), pkg.get('glass_price_per_sqm'),
                     pkg.get('hardware_set', ''), pkg.get('hardware_price', 0), pkg.get('markup_percent', 20),
                     pkg.get('installation_price', 3000), pkg.get('description', ''),
-                    pkg.get('sketch_image_url', ''), pkg.get('is_active', True)
+                    pkg.get('sketch_image_url', ''), pkg.get('is_active', True),
+                    pkg.get('has_door', False), pkg.get('default_partition_height', 1900),
+                    pkg.get('default_partition_width', 1000), pkg.get('default_door_height', 1900),
+                    pkg.get('default_door_width', 800), pkg.get('sketch_svg', '')
                 ))
                 result = cursor.fetchone()
                 conn.commit()
@@ -307,14 +312,19 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     UPDATE t_p56372141_online_booking_integ.glass_packages 
                     SET package_name=%s, package_article=%s, product_type=%s, glass_type=%s,
                         glass_thickness=%s, glass_price_per_sqm=%s, hardware_set=%s, hardware_price=%s,
-                        markup_percent=%s, installation_price=%s, description=%s, sketch_image_url=%s, is_active=%s
+                        markup_percent=%s, installation_price=%s, description=%s, sketch_image_url=%s, is_active=%s,
+                        has_door=%s, default_partition_height=%s, default_partition_width=%s,
+                        default_door_height=%s, default_door_width=%s, sketch_svg=%s
                     WHERE package_id=%s
                 """, (
                     pkg.get('package_name'), pkg.get('package_article'), pkg.get('product_type'),
                     pkg.get('glass_type'), pkg.get('glass_thickness'), pkg.get('glass_price_per_sqm'),
                     pkg.get('hardware_set', ''), pkg.get('hardware_price', 0), pkg.get('markup_percent', 20),
                     pkg.get('installation_price', 3000), pkg.get('description', ''),
-                    pkg.get('sketch_image_url', ''), pkg.get('is_active', True), pkg.get('package_id')
+                    pkg.get('sketch_image_url', ''), pkg.get('is_active', True),
+                    pkg.get('has_door', False), pkg.get('default_partition_height', 1900),
+                    pkg.get('default_partition_width', 1000), pkg.get('default_door_height', 1900),
+                    pkg.get('default_door_width', 800), pkg.get('sketch_svg', ''), pkg.get('package_id')
                 ))
                 conn.commit()
                 return {

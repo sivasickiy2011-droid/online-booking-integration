@@ -494,8 +494,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             cursor.execute(
                 """INSERT INTO t_p56372141_online_booking_integ.glass_packages 
                 (package_name, package_article, product_type, glass_type, glass_thickness, glass_price_per_sqm, 
-                hardware_set, hardware_price, markup_percent, installation_price, description, sketch_image_url, is_active)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                hardware_set, hardware_price, markup_percent, installation_price, description, sketch_image_url, is_active,
+                has_door, default_partition_height, default_partition_width, default_door_height, default_door_width, sketch_svg)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING package_id""",
                 (package.get('package_name'), package.get('package_article', ''),
                  package.get('product_type'), package.get('glass_type'),
@@ -503,7 +504,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                  package.get('hardware_set'), package.get('hardware_price'),
                  package.get('markup_percent'), package.get('installation_price'),
                  package.get('description'), package.get('sketch_image_url', ''),
-                 package.get('is_active', True))
+                 package.get('is_active', True),
+                 package.get('has_door', False), package.get('default_partition_height', 1900),
+                 package.get('default_partition_width', 1000), package.get('default_door_height', 1900),
+                 package.get('default_door_width', 800), package.get('sketch_svg', ''))
             )
             package_id = cursor.fetchone()['package_id']
             conn.commit()
@@ -534,7 +538,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 SET package_name = %s, package_article = %s, product_type = %s, glass_type = %s, glass_thickness = %s,
                 glass_price_per_sqm = %s, hardware_set = %s, hardware_price = %s,
                 markup_percent = %s, installation_price = %s, description = %s, sketch_image_url = %s,
-                is_active = %s, updated_at = CURRENT_TIMESTAMP
+                is_active = %s, has_door = %s, default_partition_height = %s, default_partition_width = %s,
+                default_door_height = %s, default_door_width = %s, sketch_svg = %s, updated_at = CURRENT_TIMESTAMP
                 WHERE package_id = %s""",
                 (package.get('package_name'), package.get('package_article', ''),
                  package.get('product_type'), package.get('glass_type'),
@@ -543,6 +548,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                  package.get('markup_percent'), package.get('installation_price'),
                  package.get('description'), package.get('sketch_image_url', ''),
                  package.get('is_active', True),
+                 package.get('has_door', False), package.get('default_partition_height', 1900),
+                 package.get('default_partition_width', 1000), package.get('default_door_height', 1900),
+                 package.get('default_door_width', 800), package.get('sketch_svg', ''),
                  package.get('package_id'))
             )
             conn.commit()
@@ -908,13 +916,16 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         cursor = conn.cursor()
         cursor.execute(
             """INSERT INTO t_p56372141_online_booking_integ.glass_orders
-            (package_id, customer_name, customer_phone, customer_email, width, height,
+            (package_id, customer_name, customer_phone, customer_email, 
+            partition_width, partition_height, door_width, door_height, has_door,
             square_meters, glass_cost, hardware_cost, installation_cost, markup_amount,
             total_price, notes, status)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING order_id""",
             (order.get('package_id'), order.get('customer_name'), order.get('customer_phone'),
-             order.get('customer_email'), order.get('width'), order.get('height'),
+             order.get('customer_email'), 
+             order.get('partition_width'), order.get('partition_height'),
+             order.get('door_width'), order.get('door_height'), order.get('has_door', False),
              order.get('square_meters'), order.get('glass_cost'), order.get('hardware_cost'),
              order.get('installation_cost'), order.get('markup_amount'), order.get('total_price'),
              order.get('notes'), 'new')

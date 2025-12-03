@@ -9,12 +9,15 @@ import Icon from '@/components/ui/icon';
 import { GlassPackage, CalculationResult } from './GlassCalculatorTypes';
 import PackageDetails from './PackageDetails';
 import CalculationResultCard from './CalculationResultCard';
+import PartitionSketch from './PartitionSketch';
 
 export default function GlassCalculator() {
   const [packages, setPackages] = useState<GlassPackage[]>([]);
   const [selectedPackage, setSelectedPackage] = useState<GlassPackage | null>(null);
-  const [width, setWidth] = useState<string>('');
-  const [height, setHeight] = useState<string>('');
+  const [partitionWidth, setPartitionWidth] = useState<string>('');
+  const [partitionHeight, setPartitionHeight] = useState<string>('1900');
+  const [doorWidth, setDoorWidth] = useState<string>('');
+  const [doorHeight, setDoorHeight] = useState<string>('');
   const [calculation, setCalculation] = useState<CalculationResult | null>(null);
   const [selectedAlternatives, setSelectedAlternatives] = useState<Record<number, number>>({});
   const [expandedComponents, setExpandedComponents] = useState<Record<number, boolean>>({});
@@ -44,8 +47,21 @@ export default function GlassCalculator() {
     const pkg = packages.find(p => p.package_id === parseInt(packageId));
     setSelectedPackage(pkg || null);
     setSelectedAlternatives({});
-    if (pkg && width && height) {
-      calculatePrice(pkg, parseFloat(width), parseFloat(height));
+    
+    if (pkg) {
+      setPartitionHeight((pkg.default_partition_height || 1900).toString());
+      setPartitionWidth((pkg.default_partition_width || 1000).toString());
+      if (pkg.has_door) {
+        setDoorHeight((pkg.default_door_height || 1900).toString());
+        setDoorWidth((pkg.default_door_width || 800).toString());
+      } else {
+        setDoorHeight('');
+        setDoorWidth('');
+      }
+    }
+    
+    if (pkg && partitionWidth && partitionHeight) {
+      calculatePrice(pkg);
     }
   };
 
@@ -58,8 +74,8 @@ export default function GlassCalculator() {
       ...prev,
       [mainComponentId]: false
     }));
-    if (selectedPackage && width && height) {
-      calculatePrice(selectedPackage, parseFloat(width), parseFloat(height));
+    if (selectedPackage && partitionWidth && partitionHeight) {
+      calculatePrice(selectedPackage);
     }
   };
 
@@ -71,17 +87,25 @@ export default function GlassCalculator() {
   };
 
   const handleDimensionChange = () => {
-    if (selectedPackage && width && height) {
-      const w = parseFloat(width);
-      const h = parseFloat(height);
-      if (w > 0 && h > 0) {
-        calculatePrice(selectedPackage, w, h);
+    if (selectedPackage && partitionWidth && partitionHeight) {
+      const pw = parseFloat(partitionWidth);
+      const ph = parseFloat(partitionHeight);
+      if (pw > 0 && ph > 0) {
+        calculatePrice(selectedPackage);
       }
     }
   };
 
-  const calculatePrice = (pkg: GlassPackage, w: number, h: number) => {
-    const squareMeters = (w * h) / 10000;
+  const calculatePrice = (pkg: GlassPackage) => {
+    const pw = parseFloat(partitionWidth);
+    const ph = parseFloat(partitionHeight);
+    const dw = doorWidth ? parseFloat(doorWidth) : 0;
+    const dh = doorHeight ? parseFloat(doorHeight) : 0;
+    
+    const partitionArea = (pw * ph) / 1000000;
+    const doorArea = pkg.has_door && dw > 0 && dh > 0 ? (dw * dh) / 1000000 : 0;
+    const totalArea = partitionArea - doorArea;
+    const squareMeters = Math.max(totalArea, 0);
     
     let componentsTotal = 0;
     let servicesTotal = 0;
@@ -120,7 +144,9 @@ export default function GlassCalculator() {
       services_total: servicesTotal,
       subtotal: subtotal,
       markup_amount: markupAmount,
-      total_price: totalPrice
+      total_price: totalPrice,
+      partition_area: partitionArea,
+      door_area: doorArea
     });
   };
 
@@ -145,8 +171,11 @@ export default function GlassCalculator() {
             customer_name: customerName,
             customer_phone: customerPhone,
             customer_email: customerEmail,
-            width: parseFloat(width),
-            height: parseFloat(height),
+            partition_width: parseFloat(partitionWidth),
+            partition_height: parseFloat(partitionHeight),
+            door_width: doorWidth ? parseFloat(doorWidth) : null,
+            door_height: doorHeight ? parseFloat(doorHeight) : null,
+            has_door: selectedPackage.has_door,
             square_meters: calculation.square_meters,
             glass_cost: calculation.components_total,
             hardware_cost: 0,
@@ -163,8 +192,10 @@ export default function GlassCalculator() {
           title: 'Заказ отправлен',
           description: 'Мы свяжемся с вами в ближайшее время'
         });
-        setWidth('');
-        setHeight('');
+        setPartitionWidth('');
+        setPartitionHeight('1900');
+        setDoorWidth('');
+        setDoorHeight('');
         setCalculation(null);
       } else {
         throw new Error('Failed to submit order');
@@ -210,41 +241,88 @@ export default function GlassCalculator() {
             </div>
 
             {selectedPackage && (
-              <PackageDetails
-                selectedPackage={selectedPackage}
-                selectedAlternatives={selectedAlternatives}
-                expandedComponents={expandedComponents}
-                onAlternativeSelect={handleAlternativeSelect}
-                onToggleExpand={toggleComponentExpand}
-              />
-            )}
+              <>
+                <PackageDetails
+                  selectedPackage={selectedPackage}
+                  selectedAlternatives={selectedAlternatives}
+                  expandedComponents={expandedComponents}
+                  onAlternativeSelect={handleAlternativeSelect}
+                  onToggleExpand={toggleComponentExpand}
+                />
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="width">Ширина (мм) *</Label>
-                <Input
-                  id="width"
-                  type="number"
-                  value={width}
-                  onChange={(e) => setWidth(e.target.value)}
-                  onBlur={handleDimensionChange}
-                  placeholder="3300"
-                  min="100"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="height">Высота (мм) *</Label>
-                <Input
-                  id="height"
-                  type="number"
-                  value={height}
-                  onChange={(e) => setHeight(e.target.value)}
-                  onBlur={handleDimensionChange}
-                  placeholder="2820"
-                  min="100"
-                />
-              </div>
-            </div>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="partitionWidth">Ширина перегородки (мм) *</Label>
+                      <Input
+                        id="partitionWidth"
+                        type="number"
+                        value={partitionWidth}
+                        onChange={(e) => setPartitionWidth(e.target.value)}
+                        onBlur={handleDimensionChange}
+                        placeholder="1000"
+                        min="100"
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="partitionHeight">Высота перегородки (мм) *</Label>
+                      <Input
+                        id="partitionHeight"
+                        type="number"
+                        value={partitionHeight}
+                        onChange={(e) => setPartitionHeight(e.target.value)}
+                        onBlur={handleDimensionChange}
+                        placeholder="1900 (190 см)"
+                        min="100"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        {partitionHeight ? `${(parseInt(partitionHeight) / 10).toFixed(0)} см` : ''}
+                      </p>
+                    </div>
+                  </div>
+
+                  {selectedPackage.has_door && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="grid gap-2">
+                        <Label htmlFor="doorWidth">Ширина двери (мм) *</Label>
+                        <Input
+                          id="doorWidth"
+                          type="number"
+                          value={doorWidth}
+                          onChange={(e) => setDoorWidth(e.target.value)}
+                          onBlur={handleDimensionChange}
+                          placeholder="800"
+                          min="100"
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="doorHeight">Высота двери (мм) *</Label>
+                        <Input
+                          id="doorHeight"
+                          type="number"
+                          value={doorHeight}
+                          onChange={(e) => setDoorHeight(e.target.value)}
+                          onBlur={handleDimensionChange}
+                          placeholder="1900 (190 см)"
+                          min="100"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          {doorHeight ? `${(parseInt(doorHeight) / 10).toFixed(0)} см` : ''}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  <PartitionSketch
+                    partitionWidth={parseInt(partitionWidth) || 1000}
+                    partitionHeight={parseInt(partitionHeight) || 1900}
+                    doorWidth={parseInt(doorWidth) || 0}
+                    doorHeight={parseInt(doorHeight) || 0}
+                    hasDoor={selectedPackage.has_door || false}
+                  />
+                </div>
+              </>
+            )}
           </div>
 
           {calculation && (
