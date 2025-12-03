@@ -2,7 +2,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import PartitionSketch from './PartitionSketch';
 import StructureConfigurator, { StructureConfig } from './StructureConfigurator';
-import StructureVisualization from './StructureVisualization';
+import Structure3DView from './Structure3DView';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 
@@ -127,7 +127,7 @@ export default function DimensionInputs({
             onChange={handleStructureChange}
             onBlur={onDimensionBlur}
           />
-          <StructureVisualization
+          <Structure3DView
             config={structureConfig}
             unit={unit}
           />
