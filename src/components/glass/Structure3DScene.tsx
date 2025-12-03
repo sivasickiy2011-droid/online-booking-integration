@@ -10,6 +10,7 @@ interface Section3D {
   type: string;
   width: number;
   doorWidth: number;
+  doorType?: 'single' | 'double';
   startX: number;
   startZ: number;
   endX: number;
@@ -29,6 +30,8 @@ interface Structure3DSceneProps {
   sections: Section3D[];
   solidWalls: string[];
   hasRightAngleSection: boolean;
+  maxX: number;
+  maxZ: number;
   to3D: (x: number, y: number, z: number, angle: number) => Point3D;
   glassColor: string;
   wallColor: string;
@@ -49,6 +52,8 @@ export default function Structure3DScene({
   sections,
   solidWalls,
   hasRightAngleSection,
+  maxX,
+  maxZ,
   to3D,
   glassColor,
   wallColor,
@@ -82,10 +87,10 @@ export default function Structure3DScene({
       doorEndZ = endZ;
     }
 
-    const doorBL = to3D(doorStartX, 0, scaledDepth - doorStartZ, rotation);
-    const doorBR = to3D(doorEndX, 0, scaledDepth - doorEndZ, rotation);
-    const doorTR = to3D(doorEndX, -scaledHeight, scaledDepth - doorEndZ, rotation);
-    const doorTL = to3D(doorStartX, -scaledHeight, scaledDepth - doorStartZ, rotation);
+    const doorBL = to3D(doorStartX, 0, doorStartZ, rotation);
+    const doorBR = to3D(doorEndX, 0, doorEndZ, rotation);
+    const doorTR = to3D(doorEndX, scaledHeight, doorEndZ, rotation);
+    const doorTL = to3D(doorStartX, scaledHeight, doorStartZ, rotation);
 
     return (
       <Structure3DDoor
@@ -125,10 +130,10 @@ export default function Structure3DScene({
       <g transform={`translate(${offsetX}, ${offsetY})`}>
         <path
           d={`
-            M ${to3D(-scaledWidth * 0.2, 0, -scaledDepth * 0.2, rotation).x} ${to3D(-scaledWidth * 0.2, 0, -scaledDepth * 0.2, rotation).y}
-            L ${to3D(scaledWidth * 1.2, 0, -scaledDepth * 0.2, rotation).x} ${to3D(scaledWidth * 1.2, 0, -scaledDepth * 0.2, rotation).y}
-            L ${to3D(scaledWidth * 1.2, 0, scaledDepth * 1.2, rotation).x} ${to3D(scaledWidth * 1.2, 0, scaledDepth * 1.2, rotation).y}
-            L ${to3D(-scaledWidth * 0.2, 0, scaledDepth * 1.2, rotation).x} ${to3D(-scaledWidth * 0.2, 0, scaledDepth * 1.2, rotation).y}
+            M ${to3D(-maxX * 0.2, 0, -maxZ * 0.2, rotation).x} ${to3D(-maxX * 0.2, 0, -maxZ * 0.2, rotation).y}
+            L ${to3D(maxX * 1.2, 0, -maxZ * 0.2, rotation).x} ${to3D(maxX * 1.2, 0, -maxZ * 0.2, rotation).y}
+            L ${to3D(maxX * 1.2, 0, maxZ * 1.2, rotation).x} ${to3D(maxX * 1.2, 0, maxZ * 1.2, rotation).y}
+            L ${to3D(-maxX * 0.2, 0, maxZ * 1.2, rotation).x} ${to3D(-maxX * 0.2, 0, maxZ * 1.2, rotation).y}
             Z
           `}
           fill="#e2e8f0"
@@ -138,10 +143,10 @@ export default function Structure3DScene({
         {solidWalls.includes('back') && (
           <path
             d={`
-              M ${to3D(0, 0, 0, rotation).x} ${to3D(0, 0, 0, rotation).y}
-              L ${to3D(scaledWidth, 0, 0, rotation).x} ${to3D(scaledWidth, 0, 0, rotation).y}
-              L ${to3D(scaledWidth, -scaledHeight, 0, rotation).x} ${to3D(scaledWidth, -scaledHeight, 0, rotation).y}
-              L ${to3D(0, -scaledHeight, 0, rotation).x} ${to3D(0, -scaledHeight, 0, rotation).y}
+              M ${to3D(0, 0, maxZ, rotation).x} ${to3D(0, 0, maxZ, rotation).y}
+              L ${to3D(maxX, 0, maxZ, rotation).x} ${to3D(maxX, 0, maxZ, rotation).y}
+              L ${to3D(maxX, scaledHeight, maxZ, rotation).x} ${to3D(maxX, scaledHeight, maxZ, rotation).y}
+              L ${to3D(0, scaledHeight, maxZ, rotation).x} ${to3D(0, scaledHeight, maxZ, rotation).y}
               Z
             `}
             fill="url(#wallGradient)"
@@ -154,9 +159,9 @@ export default function Structure3DScene({
           <path
             d={`
               M ${to3D(0, 0, 0, rotation).x} ${to3D(0, 0, 0, rotation).y}
-              L ${to3D(0, 0, scaledDepth, rotation).x} ${to3D(0, 0, scaledDepth, rotation).y}
-              L ${to3D(0, -scaledHeight, scaledDepth, rotation).x} ${to3D(0, -scaledHeight, scaledDepth, rotation).y}
-              L ${to3D(0, -scaledHeight, 0, rotation).x} ${to3D(0, -scaledHeight, 0, rotation).y}
+              L ${to3D(0, 0, maxZ, rotation).x} ${to3D(0, 0, maxZ, rotation).y}
+              L ${to3D(0, scaledHeight, maxZ, rotation).x} ${to3D(0, scaledHeight, maxZ, rotation).y}
+              L ${to3D(0, scaledHeight, 0, rotation).x} ${to3D(0, scaledHeight, 0, rotation).y}
               Z
             `}
             fill="url(#wallGradient)"
@@ -167,54 +172,30 @@ export default function Structure3DScene({
         )}
 
         {solidWalls.includes('right') && !hasRightAngleSection && (
-          <>
-            <line
-              x1={to3D(scaledWidth, 0, 0, rotation).x}
-              y1={to3D(scaledWidth, 0, 0, rotation).y}
-              x2={to3D(scaledWidth, 0, scaledDepth, rotation).x}
-              y2={to3D(scaledWidth, 0, scaledDepth, rotation).y}
-              stroke={wallColor}
-              strokeWidth="8"
-              strokeLinecap="round"
-            />
-            <line
-              x1={to3D(scaledWidth, 0, 0, rotation).x}
-              y1={to3D(scaledWidth, 0, 0, rotation).y}
-              x2={to3D(scaledWidth, -scaledHeight, 0, rotation).x}
-              y2={to3D(scaledWidth, -scaledHeight, 0, rotation).y}
-              stroke={wallColor}
-              strokeWidth="8"
-              strokeLinecap="round"
-            />
-            <line
-              x1={to3D(scaledWidth, 0, scaledDepth, rotation).x}
-              y1={to3D(scaledWidth, 0, scaledDepth, rotation).y}
-              x2={to3D(scaledWidth, -scaledHeight, scaledDepth, rotation).x}
-              y2={to3D(scaledWidth, -scaledHeight, scaledDepth, rotation).y}
-              stroke={wallColor}
-              strokeWidth="8"
-              strokeLinecap="round"
-            />
-            <line
-              x1={to3D(scaledWidth, -scaledHeight, 0, rotation).x}
-              y1={to3D(scaledWidth, -scaledHeight, 0, rotation).y}
-              x2={to3D(scaledWidth, -scaledHeight, scaledDepth, rotation).x}
-              y2={to3D(scaledWidth, -scaledHeight, scaledDepth, rotation).y}
-              stroke={wallColor}
-              strokeWidth="8"
-              strokeLinecap="round"
-            />
-          </>
+          <path
+            d={`
+              M ${to3D(maxX, 0, 0, rotation).x} ${to3D(maxX, 0, 0, rotation).y}
+              L ${to3D(maxX, 0, maxZ, rotation).x} ${to3D(maxX, 0, maxZ, rotation).y}
+              L ${to3D(maxX, scaledHeight, maxZ, rotation).x} ${to3D(maxX, scaledHeight, maxZ, rotation).y}
+              L ${to3D(maxX, scaledHeight, 0, rotation).x} ${to3D(maxX, scaledHeight, 0, rotation).y}
+              Z
+            `}
+            fill="url(#wallGradient)"
+            stroke={wallColor}
+            strokeWidth="1"
+            opacity="0.9"
+          />
         )}
 
         {sections.map((section, index) => {
-          const bottomLeft = to3D(section.startX, 0, scaledDepth - section.startZ, rotation);
-          const bottomRight = to3D(section.endX, 0, scaledDepth - section.endZ, rotation);
-          const topRight = to3D(section.endX, -scaledHeight, scaledDepth - section.endZ, rotation);
-          const topLeft = to3D(section.startX, -scaledHeight, scaledDepth - section.startZ, rotation);
+          const bottomLeft = to3D(section.startX, 0, section.startZ, rotation);
+          const bottomRight = to3D(section.endX, 0, section.endZ, rotation);
+          const topRight = to3D(section.endX, scaledHeight, section.endZ, rotation);
+          const topLeft = to3D(section.startX, scaledHeight, section.startZ, rotation);
 
           const hasDoor = section.type === 'door' || section.type === 'glass-with-door';
           const doorWidth = section.doorWidth || section.width * 0.6;
+          const isDouble = section.doorType === 'double';
 
           return (
             <g key={section.id}>
@@ -248,7 +229,7 @@ export default function Structure3DScene({
                   
                   <rect
                     x={bottomLeft.x - 4}
-                    y={bottomLeft.y - scaledHeight * 0.15}
+                    y={bottomLeft.y + scaledHeight * 0.15}
                     width="8"
                     height={scaledHeight * 0.08}
                     fill="#334155"
@@ -256,7 +237,7 @@ export default function Structure3DScene({
                   />
                   <rect
                     x={bottomLeft.x - 4}
-                    y={bottomLeft.y - scaledHeight * 0.85}
+                    y={topLeft.y + scaledHeight * 0.07}
                     width="8"
                     height={scaledHeight * 0.08}
                     fill="#334155"
@@ -264,7 +245,7 @@ export default function Structure3DScene({
                   />
                   <rect
                     x={bottomRight.x - 4}
-                    y={bottomRight.y - scaledHeight * 0.15}
+                    y={bottomRight.y + scaledHeight * 0.15}
                     width="8"
                     height={scaledHeight * 0.08}
                     fill="#334155"
@@ -272,7 +253,7 @@ export default function Structure3DScene({
                   />
                   <rect
                     x={bottomRight.x - 4}
-                    y={bottomRight.y - scaledHeight * 0.85}
+                    y={topRight.y + scaledHeight * 0.07}
                     width="8"
                     height={scaledHeight * 0.08}
                     fill="#334155"
@@ -297,12 +278,12 @@ export default function Structure3DScene({
                 section.endX,
                 section.endZ,
                 doorWidth,
-                doorWidth > section.width * 0.65
+                isDouble
               )}
 
               <text
-                x={to3D((section.startX + section.endX) / 2, -scaledHeight - 20, scaledDepth - (section.startZ + section.endZ) / 2, rotation).x}
-                y={to3D((section.startX + section.endX) / 2, -scaledHeight - 20, scaledDepth - (section.startZ + section.endZ) / 2, rotation).y}
+                x={to3D((section.startX + section.endX) / 2, scaledHeight + 20, (section.startZ + section.endZ) / 2, rotation).x}
+                y={to3D((section.startX + section.endX) / 2, scaledHeight + 20, (section.startZ + section.endZ) / 2, rotation).y}
                 textAnchor="middle"
                 fontSize="12"
                 fill="#475569"

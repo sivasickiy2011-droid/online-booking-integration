@@ -154,6 +154,8 @@ export default function StructureTopView({ config, unit }: StructureTopViewProps
           {/* Стеклянные секции */}
           {sections.map((section, index) => {
             const hasDoor = section.type === 'door' || section.type === 'glass-with-door';
+            const sectionConfig = config.sections[index];
+            const isDoorDouble = sectionConfig?.doorType === 'double';
             
             return (
               <g key={section.id}>
@@ -177,18 +179,28 @@ export default function StructureTopView({ config, unit }: StructureTopViewProps
                       x2={section.startX + (section.endX - section.startX) * 0.7}
                       y2={section.startZ + (section.endZ - section.startZ) * 0.7}
                       stroke="#f59e0b"
-                      strokeWidth="8"
+                      strokeWidth="10"
                       strokeLinecap="round"
-                      strokeDasharray="4,4"
                     />
+                    {isDoorDouble && (
+                      <line
+                        x1={(section.startX + section.endX) / 2}
+                        y1={(section.startZ + section.endZ) / 2}
+                        x2={(section.startX + section.endX) / 2}
+                        y2={(section.startZ + section.endZ) / 2}
+                        stroke="#dc2626"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                      />
+                    )}
                     <text
-                      x={(section.startX + section.endX) / 2 + 15}
+                      x={(section.startX + section.endX) / 2 + 20}
                       y={(section.startZ + section.endZ) / 2 - 15}
                       fontSize="11"
                       fill="#f59e0b"
                       fontWeight="700"
                     >
-                      Дверь
+                      {isDoorDouble ? 'Дверь 2ств' : 'Дверь'}
                     </text>
                   </>
                 )}

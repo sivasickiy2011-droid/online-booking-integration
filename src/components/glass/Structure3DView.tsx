@@ -53,7 +53,7 @@ export default function Structure3DView({ config, unit }: Structure3DViewProps) 
     const rotatedZ = x * sinA + z * cosA;
     
     const isoX = rotatedX - rotatedZ * 0.5;
-    const isoY = y + rotatedX * 0.25 + rotatedZ * 0.25;
+    const isoY = -y + rotatedX * 0.2 + rotatedZ * 0.2;
     
     return { x: isoX, y: isoY };
   };
@@ -93,6 +93,7 @@ export default function Structure3DView({ config, unit }: Structure3DViewProps) 
       type: section.type,
       width: sectionWidth,
       doorWidth: section.doorWidth ? convertToMm(section.doorWidth) * scale : 0,
+      doorType: section.doorType || 'single',
       startX,
       startZ,
       endX,
@@ -111,10 +112,10 @@ export default function Structure3DView({ config, unit }: Structure3DViewProps) 
   const centerX = (maxX + minX) / 2;
   const centerZ = (maxZ + minZ) / 2;
   
-  const centerPoint = to3D(centerX, 0, scaledDepth - centerZ, rotation);
+  const centerBottom = to3D(centerX, 0, centerZ, rotation);
   
-  const offsetX = maxWidth / 2 - centerPoint.x;
-  const offsetY = maxHeight / 2 + scaledHeight / 3 - centerPoint.y;
+  const offsetX = maxWidth / 2 - centerBottom.x;
+  const offsetY = maxHeight / 2 + scaledHeight / 4 - centerBottom.y;
 
   const glassColor = '#60a5fa';
   const wallColor = '#94a3b8';
@@ -172,6 +173,8 @@ export default function Structure3DView({ config, unit }: Structure3DViewProps) 
         sections={sections}
         solidWalls={config.solidWalls}
         hasRightAngleSection={hasRightAngleSection}
+        maxX={maxX}
+        maxZ={maxZ}
         to3D={to3D}
         glassColor={glassColor}
         wallColor={wallColor}

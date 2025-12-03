@@ -15,6 +15,7 @@ export interface GlassSection {
   width: string;
   type: SectionType;
   doorWidth?: string;
+  doorType?: 'single' | 'double'; // одностворчатая или двустворчатая
   angleToNext?: number; // угол к следующей секции (90, 135, 180 градусов)
   doorBetweenNext?: boolean; // дверь между этой и следующей секцией
 }
@@ -191,19 +192,36 @@ export default function StructureConfigurator({
                   </div>
 
                   {(section.type === 'door' || section.type === 'glass-with-door') && (
-                    <div className="grid gap-2 col-span-2">
-                      <Label htmlFor={`door-width-${section.id}`} className="text-xs">Ширина двери *</Label>
-                      <Input
-                        id={`door-width-${section.id}`}
-                        type="number"
-                        value={section.doorWidth || ''}
-                        onChange={(e) => updateSection(section.id, { doorWidth: e.target.value })}
-                        onBlur={onBlur}
-                        placeholder={unit === 'mm' ? '800' : '80'}
-                        min="1"
-                        step={unit === 'mm' ? '1' : '0.1'}
-                      />
-                    </div>
+                    <>
+                      <div className="grid gap-2">
+                        <Label htmlFor={`door-width-${section.id}`} className="text-xs">Ширина двери *</Label>
+                        <Input
+                          id={`door-width-${section.id}`}
+                          type="number"
+                          value={section.doorWidth || ''}
+                          onChange={(e) => updateSection(section.id, { doorWidth: e.target.value })}
+                          onBlur={onBlur}
+                          placeholder={unit === 'mm' ? '800' : '80'}
+                          min="1"
+                          step={unit === 'mm' ? '1' : '0.1'}
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor={`door-type-${section.id}`} className="text-xs">Тип двери</Label>
+                        <Select
+                          value={section.doorType || 'single'}
+                          onValueChange={(value) => updateSection(section.id, { doorType: value as 'single' | 'double' })}
+                        >
+                          <SelectTrigger id={`door-type-${section.id}`}>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="single">Одностворчатая</SelectItem>
+                            <SelectItem value="double">Двустворчатая</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </>
                   )}
                 </div>
               </div>
