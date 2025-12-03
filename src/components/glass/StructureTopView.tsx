@@ -15,14 +15,14 @@ export default function StructureTopView({ config, unit }: StructureTopViewProps
     return null;
   }
 
-  const depth = 400;
+  const depthMm = 1200; // глубина помещения 1200мм по умолчанию
   const maxSize = 400;
   
   // Вычисляем общую ширину
   const totalWidthMm = config.sections.reduce((sum, s) => sum + convertToMm(s.width), 0);
-  const scale = Math.min(maxSize / totalWidthMm, maxSize / depth) * 0.7;
+  const scale = Math.min(maxSize / totalWidthMm, maxSize / depthMm) * 0.7;
   
-  const scaledDepth = depth * scale;
+  const scaledDepth = depthMm * scale;
 
   // Генерируем секции с углами
   let currentX = 0;
@@ -76,7 +76,8 @@ export default function StructureTopView({ config, unit }: StructureTopViewProps
   const maxZ = Math.max(...sections.map(s => Math.max(s.startZ, s.endZ)));
   
   const offsetX = 50;
-  const offsetY = maxSize - maxZ - 50;
+  // Стекло всегда внизу (большой Y = низ)
+  const offsetY = 50;
 
   return (
     <div className="bg-gradient-to-br from-blue-50 to-slate-50 rounded-lg p-4 border-2">
