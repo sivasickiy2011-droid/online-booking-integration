@@ -64,28 +64,56 @@ export default function Structure3DView({ config, unit }: Structure3DViewProps) 
     return { x: isoX, y: isoY };
   };
 
-  // Генерируем секции
+  // Генерируем секции с учетом углов
   let currentX = 0;
+  let currentZ = 0;
   const sections = config.sections.map((section, index) => {
     const sectionWidth = convertToMm(section.width) * scale;
-    const startX = currentX;
+    const angle = index > 0 ? config.sections[index - 1].angleToNext || 180 : 0;
     
-    const result = {
+    const startX = currentX;
+    const startZ = currentZ;
+    let endX = currentX;
+    let endZ = currentZ;
+    
+    if (index === 0) {
+      // Первая секция всегда горизонтальная
+      endX = currentX + sectionWidth;
+      currentX = endX;
+    } else {
+      if (angle === 180) {
+        // Прямо
+        endX = currentX + sectionWidth;
+        currentX = endX;
+      } else if (angle === 90) {
+        // Поворот на 90° вглубь (правая боковая секция)
+        endZ = currentZ + sectionWidth;
+        currentZ = endZ;
+      } else if (angle === 135) {
+        // Поворот на 135°
+        const rad = (135 * Math.PI) / 180;
+        endX = currentX + sectionWidth * Math.cos(rad);
+        endZ = currentZ + sectionWidth * Math.sin(rad);
+        currentX = endX;
+        currentZ = endZ;
+      }
+    }
+    
+    return {
       id: section.id,
       type: section.type,
       width: sectionWidth,
       doorWidth: section.doorWidth ? convertToMm(section.doorWidth) * scale : 0,
       startX,
-      endX: currentX + sectionWidth,
-      angle: index > 0 ? config.sections[index - 1].angleToNext : 0
+      startZ,
+      endX,
+      endZ,
+      angle
     };
-    
-    if (index === 0 || config.sections[index - 1].angleToNext === 180) {
-      currentX += sectionWidth;
-    }
-    
-    return result;
   });
+  
+  // Проверяем, есть ли секция с углом 90° (она заменяет правую стену)
+  const hasRightAngleSection = config.sections.some((s, i) => i > 0 && config.sections[i - 1].angleToNext === 90);
 
   // Центрирование с учетом вращения
   const offsetX = maxWidth / 2;
@@ -232,8 +260,8 @@ export default function Structure3DView({ config, unit }: Structure3DViewProps) 
             />
           )}
 
-          {/* ПРАВАЯ БОКОВАЯ СТЕНА (от переда до стекла) */}
-          {config.solidWalls.includes('right') && (
+          {/* ПРАВАЯ БОКОВАЯ СТЕНА (не рисуется если есть секция под углом 90°) */}
+          {config.solidWalls.includes('right') && !hasRightAngleSection && (
             <path
               d={`
                 M ${to3D(scaledWidth, 0, 0, rotation).x} ${to3D(scaledWidth, 0, 0, rotation).y}
@@ -249,22 +277,39 @@ export default function Structure3DView({ config, unit }: Structure3DViewProps) 
             />
           )}
 
-          {/* СТЕКЛЯННЫЕ СЕКЦИИ (на глубине scaledDepth - задняя стена) */}
+          {/* СТЕКЛЯННЫЕ СЕКЦИИ */}
           {sections.map((section, index) => {
-            const bottomLeft = to3D(section.startX, 0, scaledDepth, rotation);
-            const bottomRight = to3D(section.endX, 0, scaledDepth, rotation);
-            const topRight = to3D(section.endX, -scaledHeight, scaledDepth, rotation);
-            const topLeft = to3D(section.startX, -scaledHeight, scaledDepth, rotation);
+            // Используем реальные координаты секции
+            const bottomLeft = to3D(section.startX, 0, scaledDepth - section.startZ, rotation);
+            const bottomRight = to3D(section.endX, 0, scaledDepth - section.endZ, rotation);
+            const topRight = to3D(section.endX, -scaledHeight, scaledDepth - section.endZ, rotation);
+            const topLeft = to3D(section.startX, -scaledHeight, scaledDepth - section.startZ, rotation);
 
-            const bottomLeftBack = to3D(section.startX, 0, scaledDepth + 15, rotation);
-            const bottomRightBack = to3D(section.endX, 0, scaledDepth + 15, rotation);
-            const topRightBack = to3D(section.endX, -scaledHeight, scaledDepth + 15, rotation);
-            const topLeftBack = to3D(section.startX, -scaledHeight, scaledDepth + 15, rotation);
+            const bottomLeftBack = to3D(section.startX, 0, scaledDepth - section.startZ + 15, rotation);
+            const bottomRightBack = to3D(section.endX, 0, scaledDepth - section.endZ + 15, rotation);
+            const topRightBack = to3D(section.endX, -scaledHeight, scaledDepth - section.endZ + 15, rotation);
+            const topLeftBack = to3D(section.startX, -scaledHeight, scaledDepth - section.startZ + 15, rotation);
 
             const hasDoor = section.type === 'door' || section.type === 'glass-with-door';
             const doorWidth = section.doorWidth || section.width * 0.6;
-            const doorStart = section.startX + (section.width - doorWidth) / 2;
-            const doorEnd = doorStart + doorWidth;
+            
+            // Дверь для угловых секций
+            let doorStartX, doorStartZ, doorEndX, doorEndZ;
+            if (section.angle === 90) {
+              // Вертикальная секция
+              const doorOffset = (section.endZ - section.startZ - doorWidth) / 2;
+              doorStartX = section.startX;
+              doorStartZ = section.startZ + doorOffset;
+              doorEndX = section.endX;
+              doorEndZ = section.startZ + doorOffset + doorWidth;
+            } else {
+              // Горизонтальная секция
+              const doorOffset = (section.endX - section.startX - doorWidth) / 2;
+              doorStartX = section.startX + doorOffset;
+              doorStartZ = section.startZ;
+              doorEndX = section.startX + doorOffset + doorWidth;
+              doorEndZ = section.endZ;
+            }
 
             return (
               <g key={section.id}>
@@ -327,10 +372,10 @@ export default function Structure3DView({ config, unit }: Structure3DViewProps) 
                   <>
                     <path
                       d={`
-                        M ${to3D(doorStart, 0, scaledDepth, rotation).x} ${to3D(doorStart, 0, scaledDepth, rotation).y}
-                        L ${to3D(doorEnd, 0, scaledDepth, rotation).x} ${to3D(doorEnd, 0, scaledDepth, rotation).y}
-                        L ${to3D(doorEnd, -scaledHeight, scaledDepth, rotation).x} ${to3D(doorEnd, -scaledHeight, scaledDepth, rotation).y}
-                        L ${to3D(doorStart, -scaledHeight, scaledDepth, rotation).x} ${to3D(doorStart, -scaledHeight, scaledDepth, rotation).y}
+                        M ${to3D(doorStartX, 0, scaledDepth - doorStartZ, rotation).x} ${to3D(doorStartX, 0, scaledDepth - doorStartZ, rotation).y}
+                        L ${to3D(doorEndX, 0, scaledDepth - doorEndZ, rotation).x} ${to3D(doorEndX, 0, scaledDepth - doorEndZ, rotation).y}
+                        L ${to3D(doorEndX, -scaledHeight, scaledDepth - doorEndZ, rotation).x} ${to3D(doorEndX, -scaledHeight, scaledDepth - doorEndZ, rotation).y}
+                        L ${to3D(doorStartX, -scaledHeight, scaledDepth - doorStartZ, rotation).x} ${to3D(doorStartX, -scaledHeight, scaledDepth - doorStartZ, rotation).y}
                         Z
                       `}
                       fill="url(#doorPattern)"
@@ -338,8 +383,8 @@ export default function Structure3DView({ config, unit }: Structure3DViewProps) 
                       strokeWidth="4"
                     />
                     <circle
-                      cx={to3D(doorStart + doorWidth * 0.8, -scaledHeight * 0.5, scaledDepth, rotation).x}
-                      cy={to3D(doorStart + doorWidth * 0.8, -scaledHeight * 0.5, scaledDepth, rotation).y}
+                      cx={to3D((doorStartX + doorEndX) / 2, -scaledHeight * 0.5, scaledDepth - (doorStartZ + doorEndZ) / 2, rotation).x}
+                      cy={to3D((doorStartX + doorEndX) / 2, -scaledHeight * 0.5, scaledDepth - (doorStartZ + doorEndZ) / 2, rotation).y}
                       r="6"
                       fill={doorColor}
                       stroke="#d97706"
@@ -364,10 +409,10 @@ export default function Structure3DView({ config, unit }: Structure3DViewProps) 
                     />
                     <path
                       d={`
-                        M ${to3D(doorStart, 0, scaledDepth, rotation).x} ${to3D(doorStart, 0, scaledDepth, rotation).y}
-                        L ${to3D(doorEnd, 0, scaledDepth, rotation).x} ${to3D(doorEnd, 0, scaledDepth, rotation).y}
-                        L ${to3D(doorEnd, -scaledHeight, scaledDepth, rotation).x} ${to3D(doorEnd, -scaledHeight, scaledDepth, rotation).y}
-                        L ${to3D(doorStart, -scaledHeight, scaledDepth, rotation).x} ${to3D(doorStart, -scaledHeight, scaledDepth, rotation).y}
+                        M ${to3D(doorStartX, 0, scaledDepth - doorStartZ, rotation).x} ${to3D(doorStartX, 0, scaledDepth - doorStartZ, rotation).y}
+                        L ${to3D(doorEndX, 0, scaledDepth - doorEndZ, rotation).x} ${to3D(doorEndX, 0, scaledDepth - doorEndZ, rotation).y}
+                        L ${to3D(doorEndX, -scaledHeight, scaledDepth - doorEndZ, rotation).x} ${to3D(doorEndX, -scaledHeight, scaledDepth - doorEndZ, rotation).y}
+                        L ${to3D(doorStartX, -scaledHeight, scaledDepth - doorStartZ, rotation).x} ${to3D(doorStartX, -scaledHeight, scaledDepth - doorStartZ, rotation).y}
                         Z
                       `}
                       fill="url(#doorPattern)"
@@ -375,8 +420,8 @@ export default function Structure3DView({ config, unit }: Structure3DViewProps) 
                       strokeWidth="4"
                     />
                     <circle
-                      cx={to3D(doorStart + doorWidth * 0.8, -scaledHeight * 0.5, scaledDepth, rotation).x}
-                      cy={to3D(doorStart + doorWidth * 0.8, -scaledHeight * 0.5, scaledDepth, rotation).y}
+                      cx={to3D((doorStartX + doorEndX) / 2, -scaledHeight * 0.5, scaledDepth - (doorStartZ + doorEndZ) / 2, rotation).x}
+                      cy={to3D((doorStartX + doorEndX) / 2, -scaledHeight * 0.5, scaledDepth - (doorStartZ + doorEndZ) / 2, rotation).y}
                       r="6"
                       fill={doorColor}
                       stroke="#d97706"
@@ -387,8 +432,8 @@ export default function Structure3DView({ config, unit }: Structure3DViewProps) 
 
                 {/* Номер секции */}
                 <text
-                  x={to3D((section.startX + section.endX) / 2, -scaledHeight - 20, scaledDepth, rotation).x}
-                  y={to3D((section.startX + section.endX) / 2, -scaledHeight - 20, scaledDepth, rotation).y}
+                  x={to3D((section.startX + section.endX) / 2, -scaledHeight - 20, scaledDepth - (section.startZ + section.endZ) / 2, rotation).x}
+                  y={to3D((section.startX + section.endX) / 2, -scaledHeight - 20, scaledDepth - (section.startZ + section.endZ) / 2, rotation).y}
                   textAnchor="middle"
                   fontSize="12"
                   fill="#475569"

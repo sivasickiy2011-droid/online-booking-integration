@@ -75,6 +75,9 @@ export default function StructureTopView({ config, unit }: StructureTopViewProps
   const maxX = Math.max(...sections.map(s => Math.max(s.startX, s.endX)));
   const maxZ = Math.max(...sections.map(s => Math.max(s.startZ, s.endZ)));
   
+  // Проверяем, есть ли секция с углом 90° (она заменяет правую стену)
+  const hasRightAngleSection = config.sections.some((s, i) => i > 0 && config.sections[i - 1].angleToNext === 90);
+  
   const offsetX = 50;
   // Стекло всегда внизу (большой Y = низ)
   const offsetY = 50;
@@ -135,7 +138,8 @@ export default function StructureTopView({ config, unit }: StructureTopViewProps
             />
           )}
           
-          {config.solidWalls.includes('right') && (
+          {/* Правая стена не рисуется если есть секция под углом 90° */}
+          {config.solidWalls.includes('right') && !hasRightAngleSection && (
             <line
               x1={maxX}
               y1={0}
