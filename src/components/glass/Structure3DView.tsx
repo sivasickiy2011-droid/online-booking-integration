@@ -9,7 +9,7 @@ interface Structure3DViewProps {
 }
 
 export default function Structure3DView({ config, unit }: Structure3DViewProps) {
-  const [rotation, setRotation] = useState(30); // начальный угол (лицевая панель + правый угол)
+  const [rotation, setRotation] = useState(30);
   const [isPlaying, setIsPlaying] = useState(false);
   const animationRef = useRef<number>();
 
@@ -18,7 +18,6 @@ export default function Structure3DView({ config, unit }: Structure3DViewProps) 
     return unit === 'cm' ? num * 10 : num;
   };
 
-  // Проверка на пустую конфигурацию
   if (!config.sections || config.sections.length === 0) {
     return (
       <div className="bg-muted/30 rounded-lg p-6 border-2 text-center text-muted-foreground">
@@ -30,14 +29,12 @@ export default function Structure3DView({ config, unit }: Structure3DViewProps) 
   const height = convertToMm(config.height) || 1900;
   const depthMm = 1200;
   
-  // Вычисляем размеры для автомасштабирования
   const totalWidthMm = config.sections.reduce((sum, s) => sum + convertToMm(s.width), 0);
   
   const maxWidth = 800;
   const maxHeight = 600;
-  const viewPadding = 100; // отступ от краёв
+  const viewPadding = 100;
   
-  // Автоматический масштаб чтобы всё умещалось
   const scale = Math.min(
     (maxWidth - viewPadding * 2) / Math.max(totalWidthMm, depthMm),
     (maxHeight - viewPadding * 2) / height
@@ -47,24 +44,20 @@ export default function Structure3DView({ config, unit }: Structure3DViewProps) 
   const scaledHeight = height * scale;
   const scaledDepth = depthMm * scale;
 
-  // 3D трансформация с вращением
   const to3D = (x: number, y: number, z: number, angle: number) => {
     const rad = (angle * Math.PI) / 180;
     const cosA = Math.cos(rad);
     const sinA = Math.sin(rad);
     
-    // Поворот вокруг вертикальной оси Y
     const rotatedX = x * cosA - z * sinA;
     const rotatedZ = x * sinA + z * cosA;
     
-    // Изометрическая проекция
     const isoX = rotatedX - rotatedZ * 0.5;
     const isoY = y + rotatedX * 0.25 + rotatedZ * 0.25;
     
     return { x: isoX, y: isoY };
   };
 
-  // Генерируем секции с учетом углов
   let currentX = 0;
   let currentZ = 0;
   const sections = config.sections.map((section, index) => {
@@ -77,20 +70,16 @@ export default function Structure3DView({ config, unit }: Structure3DViewProps) 
     let endZ = currentZ;
     
     if (index === 0) {
-      // Первая секция всегда горизонтальная
       endX = currentX + sectionWidth;
       currentX = endX;
     } else {
       if (angle === 180) {
-        // Прямо
         endX = currentX + sectionWidth;
         currentX = endX;
       } else if (angle === 90) {
-        // Поворот на 90° вглубь (правая боковая секция)
         endZ = currentZ + sectionWidth;
         currentZ = endZ;
       } else if (angle === 135) {
-        // Поворот на 135°
         const rad = (135 * Math.PI) / 180;
         endX = currentX + sectionWidth * Math.cos(rad);
         endZ = currentZ + sectionWidth * Math.sin(rad);
@@ -112,19 +101,17 @@ export default function Structure3DView({ config, unit }: Structure3DViewProps) 
     };
   });
   
-  // Проверяем, есть ли секция с углом 90° (она заменяет правую стену)
   const hasRightAngleSection = config.sections.some((s, i) => i > 0 && config.sections[i - 1].angleToNext === 90);
 
-  // Центрирование с учетом вращения
   const offsetX = maxWidth / 2;
   const offsetY = maxHeight / 2 + scaledHeight / 3;
 
-  // Цвета
   const glassColor = '#60a5fa';
   const wallColor = '#94a3b8';
-  const doorColor = '#fbbf24';
+  const doorFrameColor = '#1e293b';
+  const doorGlassColor = '#e0f2fe';
+  const handleColor = '#475569';
 
-  // Автовращение
   useEffect(() => {
     if (isPlaying) {
       const animate = () => {
@@ -143,6 +130,148 @@ export default function Structure3DView({ config, unit }: Structure3DViewProps) 
 
   const handleRotate = (delta: number) => {
     setRotation(prev => (prev + delta + 360) % 360);
+  };
+
+  const renderDoor = (
+    startX: number,
+    startZ: number,
+    endX: number,
+    endZ: number,
+    doorWidthPx: number,
+    isDouble: boolean
+  ) => {
+    const isVertical = Math.abs(endZ - startZ) > Math.abs(endX - startX);
+    const sectionLength = isVertical ? Math.abs(endZ - startZ) : Math.abs(endX - startX);
+    const doorOffset = (sectionLength - doorWidthPx) / 2;
+    
+    let doorStartX, doorStartZ, doorEndX, doorEndZ;
+    
+    if (isVertical) {
+      doorStartX = startX;
+      doorStartZ = startZ + doorOffset;
+      doorEndX = endX;
+      doorEndZ = startZ + doorOffset + doorWidthPx;
+    } else {
+      doorStartX = startX + doorOffset;
+      doorStartZ = startZ;
+      doorEndX = startX + doorOffset + doorWidthPx;
+      doorEndZ = endZ;
+    }
+
+    const doorBL = to3D(doorStartX, 0, scaledDepth - doorStartZ, rotation);
+    const doorBR = to3D(doorEndX, 0, scaledDepth - doorEndZ, rotation);
+    const doorTR = to3D(doorEndX, -scaledHeight, scaledDepth - doorEndZ, rotation);
+    const doorTL = to3D(doorStartX, -scaledHeight, scaledDepth - doorStartZ, rotation);
+
+    const frameThickness = 8;
+    
+    return (
+      <g>
+        {/* Рамка двери */}
+        <path
+          d={`
+            M ${doorBL.x} ${doorBL.y}
+            L ${doorBR.x} ${doorBR.y}
+            L ${doorTR.x} ${doorTR.y}
+            L ${doorTL.x} ${doorTL.y}
+            Z
+          `}
+          fill={doorFrameColor}
+          stroke={doorFrameColor}
+          strokeWidth="4"
+        />
+
+        {/* Стекло двери */}
+        {isDouble ? (
+          <>
+            {/* Две створки */}
+            <path
+              d={`
+                M ${doorBL.x + frameThickness} ${doorBL.y + frameThickness}
+                L ${(doorBL.x + doorBR.x) / 2 - 2} ${(doorBL.y + doorBR.y) / 2 + frameThickness}
+                L ${(doorTL.x + doorTR.x) / 2 - 2} ${(doorTL.y + doorTR.y) / 2 - frameThickness}
+                L ${doorTL.x + frameThickness} ${doorTL.y - frameThickness}
+                Z
+              `}
+              fill={doorGlassColor}
+              fillOpacity="0.5"
+              stroke={doorFrameColor}
+              strokeWidth="2"
+            />
+            <path
+              d={`
+                M ${(doorBL.x + doorBR.x) / 2 + 2} ${(doorBL.y + doorBR.y) / 2 + frameThickness}
+                L ${doorBR.x - frameThickness} ${doorBR.y + frameThickness}
+                L ${doorTR.x - frameThickness} ${doorTR.y - frameThickness}
+                L ${(doorTL.x + doorTR.x) / 2 + 2} ${(doorTL.y + doorTR.y) / 2 - frameThickness}
+                Z
+              `}
+              fill={doorGlassColor}
+              fillOpacity="0.5"
+              stroke={doorFrameColor}
+              strokeWidth="2"
+            />
+            
+            {/* Ручки для двух створок */}
+            <circle
+              cx={(doorBL.x + doorBR.x) / 2 - doorWidthPx * 0.1}
+              cy={(doorBL.y + doorBR.y) / 2}
+              r="4"
+              fill={handleColor}
+            />
+            <circle
+              cx={(doorBL.x + doorBR.x) / 2 + doorWidthPx * 0.1}
+              cy={(doorBL.y + doorBR.y) / 2}
+              r="4"
+              fill={handleColor}
+            />
+          </>
+        ) : (
+          <>
+            {/* Одна створка */}
+            <path
+              d={`
+                M ${doorBL.x + frameThickness} ${doorBL.y + frameThickness}
+                L ${doorBR.x - frameThickness} ${doorBR.y + frameThickness}
+                L ${doorTR.x - frameThickness} ${doorTR.y - frameThickness}
+                L ${doorTL.x + frameThickness} ${doorTL.y - frameThickness}
+                Z
+              `}
+              fill={doorGlassColor}
+              fillOpacity="0.5"
+              stroke={doorFrameColor}
+              strokeWidth="2"
+            />
+            
+            {/* Ручка для одной створки */}
+            <circle
+              cx={doorBR.x - doorWidthPx * 0.15}
+              cy={(doorBR.y + doorTR.y) / 2}
+              r="4"
+              fill={handleColor}
+            />
+          </>
+        )}
+
+        {/* Петли (крепления) слева */}
+        <rect
+          x={doorBL.x - 3}
+          y={doorBL.y - scaledHeight * 0.15}
+          width="6"
+          height={scaledHeight * 0.08}
+          fill={handleColor}
+          rx="2"
+        />
+        <rect
+          x={doorBL.x - 3}
+          y={doorBL.y - scaledHeight * 0.85}
+          width="6"
+          height={scaledHeight * 0.08}
+          fill={handleColor}
+          rx="2"
+        />
+      </g>
+    );
   };
 
   return (
@@ -196,23 +325,18 @@ export default function Structure3DView({ config, unit }: Structure3DViewProps) 
       >
         <defs>
           <linearGradient id="glassGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor={glassColor} stopOpacity="0.3" />
-            <stop offset="100%" stopColor={glassColor} stopOpacity="0.6" />
+            <stop offset="0%" stopColor={glassColor} stopOpacity="0.2" />
+            <stop offset="100%" stopColor={glassColor} stopOpacity="0.4" />
           </linearGradient>
           
           <linearGradient id="wallGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor={wallColor} stopOpacity="0.8" />
-            <stop offset="100%" stopColor={wallColor} stopOpacity="0.5" />
+            <stop offset="0%" stopColor={wallColor} stopOpacity="0.3" />
+            <stop offset="100%" stopColor={wallColor} stopOpacity="0.2" />
           </linearGradient>
-
-          <pattern id="doorPattern" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
-            <rect width="20" height="20" fill={doorColor} opacity="0.3" />
-            <path d="M0,10 L20,10" stroke={doorColor} strokeWidth="2" opacity="0.6" />
-          </pattern>
         </defs>
 
         <g transform={`translate(${offsetX}, ${offsetY})`}>
-          {/* Пол (для ориентации) */}
+          {/* Пол */}
           <path
             d={`
               M ${to3D(-scaledWidth * 0.2, 0, -scaledDepth * 0.2, rotation).x} ${to3D(-scaledWidth * 0.2, 0, -scaledDepth * 0.2, rotation).y}
@@ -222,28 +346,26 @@ export default function Structure3DView({ config, unit }: Structure3DViewProps) 
               Z
             `}
             fill="#e2e8f0"
-            opacity="0.3"
+            opacity="0.2"
           />
 
-          {/* ЗАДНЯЯ СТЕНА (теперь спереди - z=0) */}
+          {/* ЗАДНЯЯ СТЕНА (передняя часть помещения) */}
           {config.solidWalls.includes('back') && (
-            <>
-              <path
-                d={`
-                  M ${to3D(0, 0, 0, rotation).x} ${to3D(0, 0, 0, rotation).y}
-                  L ${to3D(scaledWidth, 0, 0, rotation).x} ${to3D(scaledWidth, 0, 0, rotation).y}
-                  L ${to3D(scaledWidth, -scaledHeight, 0, rotation).x} ${to3D(scaledWidth, -scaledHeight, 0, rotation).y}
-                  L ${to3D(0, -scaledHeight, 0, rotation).x} ${to3D(0, -scaledHeight, 0, rotation).y}
-                  Z
-                `}
-                fill="url(#wallGradient)"
-                stroke={wallColor}
-                strokeWidth="2"
-              />
-            </>
+            <path
+              d={`
+                M ${to3D(0, 0, 0, rotation).x} ${to3D(0, 0, 0, rotation).y}
+                L ${to3D(scaledWidth, 0, 0, rotation).x} ${to3D(scaledWidth, 0, 0, rotation).y}
+                L ${to3D(scaledWidth, -scaledHeight, 0, rotation).x} ${to3D(scaledWidth, -scaledHeight, 0, rotation).y}
+                L ${to3D(0, -scaledHeight, 0, rotation).x} ${to3D(0, -scaledHeight, 0, rotation).y}
+                Z
+              `}
+              fill="url(#wallGradient)"
+              stroke={wallColor}
+              strokeWidth="1"
+            />
           )}
 
-          {/* ЛЕВАЯ БОКОВАЯ СТЕНА (от переда до стекла) */}
+          {/* ЛЕВАЯ БОКОВАЯ СТЕНА */}
           {config.solidWalls.includes('left') && (
             <path
               d={`
@@ -255,12 +377,12 @@ export default function Structure3DView({ config, unit }: Structure3DViewProps) 
               `}
               fill="url(#wallGradient)"
               stroke={wallColor}
-              strokeWidth="2"
+              strokeWidth="1"
               opacity="0.9"
             />
           )}
 
-          {/* ПРАВАЯ БОКОВАЯ СТЕНА (не рисуется если есть секция под углом 90°) */}
+          {/* ПРАВАЯ БОКОВАЯ СТЕНА */}
           {config.solidWalls.includes('right') && !hasRightAngleSection && (
             <path
               d={`
@@ -272,77 +394,25 @@ export default function Structure3DView({ config, unit }: Structure3DViewProps) 
               `}
               fill="url(#wallGradient)"
               stroke={wallColor}
-              strokeWidth="2"
+              strokeWidth="1"
               opacity="0.9"
             />
           )}
 
-          {/* СТЕКЛЯННЫЕ СЕКЦИИ */}
+          {/* СТЕКЛЯННЫЕ СЕКЦИИ И ДВЕРИ */}
           {sections.map((section, index) => {
-            // Используем реальные координаты секции
             const bottomLeft = to3D(section.startX, 0, scaledDepth - section.startZ, rotation);
             const bottomRight = to3D(section.endX, 0, scaledDepth - section.endZ, rotation);
             const topRight = to3D(section.endX, -scaledHeight, scaledDepth - section.endZ, rotation);
             const topLeft = to3D(section.startX, -scaledHeight, scaledDepth - section.startZ, rotation);
 
-            const bottomLeftBack = to3D(section.startX, 0, scaledDepth - section.startZ + 15, rotation);
-            const bottomRightBack = to3D(section.endX, 0, scaledDepth - section.endZ + 15, rotation);
-            const topRightBack = to3D(section.endX, -scaledHeight, scaledDepth - section.endZ + 15, rotation);
-            const topLeftBack = to3D(section.startX, -scaledHeight, scaledDepth - section.startZ + 15, rotation);
-
             const hasDoor = section.type === 'door' || section.type === 'glass-with-door';
             const doorWidth = section.doorWidth || section.width * 0.6;
-            
-            // Дверь для угловых секций
-            let doorStartX, doorStartZ, doorEndX, doorEndZ;
-            if (section.angle === 90) {
-              // Вертикальная секция
-              const doorOffset = (section.endZ - section.startZ - doorWidth) / 2;
-              doorStartX = section.startX;
-              doorStartZ = section.startZ + doorOffset;
-              doorEndX = section.endX;
-              doorEndZ = section.startZ + doorOffset + doorWidth;
-            } else {
-              // Горизонтальная секция
-              const doorOffset = (section.endX - section.startX - doorWidth) / 2;
-              doorStartX = section.startX + doorOffset;
-              doorStartZ = section.startZ;
-              doorEndX = section.startX + doorOffset + doorWidth;
-              doorEndZ = section.endZ;
-            }
 
             return (
               <g key={section.id}>
-                {/* БОКОВАЯ ГРАНЬ (для объёма) */}
-                <path
-                  d={`
-                    M ${bottomRight.x} ${bottomRight.y}
-                    L ${bottomRightBack.x} ${bottomRightBack.y}
-                    L ${topRightBack.x} ${topRightBack.y}
-                    L ${topRight.x} ${topRight.y}
-                    Z
-                  `}
-                  fill={section.type === 'glass' || section.type === 'glass-with-door' ? glassColor : doorColor}
-                  fillOpacity="0.15"
-                  stroke="none"
-                />
-                
-                {/* ВЕРХНЯЯ ГРАНЬ */}
-                <path
-                  d={`
-                    M ${topLeft.x} ${topLeft.y}
-                    L ${topRight.x} ${topRight.y}
-                    L ${topRightBack.x} ${topRightBack.y}
-                    L ${topLeftBack.x} ${topLeftBack.y}
-                    Z
-                  `}
-                  fill={section.type === 'glass' || section.type === 'glass-with-door' ? glassColor : doorColor}
-                  fillOpacity="0.1"
-                  stroke="none"
-                />
-
-                {/* ЛИЦЕВАЯ ПАНЕЛЬ */}
-                {section.type === 'glass' && (
+                {/* Основная стеклянная панель */}
+                {(section.type === 'glass' || section.type === 'glass-with-door') && (
                   <>
                     <path
                       d={`
@@ -354,8 +424,58 @@ export default function Structure3DView({ config, unit }: Structure3DViewProps) 
                       `}
                       fill="url(#glassGradient)"
                       stroke={glassColor}
+                      strokeWidth="2"
+                    />
+                    
+                    {/* Рамка стекла */}
+                    <path
+                      d={`
+                        M ${bottomLeft.x} ${bottomLeft.y}
+                        L ${bottomRight.x} ${bottomRight.y}
+                        L ${topRight.x} ${topRight.y}
+                        L ${topLeft.x} ${topLeft.y}
+                        Z
+                      `}
+                      fill="none"
+                      stroke="#1e40af"
                       strokeWidth="3"
                     />
+                    
+                    {/* Крепления по бокам */}
+                    <rect
+                      x={bottomLeft.x - 4}
+                      y={bottomLeft.y - scaledHeight * 0.15}
+                      width="8"
+                      height={scaledHeight * 0.08}
+                      fill="#334155"
+                      rx="2"
+                    />
+                    <rect
+                      x={bottomLeft.x - 4}
+                      y={bottomLeft.y - scaledHeight * 0.85}
+                      width="8"
+                      height={scaledHeight * 0.08}
+                      fill="#334155"
+                      rx="2"
+                    />
+                    <rect
+                      x={bottomRight.x - 4}
+                      y={bottomRight.y - scaledHeight * 0.15}
+                      width="8"
+                      height={scaledHeight * 0.08}
+                      fill="#334155"
+                      rx="2"
+                    />
+                    <rect
+                      x={bottomRight.x - 4}
+                      y={bottomRight.y - scaledHeight * 0.85}
+                      width="8"
+                      height={scaledHeight * 0.08}
+                      fill="#334155"
+                      rx="2"
+                    />
+                    
+                    {/* Блик на стекле */}
                     <line
                       x1={topLeft.x + 10}
                       y1={topLeft.y + 10}
@@ -363,71 +483,19 @@ export default function Structure3DView({ config, unit }: Structure3DViewProps) 
                       y2={topLeft.y + 40}
                       stroke="white"
                       strokeWidth="2"
-                      opacity="0.6"
+                      opacity="0.5"
                     />
                   </>
                 )}
 
-                {section.type === 'door' && (
-                  <>
-                    <path
-                      d={`
-                        M ${to3D(doorStartX, 0, scaledDepth - doorStartZ, rotation).x} ${to3D(doorStartX, 0, scaledDepth - doorStartZ, rotation).y}
-                        L ${to3D(doorEndX, 0, scaledDepth - doorEndZ, rotation).x} ${to3D(doorEndX, 0, scaledDepth - doorEndZ, rotation).y}
-                        L ${to3D(doorEndX, -scaledHeight, scaledDepth - doorEndZ, rotation).x} ${to3D(doorEndX, -scaledHeight, scaledDepth - doorEndZ, rotation).y}
-                        L ${to3D(doorStartX, -scaledHeight, scaledDepth - doorStartZ, rotation).x} ${to3D(doorStartX, -scaledHeight, scaledDepth - doorStartZ, rotation).y}
-                        Z
-                      `}
-                      fill="url(#doorPattern)"
-                      stroke={doorColor}
-                      strokeWidth="4"
-                    />
-                    <circle
-                      cx={to3D((doorStartX + doorEndX) / 2, -scaledHeight * 0.5, scaledDepth - (doorStartZ + doorEndZ) / 2, rotation).x}
-                      cy={to3D((doorStartX + doorEndX) / 2, -scaledHeight * 0.5, scaledDepth - (doorStartZ + doorEndZ) / 2, rotation).y}
-                      r="6"
-                      fill={doorColor}
-                      stroke="#d97706"
-                      strokeWidth="2"
-                    />
-                  </>
-                )}
-
-                {section.type === 'glass-with-door' && (
-                  <>
-                    <path
-                      d={`
-                        M ${bottomLeft.x} ${bottomLeft.y}
-                        L ${bottomRight.x} ${bottomRight.y}
-                        L ${topRight.x} ${topRight.y}
-                        L ${topLeft.x} ${topLeft.y}
-                        Z
-                      `}
-                      fill="url(#glassGradient)"
-                      stroke={glassColor}
-                      strokeWidth="3"
-                    />
-                    <path
-                      d={`
-                        M ${to3D(doorStartX, 0, scaledDepth - doorStartZ, rotation).x} ${to3D(doorStartX, 0, scaledDepth - doorStartZ, rotation).y}
-                        L ${to3D(doorEndX, 0, scaledDepth - doorEndZ, rotation).x} ${to3D(doorEndX, 0, scaledDepth - doorEndZ, rotation).y}
-                        L ${to3D(doorEndX, -scaledHeight, scaledDepth - doorEndZ, rotation).x} ${to3D(doorEndX, -scaledHeight, scaledDepth - doorEndZ, rotation).y}
-                        L ${to3D(doorStartX, -scaledHeight, scaledDepth - doorStartZ, rotation).x} ${to3D(doorStartX, -scaledHeight, scaledDepth - doorStartZ, rotation).y}
-                        Z
-                      `}
-                      fill="url(#doorPattern)"
-                      stroke={doorColor}
-                      strokeWidth="4"
-                    />
-                    <circle
-                      cx={to3D((doorStartX + doorEndX) / 2, -scaledHeight * 0.5, scaledDepth - (doorStartZ + doorEndZ) / 2, rotation).x}
-                      cy={to3D((doorStartX + doorEndX) / 2, -scaledHeight * 0.5, scaledDepth - (doorStartZ + doorEndZ) / 2, rotation).y}
-                      r="6"
-                      fill={doorColor}
-                      stroke="#d97706"
-                      strokeWidth="2"
-                    />
-                  </>
+                {/* ДВЕРЬ */}
+                {hasDoor && renderDoor(
+                  section.startX,
+                  section.startZ,
+                  section.endX,
+                  section.endZ,
+                  doorWidth,
+                  doorWidth > section.width * 0.65
                 )}
 
                 {/* Номер секции */}
@@ -451,10 +519,10 @@ export default function Structure3DView({ config, unit }: Structure3DViewProps) 
           <rect x="0" y="0" width="12" height="12" fill="url(#glassGradient)" stroke={glassColor} strokeWidth="2" />
           <text x="18" y="10" fontSize="10" fill="#475569">Стекло</text>
           
-          <rect x="70" y="0" width="12" height="12" fill="url(#doorPattern)" stroke={doorColor} strokeWidth="2" />
+          <rect x="70" y="0" width="12" height="12" fill={doorGlassColor} fillOpacity="0.5" stroke={doorFrameColor} strokeWidth="2" />
           <text x="88" y="10" fontSize="10" fill="#475569">Дверь</text>
           
-          <rect x="140" y="0" width="12" height="12" fill="url(#wallGradient)" stroke={wallColor} strokeWidth="2" />
+          <rect x="140" y="0" width="12" height="12" fill="url(#wallGradient)" stroke={wallColor} strokeWidth="1" />
           <text x="158" y="10" fontSize="10" fill="#475569">Стена</text>
         </g>
       </svg>
