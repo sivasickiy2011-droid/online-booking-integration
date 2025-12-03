@@ -27,7 +27,14 @@ export default function Structure3DView({ config, unit }: Structure3DViewProps) 
   }
 
   const height = convertToMm(config.height) || 1900;
-  const depthMm = 1200;
+  
+  const firstSectionWidth = convertToMm(config.sections[0]?.width) || 1000;
+  const secondSectionWidth = config.sections[1] ? convertToMm(config.sections[1].width) : 0;
+  const secondSectionAngle = config.sections[0]?.angleToNext || 0;
+  
+  const depthMm = (secondSectionAngle === 180 && secondSectionWidth > 0) 
+    ? secondSectionWidth 
+    : 1200;
   
   const totalWidthMm = config.sections.reduce((sum, s) => sum + convertToMm(s.width), 0);
   

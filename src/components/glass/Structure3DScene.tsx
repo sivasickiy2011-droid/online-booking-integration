@@ -229,7 +229,7 @@ export default function Structure3DScene({
                   
                   <rect
                     x={bottomLeft.x - 4}
-                    y={bottomLeft.y + scaledHeight * 0.15}
+                    y={bottomLeft.y - scaledHeight * 0.08}
                     width="8"
                     height={scaledHeight * 0.08}
                     fill="#334155"
@@ -237,7 +237,7 @@ export default function Structure3DScene({
                   />
                   <rect
                     x={bottomLeft.x - 4}
-                    y={topLeft.y + scaledHeight * 0.07}
+                    y={topLeft.y - scaledHeight * 0.08}
                     width="8"
                     height={scaledHeight * 0.08}
                     fill="#334155"
@@ -245,7 +245,7 @@ export default function Structure3DScene({
                   />
                   <rect
                     x={bottomRight.x - 4}
-                    y={bottomRight.y + scaledHeight * 0.15}
+                    y={bottomRight.y - scaledHeight * 0.08}
                     width="8"
                     height={scaledHeight * 0.08}
                     fill="#334155"
@@ -253,7 +253,7 @@ export default function Structure3DScene({
                   />
                   <rect
                     x={bottomRight.x - 4}
-                    y={topRight.y + scaledHeight * 0.07}
+                    y={topRight.y - scaledHeight * 0.08}
                     width="8"
                     height={scaledHeight * 0.08}
                     fill="#334155"

@@ -15,7 +15,14 @@ export default function StructureTopView({ config, unit }: StructureTopViewProps
     return null;
   }
 
-  const depthMm = 1200; // глубина помещения 1200мм по умолчанию
+  const firstSectionWidth = convertToMm(config.sections[0]?.width) || 1000;
+  const secondSectionWidth = config.sections[1] ? convertToMm(config.sections[1].width) : 0;
+  const secondSectionAngle = config.sections[0]?.angleToNext || 0;
+  
+  const depthMm = (secondSectionAngle === 180 && secondSectionWidth > 0) 
+    ? secondSectionWidth 
+    : 1200;
+  
   const maxSize = 400;
   
   // Вычисляем общую ширину
