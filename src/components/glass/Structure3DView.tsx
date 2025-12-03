@@ -197,15 +197,15 @@ export default function Structure3DView({ config, unit }: Structure3DViewProps) 
             opacity="0.3"
           />
 
-          {/* ЗАДНЯЯ СТЕНА */}
+          {/* ЗАДНЯЯ СТЕНА (теперь спереди - z=0) */}
           {config.solidWalls.includes('back') && (
             <>
               <path
                 d={`
-                  M ${to3D(0, 0, scaledDepth, rotation).x} ${to3D(0, 0, scaledDepth, rotation).y}
-                  L ${to3D(scaledWidth, 0, scaledDepth, rotation).x} ${to3D(scaledWidth, 0, scaledDepth, rotation).y}
-                  L ${to3D(scaledWidth, -scaledHeight, scaledDepth, rotation).x} ${to3D(scaledWidth, -scaledHeight, scaledDepth, rotation).y}
-                  L ${to3D(0, -scaledHeight, scaledDepth, rotation).x} ${to3D(0, -scaledHeight, scaledDepth, rotation).y}
+                  M ${to3D(0, 0, 0, rotation).x} ${to3D(0, 0, 0, rotation).y}
+                  L ${to3D(scaledWidth, 0, 0, rotation).x} ${to3D(scaledWidth, 0, 0, rotation).y}
+                  L ${to3D(scaledWidth, -scaledHeight, 0, rotation).x} ${to3D(scaledWidth, -scaledHeight, 0, rotation).y}
+                  L ${to3D(0, -scaledHeight, 0, rotation).x} ${to3D(0, -scaledHeight, 0, rotation).y}
                   Z
                 `}
                 fill="url(#wallGradient)"
@@ -215,7 +215,7 @@ export default function Structure3DView({ config, unit }: Structure3DViewProps) 
             </>
           )}
 
-          {/* ЛЕВАЯ БОКОВАЯ СТЕНА */}
+          {/* ЛЕВАЯ БОКОВАЯ СТЕНА (от переда до стекла) */}
           {config.solidWalls.includes('left') && (
             <path
               d={`
@@ -232,7 +232,7 @@ export default function Structure3DView({ config, unit }: Structure3DViewProps) 
             />
           )}
 
-          {/* ПРАВАЯ БОКОВАЯ СТЕНА */}
+          {/* ПРАВАЯ БОКОВАЯ СТЕНА (от переда до стекла) */}
           {config.solidWalls.includes('right') && (
             <path
               d={`
@@ -249,17 +249,17 @@ export default function Structure3DView({ config, unit }: Structure3DViewProps) 
             />
           )}
 
-          {/* СТЕКЛЯННЫЕ СЕКЦИИ */}
+          {/* СТЕКЛЯННЫЕ СЕКЦИИ (на глубине scaledDepth - задняя стена) */}
           {sections.map((section, index) => {
-            const bottomLeft = to3D(section.startX, 0, 0, rotation);
-            const bottomRight = to3D(section.endX, 0, 0, rotation);
-            const topRight = to3D(section.endX, -scaledHeight, 0, rotation);
-            const topLeft = to3D(section.startX, -scaledHeight, 0, rotation);
+            const bottomLeft = to3D(section.startX, 0, scaledDepth, rotation);
+            const bottomRight = to3D(section.endX, 0, scaledDepth, rotation);
+            const topRight = to3D(section.endX, -scaledHeight, scaledDepth, rotation);
+            const topLeft = to3D(section.startX, -scaledHeight, scaledDepth, rotation);
 
-            const bottomLeftBack = to3D(section.startX, 0, 15, rotation);
-            const bottomRightBack = to3D(section.endX, 0, 15, rotation);
-            const topRightBack = to3D(section.endX, -scaledHeight, 15, rotation);
-            const topLeftBack = to3D(section.startX, -scaledHeight, 15, rotation);
+            const bottomLeftBack = to3D(section.startX, 0, scaledDepth + 15, rotation);
+            const bottomRightBack = to3D(section.endX, 0, scaledDepth + 15, rotation);
+            const topRightBack = to3D(section.endX, -scaledHeight, scaledDepth + 15, rotation);
+            const topLeftBack = to3D(section.startX, -scaledHeight, scaledDepth + 15, rotation);
 
             const hasDoor = section.type === 'door' || section.type === 'glass-with-door';
             const doorWidth = section.doorWidth || section.width * 0.6;
@@ -327,10 +327,10 @@ export default function Structure3DView({ config, unit }: Structure3DViewProps) 
                   <>
                     <path
                       d={`
-                        M ${to3D(doorStart, 0, 0, rotation).x} ${to3D(doorStart, 0, 0, rotation).y}
-                        L ${to3D(doorEnd, 0, 0, rotation).x} ${to3D(doorEnd, 0, 0, rotation).y}
-                        L ${to3D(doorEnd, -scaledHeight, 0, rotation).x} ${to3D(doorEnd, -scaledHeight, 0, rotation).y}
-                        L ${to3D(doorStart, -scaledHeight, 0, rotation).x} ${to3D(doorStart, -scaledHeight, 0, rotation).y}
+                        M ${to3D(doorStart, 0, scaledDepth, rotation).x} ${to3D(doorStart, 0, scaledDepth, rotation).y}
+                        L ${to3D(doorEnd, 0, scaledDepth, rotation).x} ${to3D(doorEnd, 0, scaledDepth, rotation).y}
+                        L ${to3D(doorEnd, -scaledHeight, scaledDepth, rotation).x} ${to3D(doorEnd, -scaledHeight, scaledDepth, rotation).y}
+                        L ${to3D(doorStart, -scaledHeight, scaledDepth, rotation).x} ${to3D(doorStart, -scaledHeight, scaledDepth, rotation).y}
                         Z
                       `}
                       fill="url(#doorPattern)"
@@ -338,8 +338,8 @@ export default function Structure3DView({ config, unit }: Structure3DViewProps) 
                       strokeWidth="4"
                     />
                     <circle
-                      cx={to3D(doorStart + doorWidth * 0.8, -scaledHeight * 0.5, 0, rotation).x}
-                      cy={to3D(doorStart + doorWidth * 0.8, -scaledHeight * 0.5, 0, rotation).y}
+                      cx={to3D(doorStart + doorWidth * 0.8, -scaledHeight * 0.5, scaledDepth, rotation).x}
+                      cy={to3D(doorStart + doorWidth * 0.8, -scaledHeight * 0.5, scaledDepth, rotation).y}
                       r="6"
                       fill={doorColor}
                       stroke="#d97706"
@@ -364,10 +364,10 @@ export default function Structure3DView({ config, unit }: Structure3DViewProps) 
                     />
                     <path
                       d={`
-                        M ${to3D(doorStart, 0, 0, rotation).x} ${to3D(doorStart, 0, 0, rotation).y}
-                        L ${to3D(doorEnd, 0, 0, rotation).x} ${to3D(doorEnd, 0, 0, rotation).y}
-                        L ${to3D(doorEnd, -scaledHeight, 0, rotation).x} ${to3D(doorEnd, -scaledHeight, 0, rotation).y}
-                        L ${to3D(doorStart, -scaledHeight, 0, rotation).x} ${to3D(doorStart, -scaledHeight, 0, rotation).y}
+                        M ${to3D(doorStart, 0, scaledDepth, rotation).x} ${to3D(doorStart, 0, scaledDepth, rotation).y}
+                        L ${to3D(doorEnd, 0, scaledDepth, rotation).x} ${to3D(doorEnd, 0, scaledDepth, rotation).y}
+                        L ${to3D(doorEnd, -scaledHeight, scaledDepth, rotation).x} ${to3D(doorEnd, -scaledHeight, scaledDepth, rotation).y}
+                        L ${to3D(doorStart, -scaledHeight, scaledDepth, rotation).x} ${to3D(doorStart, -scaledHeight, scaledDepth, rotation).y}
                         Z
                       `}
                       fill="url(#doorPattern)"
@@ -375,8 +375,8 @@ export default function Structure3DView({ config, unit }: Structure3DViewProps) 
                       strokeWidth="4"
                     />
                     <circle
-                      cx={to3D(doorStart + doorWidth * 0.8, -scaledHeight * 0.5, 0, rotation).x}
-                      cy={to3D(doorStart + doorWidth * 0.8, -scaledHeight * 0.5, 0, rotation).y}
+                      cx={to3D(doorStart + doorWidth * 0.8, -scaledHeight * 0.5, scaledDepth, rotation).x}
+                      cy={to3D(doorStart + doorWidth * 0.8, -scaledHeight * 0.5, scaledDepth, rotation).y}
                       r="6"
                       fill={doorColor}
                       stroke="#d97706"
@@ -387,8 +387,8 @@ export default function Structure3DView({ config, unit }: Structure3DViewProps) 
 
                 {/* Номер секции */}
                 <text
-                  x={to3D((section.startX + section.endX) / 2, -scaledHeight - 20, 0, rotation).x}
-                  y={to3D((section.startX + section.endX) / 2, -scaledHeight - 20, 0, rotation).y}
+                  x={to3D((section.startX + section.endX) / 2, -scaledHeight - 20, scaledDepth, rotation).x}
+                  y={to3D((section.startX + section.endX) / 2, -scaledHeight - 20, scaledDepth, rotation).y}
                   textAnchor="middle"
                   fontSize="12"
                   fill="#475569"
