@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import Icon from '@/components/ui/icon';
-import { GlassPackage, CalculationResult } from './GlassCalculatorTypes';
+import { GlassPackage, CalculationResult, SavedCalculation } from './GlassCalculatorTypes';
 import PackageDetails from './PackageDetails';
 import CalculationResultCard from './CalculationResultCard';
 import PartitionSketch from './PartitionSketch';
@@ -22,6 +22,8 @@ export default function GlassCalculator() {
   const [calculation, setCalculation] = useState<CalculationResult | null>(null);
   const [selectedAlternatives, setSelectedAlternatives] = useState<Record<number, number>>({});
   const [expandedComponents, setExpandedComponents] = useState<Record<number, boolean>>({});
+  const [savedCalculations, setSavedCalculations] = useState<SavedCalculation[]>([]);
+  const [showSaved, setShowSaved] = useState<boolean>(false);
   const { toast } = useToast();
 
   const API_URL = 'https://functions.poehali.dev/ea1cedae-dffe-4589-a9c8-05fcc5e540be';
@@ -235,6 +237,55 @@ export default function GlassCalculator() {
     }
   };
 
+  const handleSaveCalculation = () => {
+    if (!selectedPackage || !calculation) return;
+    
+    const saved: SavedCalculation = {
+      id: Date.now().toString(),
+      name: `Расчёт от ${new Date().toLocaleString('ru-RU')}`,
+      timestamp: Date.now(),
+      package_name: selectedPackage.package_name,
+      partition_width: parseFloat(convertToMm(partitionWidth, unit)),
+      partition_height: parseFloat(convertToMm(partitionHeight, unit)),
+      door_width: doorWidth ? parseFloat(convertToMm(doorWidth, unit)) : undefined,
+      door_height: doorHeight ? parseFloat(convertToMm(doorHeight, unit)) : undefined,
+      selected_alternatives: selectedAlternatives,
+      ...calculation
+    };
+    
+    setSavedCalculations(prev => [saved, ...prev]);
+    toast({
+      title: 'Сохранено!',
+      description: 'Расчёт добавлен в список для сравнения'
+    });
+  };
+
+  const handleLoadCalculation = (saved: SavedCalculation) => {
+    const pkg = packages.find(p => p.package_name === saved.package_name);
+    if (!pkg) return;
+    
+    setSelectedPackage(pkg);
+    setPartitionWidth(convertFromMm(saved.partition_width.toString(), unit));
+    setPartitionHeight(convertFromMm(saved.partition_height.toString(), unit));
+    if (saved.door_width) setDoorWidth(convertFromMm(saved.door_width.toString(), unit));
+    if (saved.door_height) setDoorHeight(convertFromMm(saved.door_height.toString(), unit));
+    setSelectedAlternatives(saved.selected_alternatives);
+    setCalculation(saved);
+    
+    toast({
+      title: 'Загружено',
+      description: 'Расчёт восстановлен'
+    });
+  };
+
+  const handleDeleteCalculation = (id: string) => {
+    setSavedCalculations(prev => prev.filter(c => c.id !== id));
+    toast({
+      title: 'Удалено',
+      description: 'Расчёт удалён из списка'
+    });
+  };
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <Card>
@@ -393,13 +444,93 @@ export default function GlassCalculator() {
           </div>
 
           {calculation && (
-            <CalculationResultCard
-              calculation={calculation}
-              onSubmitOrder={handleSubmitOrder}
-            />
+            <>
+              <CalculationResultCard
+                calculation={calculation}
+                onSubmitOrder={handleSubmitOrder}
+              />
+              
+              <div className="flex gap-2">
+                <Button 
+                  onClick={handleSaveCalculation}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  <Icon name="Save" size={16} className="mr-2" />
+                  Сохранить для сравнения
+                </Button>
+                {savedCalculations.length > 0 && (
+                  <Button
+                    onClick={() => setShowSaved(!showSaved)}
+                    variant="outline"
+                  >
+                    <Icon name={showSaved ? "ChevronUp" : "ChevronDown"} size={16} className="mr-2" />
+                    Сравнить ({savedCalculations.length})
+                  </Button>
+                )}
+              </div>
+            </>
           )}
         </CardContent>
       </Card>
+
+      {showSaved && savedCalculations.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Сохранённые расчёты</CardTitle>
+            <CardDescription>Сравните разные варианты комплектации</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {savedCalculations.map((saved) => (
+              <div
+                key={saved.id}
+                className="p-4 border rounded-lg hover:bg-accent transition-colors"
+              >
+                <div className="flex items-start justify-between mb-2">
+                  <div>
+                    <div className="font-semibold">{saved.package_name}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {new Date(saved.timestamp!).toLocaleString('ru-RU')}
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleLoadCalculation(saved)}
+                    >
+                      <Icon name="Upload" size={14} />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleDeleteCalculation(saved.id)}
+                    >
+                      <Icon name="Trash2" size={14} />
+                    </Button>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <span className="text-muted-foreground">Размеры:</span> {saved.partition_width}×{saved.partition_height} мм
+                  </div>
+                  {saved.door_width && (
+                    <div>
+                      <span className="text-muted-foreground">Дверь:</span> {saved.door_width}×{saved.door_height} мм
+                    </div>
+                  )}
+                  <div>
+                    <span className="text-muted-foreground">Площадь:</span> {saved.square_meters.toFixed(2)} м²
+                  </div>
+                  <div className="font-bold text-primary">
+                    {saved.total_price.toLocaleString('ru-RU')} ₽
+                  </div>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

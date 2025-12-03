@@ -44,33 +44,53 @@ export default function PackageDetails({
               
               return (
                 <div key={idx} className="space-y-1">
-                  <div className="grid grid-cols-12 gap-2 text-xs py-1">
-                    <div className="col-span-1 text-muted-foreground text-right">{idx + 1}.</div>
-                    <div className="col-span-7">
-                      <div className="font-medium">{activeComponent.component_name}</div>
-                      {activeComponent.article && <div className="text-muted-foreground">[{activeComponent.article}]</div>}
+                  <div className="flex items-start gap-3 py-2">
+                    <div className="shrink-0 text-muted-foreground text-xs mt-0.5">{idx + 1}.</div>
+                    {activeComponent.image_url && (
+                      <div className="shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-muted">
+                        <img 
+                          src={activeComponent.image_url} 
+                          alt={activeComponent.component_name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-sm">{activeComponent.component_name}</div>
+                      {activeComponent.article && (
+                        <div className="text-muted-foreground text-xs">[{activeComponent.article}]</div>
+                      )}
                       {activeComponent.characteristics && (
-                        <div className="text-muted-foreground text-[10px]">{activeComponent.characteristics}</div>
+                        <div className="text-muted-foreground text-xs">{activeComponent.characteristics}</div>
                       )}
                     </div>
-                    <div className="col-span-2 text-right text-muted-foreground">
-                      {comp.quantity} {activeComponent.unit}
-                    </div>
-                    <div className="col-span-2 text-right font-medium">
-                      {activeComponent.price_per_unit.toLocaleString('ru-RU')} ₽
+                    <div className="text-right shrink-0">
+                      <div className="text-xs text-muted-foreground">
+                        {comp.quantity} {activeComponent.unit}
+                      </div>
+                      <div className="font-medium text-sm">
+                        {activeComponent.price_per_unit.toLocaleString('ru-RU')} ₽
+                      </div>
                     </div>
                   </div>
                   {hasAlternatives && (
-                    <div className="ml-8 space-y-1 mt-2">
+                    <div className="ml-8 space-y-2 mt-2">
                       <button
                         onClick={() => onToggleExpand(comp.component_id)}
-                        className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 mb-2 font-medium"
+                        className={`px-4 py-2 rounded-full text-xs font-semibold transition-all flex items-center gap-2 ${
+                          selectedAltId 
+                            ? 'bg-pink-100 text-pink-700 hover:bg-pink-200 border border-pink-300' 
+                            : 'bg-green-100 text-green-700 hover:bg-green-200 border border-green-300'
+                        }`}
                       >
                         <Icon 
                           name={expandedComponents[comp.component_id] ? "ChevronDown" : "ChevronRight"} 
                           size={14} 
                         />
                         Доступные варианты ({comp.alternatives?.length || 0})
+                        {selectedAltId && (
+                          <span className="ml-1">• Заменён</span>
+                        )}
                       </button>
                       {expandedComponents[comp.component_id] && (
                         <div className="flex flex-wrap gap-2">
@@ -83,6 +103,15 @@ export default function PackageDetails({
                             }`}
                           >
                             <div className="flex items-start gap-3">
+                              {comp.image_url && (
+                                <div className="shrink-0 w-14 h-14 rounded-lg overflow-hidden bg-muted">
+                                  <img 
+                                    src={comp.image_url} 
+                                    alt={comp.component_name}
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                              )}
                               <div className="mt-0.5 shrink-0">
                                 {!selectedAltId ? (
                                   <Icon name="CheckCircle2" size={18} className="text-primary" />
@@ -112,6 +141,15 @@ export default function PackageDetails({
                                 }`}
                               >
                                 <div className="flex items-start gap-3">
+                                  {alt.image_url && (
+                                    <div className="shrink-0 w-14 h-14 rounded-lg overflow-hidden bg-muted">
+                                      <img 
+                                        src={alt.image_url} 
+                                        alt={alt.component_name}
+                                        className="w-full h-full object-cover"
+                                      />
+                                    </div>
+                                  )}
                                   <div className="mt-0.5 shrink-0">
                                     {selectedAltId === alt.component_id ? (
                                       <Icon name="CheckCircle2" size={18} className="text-primary" />

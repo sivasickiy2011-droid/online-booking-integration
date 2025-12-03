@@ -8,6 +8,7 @@ export interface GlassComponent {
   price_per_unit: number;
   quantity: number;
   is_required: boolean;
+  image_url?: string;
   alternatives?: GlassComponent[];
 }
 
@@ -41,4 +42,16 @@ export interface CalculationResult {
   total_price: number;
   partition_area?: number;
   door_area?: number;
+  name?: string;
+  timestamp?: number;
+}
+
+export interface SavedCalculation extends CalculationResult {
+  id: string;
+  package_name: string;
+  partition_width: number;
+  partition_height: number;
+  door_width?: number;
+  door_height?: number;
+  selected_alternatives: Record<number, number>;
 }
