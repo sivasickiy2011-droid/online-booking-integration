@@ -44,7 +44,7 @@ export default function GlassCalculator() {
   } = useCalculatorLogic();
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="mx-[100px] space-y-6">
       <Card>
         <CardHeader className="text-center">
           <div className="mx-auto mb-4 w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
