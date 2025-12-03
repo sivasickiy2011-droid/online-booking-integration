@@ -16,12 +16,14 @@ export interface GlassSection {
   type: SectionType;
   doorWidth?: string;
   angleToNext?: number; // угол к следующей секции (90, 135, 180 градусов)
+  doorBetweenNext?: boolean; // дверь между этой и следующей секцией
 }
 
 export interface StructureConfig {
   height: string;
   sections: GlassSection[];
   solidWalls: WallPosition[]; // какие стороны закрыты глухими стенами
+  templateImage?: string; // картинка шаблона
 }
 
 interface StructureConfiguratorProps {
@@ -206,26 +208,40 @@ export default function StructureConfigurator({
                 </div>
               </div>
 
-              {/* Угол к следующей секции */}
+              {/* Угол к следующей секции и дверь между */}
               {index < config.sections.length - 1 && (
-                <div className="flex items-center gap-2 ml-4">
-                  <Icon name="CornerDownRight" size={16} className="text-muted-foreground" />
-                  <Label htmlFor={`angle-${section.id}`} className="text-xs text-muted-foreground">
-                    Угол к секции {index + 2}:
-                  </Label>
-                  <Select
-                    value={section.angleToNext?.toString() || '180'}
-                    onValueChange={(value) => updateSection(section.id, { angleToNext: parseInt(value) })}
-                  >
-                    <SelectTrigger id={`angle-${section.id}`} className="w-32 h-8 text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="180">180° {getAngleIcon(180)}</SelectItem>
-                      <SelectItem value="135">135° {getAngleIcon(135)}</SelectItem>
-                      <SelectItem value="90">90° {getAngleIcon(90)}</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="space-y-2 ml-4">
+                  <div className="flex items-center gap-2">
+                    <Icon name="CornerDownRight" size={16} className="text-muted-foreground" />
+                    <Label htmlFor={`angle-${section.id}`} className="text-xs text-muted-foreground">
+                      Угол к секции {index + 2}:
+                    </Label>
+                    <Select
+                      value={section.angleToNext?.toString() || '180'}
+                      onValueChange={(value) => updateSection(section.id, { angleToNext: parseInt(value) })}
+                    >
+                      <SelectTrigger id={`angle-${section.id}`} className="w-32 h-8 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="180">180° {getAngleIcon(180)}</SelectItem>
+                        <SelectItem value="135">135° {getAngleIcon(135)}</SelectItem>
+                        <SelectItem value="90">90° {getAngleIcon(90)}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  {/* Дверь между секциями */}
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id={`door-between-${section.id}`}
+                      checked={section.doorBetweenNext || false}
+                      onCheckedChange={(checked) => updateSection(section.id, { doorBetweenNext: checked as boolean })}
+                    />
+                    <Label htmlFor={`door-between-${section.id}`} className="text-xs cursor-pointer">
+                      <span className="text-amber-600 font-medium">🚪 Дверь между секциями {index + 1} и {index + 2}</span>
+                    </Label>
+                  </div>
                 </div>
               )}
             </div>

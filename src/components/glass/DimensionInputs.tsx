@@ -3,6 +3,7 @@ import { Label } from '@/components/ui/label';
 import PartitionSketch from './PartitionSketch';
 import StructureConfigurator, { StructureConfig } from './StructureConfigurator';
 import Structure3DView from './Structure3DView';
+import StructureTopView from './StructureTopView';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 
@@ -127,10 +128,16 @@ export default function DimensionInputs({
             onChange={handleStructureChange}
             onBlur={onDimensionBlur}
           />
-          <Structure3DView
-            config={structureConfig}
-            unit={unit}
-          />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <Structure3DView
+              config={structureConfig}
+              unit={unit}
+            />
+            <StructureTopView
+              config={structureConfig}
+              unit={unit}
+            />
+          </div>
         </>
       ) : (
         <>

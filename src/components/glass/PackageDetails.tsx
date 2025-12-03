@@ -20,6 +20,16 @@ export default function PackageDetails({
   return (
     <Card className="bg-muted/50">
       <CardContent className="pt-4 space-y-3 text-sm">
+        {/* Картинка шаблона */}
+        {selectedPackage.sketch_svg && (
+          <div className="mb-4 p-4 bg-white rounded-lg border-2 border-primary/20">
+            <div 
+              dangerouslySetInnerHTML={{ __html: selectedPackage.sketch_svg }}
+              className="w-full [&>svg]:w-full [&>svg]:h-auto"
+            />
+          </div>
+        )}
+        
         <div className="flex justify-between">
           <span className="text-muted-foreground">Тип стекла:</span>
           <span className="font-medium">{selectedPackage.glass_type} {selectedPackage.glass_thickness}мм</span>

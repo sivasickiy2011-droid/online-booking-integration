@@ -21,12 +21,12 @@ export default function Structure3DView({ config, unit }: Structure3DViewProps) 
   }
 
   const height = convertToMm(config.height) || 1900;
-  const maxWidth = 800;
-  const maxHeight = 600;
+  const maxWidth = 900;
+  const maxHeight = 700;
   
   // Изометрическая проекция (перспектива)
-  const depth = 400; // глубина помещения в пикселях
-  const scale = 0.3; // фиксированный масштаб для стабильности
+  const depth = 500; // глубина помещения в пикселях
+  const scale = 0.25; // масштаб для умещения всего
   
   const scaledHeight = height * scale;
   const scaledDepth = depth;
@@ -65,8 +65,8 @@ export default function Structure3DView({ config, unit }: Structure3DViewProps) 
   const totalWidth = sections.length > 0 ? sections[sections.length - 1].endX : 0;
   
   // Центрируем по экрану с учётом перспективы
-  const offsetX = maxWidth / 2 - totalWidth / 2 + scaledDepth * 0.3;
-  const offsetY = maxHeight - 100;
+  const offsetX = maxWidth / 2 + scaledDepth * 0.2;
+  const offsetY = maxHeight - 150;
 
   // Цвета
   const glassColor = '#60a5fa'; // синее стекло
