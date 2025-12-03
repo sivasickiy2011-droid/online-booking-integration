@@ -103,8 +103,18 @@ export default function Structure3DView({ config, unit }: Structure3DViewProps) 
   
   const hasRightAngleSection = config.sections.some((s, i) => i > 0 && config.sections[i - 1].angleToNext === 90);
 
-  const offsetX = maxWidth / 2;
-  const offsetY = maxHeight / 2 + scaledHeight / 3;
+  const maxX = Math.max(...sections.map(s => Math.max(s.startX, s.endX)));
+  const maxZ = Math.max(...sections.map(s => Math.max(s.startZ, s.endZ)));
+  const minX = Math.min(...sections.map(s => Math.min(s.startX, s.endX)));
+  const minZ = Math.min(...sections.map(s => Math.min(s.startZ, s.endZ)));
+  
+  const centerX = (maxX + minX) / 2;
+  const centerZ = (maxZ + minZ) / 2;
+  
+  const centerPoint = to3D(centerX, 0, scaledDepth - centerZ, rotation);
+  
+  const offsetX = maxWidth / 2 - centerPoint.x;
+  const offsetY = maxHeight / 2 + scaledHeight / 3 - centerPoint.y;
 
   const glassColor = '#60a5fa';
   const wallColor = '#94a3b8';

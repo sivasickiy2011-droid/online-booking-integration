@@ -170,37 +170,30 @@ export default function StructureTopView({ config, unit }: StructureTopViewProps
                 
                 {/* Дверь (если есть) */}
                 {hasDoor && section.doorWidth > 0 && (
-                  <line
-                    x1={section.startX + (section.endX - section.startX) * 0.3}
-                    y1={section.startZ + (section.endZ - section.startZ) * 0.3}
-                    x2={section.startX + (section.endX - section.startX) * 0.7}
-                    y2={section.startZ + (section.endZ - section.startZ) * 0.7}
-                    stroke="#f59e0b"
-                    strokeWidth="8"
-                    strokeLinecap="round"
-                    strokeDasharray="4,4"
-                  />
+                  <>
+                    <line
+                      x1={section.startX + (section.endX - section.startX) * 0.3}
+                      y1={section.startZ + (section.endZ - section.startZ) * 0.3}
+                      x2={section.startX + (section.endX - section.startX) * 0.7}
+                      y2={section.startZ + (section.endZ - section.startZ) * 0.7}
+                      stroke="#f59e0b"
+                      strokeWidth="8"
+                      strokeLinecap="round"
+                      strokeDasharray="4,4"
+                    />
+                    <text
+                      x={(section.startX + section.endX) / 2 + 15}
+                      y={(section.startZ + section.endZ) / 2 - 15}
+                      fontSize="11"
+                      fill="#f59e0b"
+                      fontWeight="700"
+                    >
+                      Дверь
+                    </text>
+                  </>
                 )}
                 
-                {/* Номер секции */}
-                <circle
-                  cx={(section.startX + section.endX) / 2}
-                  cy={(section.startZ + section.endZ) / 2}
-                  r="12"
-                  fill="white"
-                  stroke={hasDoor ? "#fbbf24" : "#3b82f6"}
-                  strokeWidth="2"
-                />
-                <text
-                  x={(section.startX + section.endX) / 2}
-                  y={(section.startZ + section.endZ) / 2 + 4}
-                  textAnchor="middle"
-                  fontSize="12"
-                  fill="#475569"
-                  fontWeight="600"
-                >
-                  {index + 1}
-                </text>
+
                 
                 {/* Размер секции */}
                 <text

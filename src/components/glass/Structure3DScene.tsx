@@ -167,19 +167,44 @@ export default function Structure3DScene({
         )}
 
         {solidWalls.includes('right') && !hasRightAngleSection && (
-          <path
-            d={`
-              M ${to3D(scaledWidth, 0, 0, rotation).x} ${to3D(scaledWidth, 0, 0, rotation).y}
-              L ${to3D(scaledWidth, 0, scaledDepth, rotation).x} ${to3D(scaledWidth, 0, scaledDepth, rotation).y}
-              L ${to3D(scaledWidth, -scaledHeight, scaledDepth, rotation).x} ${to3D(scaledWidth, -scaledHeight, scaledDepth, rotation).y}
-              L ${to3D(scaledWidth, -scaledHeight, 0, rotation).x} ${to3D(scaledWidth, -scaledHeight, 0, rotation).y}
-              Z
-            `}
-            fill="url(#wallGradient)"
-            stroke={wallColor}
-            strokeWidth="1"
-            opacity="0.9"
-          />
+          <>
+            <line
+              x1={to3D(scaledWidth, 0, 0, rotation).x}
+              y1={to3D(scaledWidth, 0, 0, rotation).y}
+              x2={to3D(scaledWidth, 0, scaledDepth, rotation).x}
+              y2={to3D(scaledWidth, 0, scaledDepth, rotation).y}
+              stroke={wallColor}
+              strokeWidth="8"
+              strokeLinecap="round"
+            />
+            <line
+              x1={to3D(scaledWidth, 0, 0, rotation).x}
+              y1={to3D(scaledWidth, 0, 0, rotation).y}
+              x2={to3D(scaledWidth, -scaledHeight, 0, rotation).x}
+              y2={to3D(scaledWidth, -scaledHeight, 0, rotation).y}
+              stroke={wallColor}
+              strokeWidth="8"
+              strokeLinecap="round"
+            />
+            <line
+              x1={to3D(scaledWidth, 0, scaledDepth, rotation).x}
+              y1={to3D(scaledWidth, 0, scaledDepth, rotation).y}
+              x2={to3D(scaledWidth, -scaledHeight, scaledDepth, rotation).x}
+              y2={to3D(scaledWidth, -scaledHeight, scaledDepth, rotation).y}
+              stroke={wallColor}
+              strokeWidth="8"
+              strokeLinecap="round"
+            />
+            <line
+              x1={to3D(scaledWidth, -scaledHeight, 0, rotation).x}
+              y1={to3D(scaledWidth, -scaledHeight, 0, rotation).y}
+              x2={to3D(scaledWidth, -scaledHeight, scaledDepth, rotation).x}
+              y2={to3D(scaledWidth, -scaledHeight, scaledDepth, rotation).y}
+              stroke={wallColor}
+              strokeWidth="8"
+              strokeLinecap="round"
+            />
+          </>
         )}
 
         {sections.map((section, index) => {
