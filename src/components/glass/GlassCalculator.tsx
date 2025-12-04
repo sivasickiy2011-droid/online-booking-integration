@@ -45,8 +45,12 @@ export default function GlassCalculator() {
 
   return (
     <div className="mx-[100px] space-y-6">
-      <Card>
-        <CardHeader className="text-center">
+      <Card className="relative overflow-hidden">
+        <div 
+          className="absolute inset-0 opacity-5 bg-cover bg-center pointer-events-none"
+          style={{ backgroundImage: 'url(https://cdn.poehali.dev/files/b031dd6e-271a-47cd-a6ed-5477a2618cd2.jpg)' }}
+        />
+        <CardHeader className="text-center relative z-10">
           <div className="mx-auto mb-4 w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
             <Icon name="Blocks" size={32} className="text-primary" />
           </div>
@@ -55,7 +59,7 @@ export default function GlassCalculator() {
             Рассчитайте стоимость душевой кабины, двери или перегородки
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-6 relative z-10">
           <div className="grid gap-4">
             <div className="grid gap-2">
               <label htmlFor="package" className="text-sm font-medium">Выберите комплект *</label>
