@@ -12,7 +12,7 @@ const AppModeContext = createContext<AppModeContextType | undefined>(undefined);
 export const AppModeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [mode, setModeState] = useState<AppMode>(() => {
     const saved = localStorage.getItem('app-mode');
-    return (saved as AppMode) || 'clinic';
+    return (saved as AppMode) || 'glass';
   });
 
   const setMode = (newMode: AppMode) => {
