@@ -6,6 +6,7 @@ import PackageDetails from './PackageDetails';
 import CalculationResultCard from './CalculationResultCard';
 import DimensionInputs from './DimensionInputs';
 import SavedCalculationsList from './SavedCalculationsList';
+import WallConfigurationPanel from './dimension-inputs/WallConfigurationPanel';
 import { useCalculatorLogic } from './useCalculatorLogic';
 
 export default function GlassCalculator() {
@@ -48,7 +49,13 @@ export default function GlassCalculator() {
     handleLoadCalculation,
     handleDeleteCalculation,
     handlePartitionCountChange,
-    handleSectionWidthChange
+    handleSectionWidthChange,
+    hasLeftWall,
+    setHasLeftWall,
+    hasRightWall,
+    setHasRightWall,
+    hasBackWall,
+    setHasBackWall
   } = useCalculatorLogic();
 
   return (
@@ -113,7 +120,16 @@ export default function GlassCalculator() {
                   />
                 </div>
 
-                <div className="lg:w-2/3">
+                <div className="lg:w-2/3 space-y-4">
+                  <WallConfigurationPanel
+                    hasLeftWall={hasLeftWall}
+                    hasRightWall={hasRightWall}
+                    hasBackWall={hasBackWall}
+                    onLeftWallChange={setHasLeftWall}
+                    onRightWallChange={setHasRightWall}
+                    onBackWallChange={setHasBackWall}
+                  />
+                  
                   <DimensionInputs
                     unit={unit}
                     partitionWidth={partitionWidth}

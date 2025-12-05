@@ -176,6 +176,40 @@ export default function PackageEditDialog({
                 </Select>
               </div>
 
+              <div className="space-y-3 border-t pt-4">
+                <Label className="text-base font-semibold">Глухие стены (без стекла)</Label>
+                <p className="text-sm text-muted-foreground">Укажите, какие стороны закрыты обычными стенами</p>
+                
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-accent">
+                    <Label htmlFor="has_left_wall" className="cursor-pointer flex-1">Левая боковая стена</Label>
+                    <Switch
+                      id="has_left_wall"
+                      checked={editingPackage?.has_left_wall ?? false}
+                      onCheckedChange={(checked) => setEditingPackage({ ...editingPackage, has_left_wall: checked })}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-accent">
+                    <Label htmlFor="has_right_wall" className="cursor-pointer flex-1">Правая боковая стена</Label>
+                    <Switch
+                      id="has_right_wall"
+                      checked={editingPackage?.has_right_wall ?? false}
+                      onCheckedChange={(checked) => setEditingPackage({ ...editingPackage, has_right_wall: checked })}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-accent">
+                    <Label htmlFor="has_back_wall" className="cursor-pointer flex-1">Задняя стена</Label>
+                    <Switch
+                      id="has_back_wall"
+                      checked={editingPackage?.has_back_wall ?? false}
+                      onCheckedChange={(checked) => setEditingPackage({ ...editingPackage, has_back_wall: checked })}
+                    />
+                  </div>
+                </div>
+              </div>
+
               <div className="grid gap-2">
                 <Label htmlFor="description">Описание</Label>
                 <Textarea

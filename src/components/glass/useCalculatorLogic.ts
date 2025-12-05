@@ -23,6 +23,9 @@ export function useCalculatorLogic() {
   const [selectedOptionalServices, setSelectedOptionalServices] = useState<Set<number>>(new Set());
   const [savedCalculations, setSavedCalculations] = useState<SavedCalculation[]>([]);
   const [showSaved, setShowSaved] = useState<boolean>(false);
+  const [hasLeftWall, setHasLeftWall] = useState<boolean>(false);
+  const [hasRightWall, setHasRightWall] = useState<boolean>(false);
+  const [hasBackWall, setHasBackWall] = useState<boolean>(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -102,6 +105,10 @@ export function useCalculatorLogic() {
         setDoorOffset('0');
         setDoorPanels(1);
       }
+      
+      setHasLeftWall(pkg.has_left_wall || false);
+      setHasRightWall(pkg.has_right_wall || false);
+      setHasBackWall(pkg.has_back_wall || false);
     }
     
     if (pkg && partitionWidth && partitionHeight) {
@@ -380,6 +387,12 @@ export function useCalculatorLogic() {
     savedCalculations,
     showSaved,
     setShowSaved,
+    hasLeftWall,
+    setHasLeftWall,
+    hasRightWall,
+    setHasRightWall,
+    hasBackWall,
+    setHasBackWall,
     convertToMm,
     handleUnitChange,
     handlePackageChange,

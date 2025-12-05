@@ -36,6 +36,10 @@ export interface GlassPackage {
   door_center_allowed?: boolean;
   sketch_svg?: string;
   partition_count?: number;
+  glass_sections_count?: number;
+  has_left_wall?: boolean;
+  has_right_wall?: boolean;
+  has_back_wall?: boolean;
 }
 
 export interface CalculationResult {

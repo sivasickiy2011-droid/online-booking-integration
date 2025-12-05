@@ -30,6 +30,9 @@ export interface GlassPackage {
   default_door_offset?: string;
   default_door_panels?: 1 | 2;
   glass_sections_count?: number;
+  has_left_wall?: boolean;
+  has_right_wall?: boolean;
+  has_back_wall?: boolean;
 }
 
 export interface PackageComponent {
