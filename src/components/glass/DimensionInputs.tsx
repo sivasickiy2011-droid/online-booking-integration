@@ -53,6 +53,45 @@ export default function DimensionInputs({
   const [useAdvancedMode, setUseAdvancedMode] = useState(false);
   const [doorPosition, setDoorPosition] = useState<'center' | 'left'>('center');
   const [doorLeftOffset, setDoorLeftOffset] = useState<string>('0');
+
+  // Валидация размеров двери
+  const getMaxDoorWidth = () => {
+    const pwMm = parseFloat(convertToMm(partitionWidth, unit)) || 0;
+    const offsetMm = parseFloat(convertToMm(doorLeftOffset, unit)) || 0;
+    return doorPosition === 'left' ? pwMm - offsetMm : pwMm;
+  };
+
+  const getMaxDoorHeight = () => {
+    return parseFloat(convertToMm(partitionHeight, unit)) || 0;
+  };
+
+  const validateDoorWidth = (value: string) => {
+    const dwMm = parseFloat(convertToMm(value, unit)) || 0;
+    const maxWidth = getMaxDoorWidth();
+    if (dwMm > maxWidth && maxWidth > 0) {
+      return false;
+    }
+    return true;
+  };
+
+  const validateDoorHeight = (value: string) => {
+    const dhMm = parseFloat(convertToMm(value, unit)) || 0;
+    const maxHeight = getMaxDoorHeight();
+    if (dhMm > maxHeight && maxHeight > 0) {
+      return false;
+    }
+    return true;
+  };
+
+  const validateDoorOffset = (value: string) => {
+    const offsetMm = parseFloat(convertToMm(value, unit)) || 0;
+    const dwMm = parseFloat(convertToMm(doorWidth, unit)) || 0;
+    const pwMm = parseFloat(convertToMm(partitionWidth, unit)) || 0;
+    if (offsetMm + dwMm > pwMm && pwMm > 0) {
+      return false;
+    }
+    return true;
+  };
   const [structureConfig, setStructureConfig] = useState<StructureConfig>({
     height: partitionHeight,
     sections: [{
@@ -189,16 +228,25 @@ export default function DimensionInputs({
                 id="doorWidth"
                 type="number"
                 value={doorWidth}
-                onChange={(e) => onDoorWidthChange(e.target.value)}
+                onChange={(e) => {
+                  onDoorWidthChange(e.target.value);
+                }}
                 onBlur={onDimensionBlur}
                 placeholder={unit === 'mm' ? '800' : '80'}
                 min="1"
+                max={getMaxDoorWidth() / (unit === 'mm' ? 1 : 10)}
                 step={unit === 'mm' ? '1' : '0.1'}
+                className={!validateDoorWidth(doorWidth) && doorWidth ? 'border-red-500' : ''}
               />
               <p className="text-xs text-muted-foreground">
                 {doorWidth && unit === 'mm' ? `(${(parseFloat(doorWidth) / 10).toFixed(1)} см)` : ''}
                 {doorWidth && unit === 'cm' ? `(${(parseFloat(doorWidth) * 10).toFixed(0)} мм)` : ''}
               </p>
+              {!validateDoorWidth(doorWidth) && doorWidth && (
+                <p className="text-xs text-red-600">
+                  ⚠️ Дверь не может быть шире изделия (макс: {Math.floor(getMaxDoorWidth() / (unit === 'mm' ? 1 : 10))} {unit})
+                </p>
+              )}
             </div>
             <div className="grid gap-2">
               <Label htmlFor="doorHeight">Высота двери *</Label>
@@ -206,16 +254,25 @@ export default function DimensionInputs({
                 id="doorHeight"
                 type="number"
                 value={doorHeight}
-                onChange={(e) => onDoorHeightChange(e.target.value)}
+                onChange={(e) => {
+                  onDoorHeightChange(e.target.value);
+                }}
                 onBlur={onDimensionBlur}
                 placeholder={unit === 'mm' ? '1900' : '190'}
                 min="1"
+                max={getMaxDoorHeight() / (unit === 'mm' ? 1 : 10)}
                 step={unit === 'mm' ? '1' : '0.1'}
+                className={!validateDoorHeight(doorHeight) && doorHeight ? 'border-red-500' : ''}
               />
               <p className="text-xs text-muted-foreground">
                 {doorHeight && unit === 'mm' ? `(${(parseFloat(doorHeight) / 10).toFixed(1)} см)` : ''}
                 {doorHeight && unit === 'cm' ? `(${(parseFloat(doorHeight) * 10).toFixed(0)} мм)` : ''}
               </p>
+              {!validateDoorHeight(doorHeight) && doorHeight && (
+                <p className="text-xs text-red-600">
+                  ⚠️ Дверь не может быть выше изделия (макс: {Math.floor(getMaxDoorHeight() / (unit === 'mm' ? 1 : 10))} {unit})
+                </p>
+              )}
             </div>
           </div>
           
@@ -253,11 +310,17 @@ export default function DimensionInputs({
                   placeholder={unit === 'mm' ? '100' : '10'}
                   min="0"
                   step={unit === 'mm' ? '1' : '0.1'}
+                  className={!validateDoorOffset(doorLeftOffset) && doorLeftOffset ? 'border-red-500' : ''}
                 />
                 <p className="text-xs text-muted-foreground">
                   {doorLeftOffset && unit === 'mm' ? `(${(parseFloat(doorLeftOffset) / 10).toFixed(1)} см)` : ''}
                   {doorLeftOffset && unit === 'cm' ? `(${(parseFloat(doorLeftOffset) * 10).toFixed(0)} мм)` : ''}
                 </p>
+                {!validateDoorOffset(doorLeftOffset) && doorLeftOffset && (
+                  <p className="text-xs text-red-600">
+                    ⚠️ Дверь выходит за границы изделия
+                  </p>
+                )}
               </div>
             )}
             
