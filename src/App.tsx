@@ -8,6 +8,7 @@ import { AppModeProvider } from "@/contexts/AppModeContext";
 import Index from "./pages/Index";
 import Admin from "./pages/Admin";
 import Profile from "./pages/Profile";
+import Embed from "./pages/Embed";
 import WidgetDoctor from "./pages/WidgetDoctor";
 import WidgetCalc from "./pages/WidgetCalc";
 import NotFound from "./pages/NotFound";
@@ -25,6 +26,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/embed" element={<Embed />} />
             <Route path="/widget-doctor" element={<WidgetDoctor />} />
             <Route path="/widget-calc" element={<WidgetCalc />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

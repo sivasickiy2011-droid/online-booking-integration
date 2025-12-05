@@ -22,7 +22,7 @@ export default function Index() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+        <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
           <Card className="hover:shadow-lg transition-shadow">
             <CardHeader>
               <div className="flex items-center gap-3 mb-2">
@@ -64,6 +64,28 @@ export default function Index() {
                 <Button className="w-full" size="lg" variant="outline">
                   <Icon name="Calculator" size={20} className="mr-2" />
                   Открыть калькулятор
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow border-2 border-primary/20">
+            <CardHeader>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-green-100 dark:bg-green-950 rounded-lg">
+                  <Icon name="Code" size={24} className="text-green-600 dark:text-green-400" />
+                </div>
+                <CardTitle>Код встраивания</CardTitle>
+              </div>
+              <CardDescription>
+                Получите код для размещения виджетов на вашем сайте
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Link to="/embed">
+                <Button className="w-full" size="lg" variant="default">
+                  <Icon name="Code" size={20} className="mr-2" />
+                  Получить код
                 </Button>
               </Link>
             </CardContent>
