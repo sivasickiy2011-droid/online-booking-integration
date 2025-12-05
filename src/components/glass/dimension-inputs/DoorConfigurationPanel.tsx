@@ -1,16 +1,12 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import MiniDoorPreview from '../MiniDoorPreview';
 
 interface DoorConfigurationPanelProps {
   unit: 'mm' | 'cm';
   doorPosition: 'left' | 'center' | 'right';
   doorLeftOffset: string;
   doorPanels: 1 | 2;
-  doorWidth: string;
-  doorHeight: string;
-  partitionHeight: string;
   setDoorPosition: (value: 'left' | 'center' | 'right') => void;
   setDoorLeftOffset: (value: string) => void;
   setDoorPanels: (value: 1 | 2) => void;
@@ -18,7 +14,6 @@ interface DoorConfigurationPanelProps {
   onDoorOffsetChange?: (value: string) => void;
   onDoorPanelsChange?: (value: 1 | 2) => void;
   onDimensionBlur: () => void;
-  convertToMm: (value: string, fromUnit: 'mm' | 'cm') => string;
   validateDoorOffset: (value: string) => boolean;
 }
 
@@ -27,9 +22,6 @@ export default function DoorConfigurationPanel({
   doorPosition,
   doorLeftOffset,
   doorPanels,
-  doorWidth,
-  doorHeight,
-  partitionHeight,
   setDoorPosition,
   setDoorLeftOffset,
   setDoorPanels,
@@ -37,7 +29,6 @@ export default function DoorConfigurationPanel({
   onDoorOffsetChange,
   onDoorPanelsChange,
   onDimensionBlur,
-  convertToMm,
   validateDoorOffset
 }: DoorConfigurationPanelProps) {
   return (
@@ -147,12 +138,6 @@ export default function DoorConfigurationPanel({
           </p>
         )}
       </div>
-      
-      <MiniDoorPreview
-        doorPosition={doorPosition}
-        doorPanels={doorPanels}
-        doorHeightPercent={doorHeight && partitionHeight ? (parseFloat(convertToMm(doorHeight, unit)) / parseFloat(convertToMm(partitionHeight, unit)) * 100) : 85}
-      />
     </div>
   );
 }

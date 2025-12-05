@@ -6,6 +6,7 @@ import UnitSelector from './dimension-inputs/UnitSelector';
 import SimpleModeDimensionInputs from './dimension-inputs/SimpleModeDimensionInputs';
 import DoorConfigurationPanel from './dimension-inputs/DoorConfigurationPanel';
 import SketchVisualization from './dimension-inputs/SketchVisualization';
+import MiniDoorPreview from './MiniDoorPreview';
 import { CalculationResult } from './GlassCalculatorTypes';
 
 interface DimensionInputsProps {
@@ -190,24 +191,28 @@ export default function DimensionInputs({
           />
 
           {hasDoor && (
-            <DoorConfigurationPanel
-              unit={unit}
-              doorPosition={doorPosition}
-              doorLeftOffset={doorLeftOffset}
-              doorPanels={doorPanels}
-              doorWidth={doorWidth}
-              doorHeight={doorHeight}
-              partitionHeight={partitionHeight}
-              setDoorPosition={setDoorPosition}
-              setDoorLeftOffset={setDoorLeftOffset}
-              setDoorPanels={setDoorPanels}
-              onDoorPositionChange={onDoorPositionChange}
-              onDoorOffsetChange={onDoorOffsetChange}
-              onDoorPanelsChange={onDoorPanelsChange}
-              onDimensionBlur={onDimensionBlur}
-              convertToMm={convertToMm}
-              validateDoorOffset={validateDoorOffset}
-            />
+            <>
+              <MiniDoorPreview
+                doorPosition={doorPosition}
+                doorPanels={doorPanels}
+                doorHeightPercent={doorHeight && partitionHeight ? (parseFloat(convertToMm(doorHeight, unit)) / parseFloat(convertToMm(partitionHeight, unit)) * 100) : 85}
+              />
+              
+              <DoorConfigurationPanel
+                unit={unit}
+                doorPosition={doorPosition}
+                doorLeftOffset={doorLeftOffset}
+                doorPanels={doorPanels}
+                setDoorPosition={setDoorPosition}
+                setDoorLeftOffset={setDoorLeftOffset}
+                setDoorPanels={setDoorPanels}
+                onDoorPositionChange={onDoorPositionChange}
+                onDoorOffsetChange={onDoorOffsetChange}
+                onDoorPanelsChange={onDoorPanelsChange}
+                onDimensionBlur={onDimensionBlur}
+                validateDoorOffset={validateDoorOffset}
+              />
+            </>
           )}
 
           <SketchVisualization
