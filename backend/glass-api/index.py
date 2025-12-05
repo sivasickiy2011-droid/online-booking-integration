@@ -189,13 +189,34 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 if action_type == 'import':
                     components = body.get('components', [])
                     imported = 0
+                    skipped = 0
                     for comp in components:
+                        article = comp.get('article', '')
+                        name = comp.get('component_name', '')
+                        
+                        if article:
+                            cursor.execute("""
+                                SELECT component_id FROM t_p56372141_online_booking_integ.glass_components 
+                                WHERE article = %s AND component_name = %s
+                            """, (article, name))
+                        else:
+                            cursor.execute("""
+                                SELECT component_id FROM t_p56372141_online_booking_integ.glass_components 
+                                WHERE component_name = %s AND component_type = %s
+                            """, (name, comp.get('component_type')))
+                        
+                        existing = cursor.fetchone()
+                        
+                        if existing:
+                            skipped += 1
+                            continue
+                        
                         cursor.execute("""
                             INSERT INTO t_p56372141_online_booking_integ.glass_components 
                             (component_name, component_type, article, characteristics, unit, price_per_unit, is_active, image_url)
                             VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                         """, (
-                            comp.get('component_name'), comp.get('component_type'), comp.get('article', ''),
+                            name, comp.get('component_type'), article,
                             comp.get('characteristics', ''), comp.get('unit', 'шт'),
                             comp.get('price_per_unit', 0), comp.get('is_active', True), comp.get('image_url', '')
                         ))
@@ -205,7 +226,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         'statusCode': 200,
                         'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                         'isBase64Encoded': False,
-                        'body': json.dumps({'imported': imported})
+                        'body': json.dumps({'imported': imported, 'skipped': skipped})
                     }
                 else:
                     comp = body.get('component', {})

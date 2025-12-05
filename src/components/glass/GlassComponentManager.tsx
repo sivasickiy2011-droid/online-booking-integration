@@ -192,9 +192,12 @@ export default function GlassComponentManager() {
 
       if (response.ok) {
         const result = await response.json();
+        const message = result.skipped > 0 
+          ? `Импортировано: ${result.imported}, пропущено дублей: ${result.skipped}`
+          : `Импортировано компонентов: ${result.imported}`;
         toast({
           title: 'Импорт завершён',
-          description: `Импортировано компонентов: ${result.imported}`
+          description: message
         });
         fetchComponents();
       }
