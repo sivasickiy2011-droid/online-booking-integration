@@ -22,7 +22,7 @@ export default function SimpleModeDoorSketch({
   unit
 }: SimpleModeDoorSketchProps) {
   const viewBox = useMemo(() => {
-    const margin = 50;
+    const margin = 100;
     const width = Math.max(partitionWidth, 100);
     const height = Math.max(partitionHeight, 100);
     return `${-margin} ${-margin} ${width + margin * 2} ${height + margin * 2}`;
@@ -38,7 +38,8 @@ export default function SimpleModeDoorSketch({
     }
   }, [doorPosition, partitionWidth, doorWidth, doorOffset]);
 
-  const doorY = 0;
+  // КРИТИЧНО: Дверь всегда от НИЖНЕГО края (пола)
+  const doorY = partitionHeight - doorHeight;
 
   const displayUnit = (value: number) => {
     if (unit === 'cm') {
@@ -47,50 +48,50 @@ export default function SimpleModeDoorSketch({
     return `${value.toFixed(0)} мм`;
   };
 
+  // Определяем где петли в зависимости от позиции
+  const hingesOnLeft = doorPosition === 'left' || doorPosition === 'center';
+
   return (
-    <div className="w-full bg-white border-2 border-slate-300 rounded-lg p-4">
-      <div className="text-center mb-2">
-        <h4 className="font-semibold text-sm text-slate-700">Эскиз (вид спереди)</h4>
+    <div className="w-full bg-gradient-to-br from-slate-50 to-slate-100 border-2 border-slate-300 rounded-lg p-6">
+      <div className="text-center mb-3">
+        <h4 className="font-semibold text-base text-slate-700">Эскиз изделия (вид спереди)</h4>
+        <p className="text-xs text-slate-500 mt-1">Дверь от пола вверх</p>
       </div>
       <svg
         viewBox={viewBox}
         className="w-full h-auto"
-        style={{ maxHeight: '400px' }}
+        style={{ maxHeight: '450px' }}
       >
         <defs>
-          <pattern id="glass-pattern" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
-            <circle cx="10" cy="10" r="1" fill="#93c5fd" opacity="0.3" />
-          </pattern>
+          {/* Градиенты */}
           <linearGradient id="glass-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style={{ stopColor: '#e0f2fe', stopOpacity: 0.8 }} />
-            <stop offset="100%" style={{ stopColor: '#bfdbfe', stopOpacity: 0.6 }} />
+            <stop offset="0%" style={{ stopColor: '#e0f2fe', stopOpacity: 0.5 }} />
+            <stop offset="100%" style={{ stopColor: '#bae6fd', stopOpacity: 0.3 }} />
           </linearGradient>
           <linearGradient id="door-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style={{ stopColor: '#fef3c7', stopOpacity: 0.9 }} />
-            <stop offset="100%" style={{ stopColor: '#fde68a', stopOpacity: 0.7 }} />
+            <stop offset="0%" style={{ stopColor: '#fef3c7', stopOpacity: 0.85 }} />
+            <stop offset="100%" style={{ stopColor: '#fde047', stopOpacity: 0.6 }} />
           </linearGradient>
+          
+          {/* Стрелки для размеров */}
+          <marker id="arrow" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
+            <polygon points="0,0 10,5 0,10" fill="#1e293b" />
+          </marker>
         </defs>
 
-        {/* Основная перегородка */}
+        {/* Основная перегородка (голубое стекло) */}
         <rect
           x="0"
           y="0"
           width={partitionWidth}
           height={partitionHeight}
           fill="url(#glass-gradient)"
-          stroke="#3b82f6"
-          strokeWidth="3"
-        />
-        <rect
-          x="0"
-          y="0"
-          width={partitionWidth}
-          height={partitionHeight}
-          fill="url(#glass-pattern)"
-          opacity="0.4"
+          stroke="#0ea5e9"
+          strokeWidth="4"
+          rx="4"
         />
 
-        {/* Дверь */}
+        {/* Дверь (желтая, ВСЕГДА ОТ НИЖНЕГО КРАЯ) */}
         {doorWidth > 0 && doorHeight > 0 && doorX >= 0 && (doorX + doorWidth) <= partitionWidth && (
           <>
             {doorPanels === 1 ? (
@@ -103,124 +104,181 @@ export default function SimpleModeDoorSketch({
                   height={doorHeight}
                   fill="url(#door-gradient)"
                   stroke="#f59e0b"
-                  strokeWidth="4"
+                  strokeWidth="5"
+                  rx="4"
                 />
                 
-                {/* Ручка */}
-                <circle
-                  cx={doorX + doorWidth - 100}
-                  cy={doorHeight / 2}
-                  r="15"
-                  fill="#78716c"
-                  stroke="#57534e"
-                  strokeWidth="2"
-                />
-                
-                {/* Петли */}
-                <rect
-                  x={doorX + 20}
-                  y={doorHeight * 0.15}
-                  width="30"
-                  height="50"
-                  fill="#78716c"
-                  stroke="#57534e"
-                  strokeWidth="2"
-                  rx="5"
-                />
-                <rect
-                  x={doorX + 20}
-                  y={doorHeight * 0.75}
-                  width="30"
-                  height="50"
-                  fill="#78716c"
-                  stroke="#57534e"
-                  strokeWidth="2"
-                  rx="5"
-                />
-                
-                {/* Разделитель между створками (визуальный) */}
-                <line
-                  x1={doorX + doorWidth / 2}
-                  y1={doorY}
-                  x2={doorX + doorWidth / 2}
-                  y2={doorY + doorHeight}
-                  stroke="#f59e0b"
-                  strokeWidth="2"
-                  strokeDasharray="10,5"
-                  opacity="0.5"
-                />
+                {/* Петли (2 шт) - слева или справа от двери */}
+                {hingesOnLeft ? (
+                  <>
+                    {/* Петли слева */}
+                    <rect
+                      x={doorX + 15}
+                      y={doorY + doorHeight * 0.15}
+                      width="35"
+                      height="55"
+                      fill="#78716c"
+                      stroke="#44403c"
+                      strokeWidth="3"
+                      rx="8"
+                    />
+                    <rect
+                      x={doorX + 15}
+                      y={doorY + doorHeight * 0.75}
+                      width="35"
+                      height="55"
+                      fill="#78716c"
+                      stroke="#44403c"
+                      strokeWidth="3"
+                      rx="8"
+                    />
+                    {/* Ручка справа */}
+                    <rect
+                      x={doorX + doorWidth - 60}
+                      y={doorY + doorHeight / 2 - 80}
+                      width="15"
+                      height="160"
+                      fill="#57534e"
+                      stroke="#292524"
+                      strokeWidth="2"
+                      rx="7"
+                    />
+                  </>
+                ) : (
+                  <>
+                    {/* Петли справа */}
+                    <rect
+                      x={doorX + doorWidth - 50}
+                      y={doorY + doorHeight * 0.15}
+                      width="35"
+                      height="55"
+                      fill="#78716c"
+                      stroke="#44403c"
+                      strokeWidth="3"
+                      rx="8"
+                    />
+                    <rect
+                      x={doorX + doorWidth - 50}
+                      y={doorY + doorHeight * 0.75}
+                      width="35"
+                      height="55"
+                      fill="#78716c"
+                      stroke="#44403c"
+                      strokeWidth="3"
+                      rx="8"
+                    />
+                    {/* Ручка слева */}
+                    <rect
+                      x={doorX + 45}
+                      y={doorY + doorHeight / 2 - 80}
+                      width="15"
+                      height="160"
+                      fill="#57534e"
+                      stroke="#292524"
+                      strokeWidth="2"
+                      rx="7"
+                    />
+                  </>
+                )}
               </>
             ) : (
               <>
-                {/* Две створки */}
+                {/* Две створки (только при центральном расположении) */}
                 <rect
                   x={doorX}
                   y={doorY}
-                  width={doorWidth / 2}
+                  width={doorWidth / 2 - 2}
                   height={doorHeight}
                   fill="url(#door-gradient)"
                   stroke="#f59e0b"
-                  strokeWidth="4"
+                  strokeWidth="5"
+                  rx="4"
                 />
                 <rect
-                  x={doorX + doorWidth / 2}
+                  x={doorX + doorWidth / 2 + 2}
                   y={doorY}
-                  width={doorWidth / 2}
+                  width={doorWidth / 2 - 2}
                   height={doorHeight}
                   fill="url(#door-gradient)"
                   stroke="#f59e0b"
-                  strokeWidth="4"
+                  strokeWidth="5"
+                  rx="4"
                 />
                 
-                {/* Ручки на обеих створках */}
-                <circle
-                  cx={doorX + doorWidth / 2 - 80}
-                  cy={doorHeight / 2}
-                  r="15"
-                  fill="#78716c"
-                  stroke="#57534e"
-                  strokeWidth="2"
-                />
-                <circle
-                  cx={doorX + doorWidth / 2 + 80}
-                  cy={doorHeight / 2}
-                  r="15"
-                  fill="#78716c"
-                  stroke="#57534e"
-                  strokeWidth="2"
-                />
-                
-                {/* Петли на обеих створках */}
+                {/* Петли на краях (левая створка - петли слева, правая - справа) */}
                 <rect
-                  x={doorX + 20}
-                  y={doorHeight * 0.15}
-                  width="25"
-                  height="40"
+                  x={doorX + 15}
+                  y={doorY + doorHeight * 0.15}
+                  width="30"
+                  height="50"
                   fill="#78716c"
-                  stroke="#57534e"
-                  strokeWidth="2"
-                  rx="5"
+                  stroke="#44403c"
+                  strokeWidth="3"
+                  rx="8"
+                />
+                <rect
+                  x={doorX + 15}
+                  y={doorY + doorHeight * 0.75}
+                  width="30"
+                  height="50"
+                  fill="#78716c"
+                  stroke="#44403c"
+                  strokeWidth="3"
+                  rx="8"
+                />
+                
+                <rect
+                  x={doorX + doorWidth - 45}
+                  y={doorY + doorHeight * 0.15}
+                  width="30"
+                  height="50"
+                  fill="#78716c"
+                  stroke="#44403c"
+                  strokeWidth="3"
+                  rx="8"
                 />
                 <rect
                   x={doorX + doorWidth - 45}
-                  y={doorHeight * 0.15}
-                  width="25"
-                  height="40"
+                  y={doorY + doorHeight * 0.75}
+                  width="30"
+                  height="50"
                   fill="#78716c"
-                  stroke="#57534e"
+                  stroke="#44403c"
+                  strokeWidth="3"
+                  rx="8"
+                />
+                
+                {/* Ручки в центре каждой створки */}
+                <rect
+                  x={doorX + doorWidth / 4 - 7}
+                  y={doorY + doorHeight / 2 - 70}
+                  width="14"
+                  height="140"
+                  fill="#57534e"
+                  stroke="#292524"
                   strokeWidth="2"
-                  rx="5"
+                  rx="7"
+                />
+                <rect
+                  x={doorX + doorWidth * 3 / 4 - 7}
+                  y={doorY + doorHeight / 2 - 70}
+                  width="14"
+                  height="140"
+                  fill="#57534e"
+                  stroke="#292524"
+                  strokeWidth="2"
+                  rx="7"
                 />
               </>
             )}
 
-            {/* Стрелка указывающая, что это дверь (внизу) */}
+            {/* Стрелка ВХОД от пола */}
             <g>
               <text
                 x={doorX + doorWidth / 2}
-                y={doorHeight + 100}
+                y={partitionHeight + 50}
                 textAnchor="middle"
-                fontSize="60"
+                fontSize="50"
                 fill="#f59e0b"
                 fontWeight="bold"
               >
@@ -230,24 +288,38 @@ export default function SimpleModeDoorSketch({
           </>
         )}
 
-        {/* Размеры */}
+        {/* Размерные линии */}
         {/* Ширина изделия */}
         <g>
           <line
             x1="0"
-            y1={partitionHeight + 80}
-            x2={partitionWidth}
-            y2={partitionHeight + 80}
+            y1={partitionHeight + 100}
+            x2="0"
+            y2={partitionHeight + 120}
             stroke="#1e293b"
             strokeWidth="2"
-            markerStart="url(#arrow-start)"
-            markerEnd="url(#arrow-end)"
+          />
+          <line
+            x1="0"
+            y1={partitionHeight + 110}
+            x2={partitionWidth}
+            y2={partitionHeight + 110}
+            stroke="#1e293b"
+            strokeWidth="2"
+          />
+          <line
+            x1={partitionWidth}
+            y1={partitionHeight + 100}
+            x2={partitionWidth}
+            y2={partitionHeight + 120}
+            stroke="#1e293b"
+            strokeWidth="2"
           />
           <text
             x={partitionWidth / 2}
-            y={partitionHeight + 120}
+            y={partitionHeight + 155}
             textAnchor="middle"
-            fontSize="40"
+            fontSize="38"
             fill="#1e293b"
             fontWeight="600"
           >
@@ -258,23 +330,37 @@ export default function SimpleModeDoorSketch({
         {/* Высота изделия */}
         <g>
           <line
-            x1={partitionWidth + 80}
+            x1={partitionWidth + 100}
             y1="0"
-            x2={partitionWidth + 80}
+            x2={partitionWidth + 120}
+            y2="0"
+            stroke="#1e293b"
+            strokeWidth="2"
+          />
+          <line
+            x1={partitionWidth + 110}
+            y1="0"
+            x2={partitionWidth + 110}
             y2={partitionHeight}
             stroke="#1e293b"
             strokeWidth="2"
-            markerStart="url(#arrow-start)"
-            markerEnd="url(#arrow-end)"
+          />
+          <line
+            x1={partitionWidth + 100}
+            y1={partitionHeight}
+            x2={partitionWidth + 120}
+            y2={partitionHeight}
+            stroke="#1e293b"
+            strokeWidth="2"
           />
           <text
-            x={partitionWidth + 120}
-            y={partitionHeight / 2}
-            textAnchor="start"
-            fontSize="40"
+            x={partitionWidth + 180}
+            y={partitionHeight / 2 + 15}
+            textAnchor="middle"
+            fontSize="38"
             fill="#1e293b"
             fontWeight="600"
-            transform={`rotate(90, ${partitionWidth + 120}, ${partitionHeight / 2})`}
+            transform={`rotate(-90, ${partitionWidth + 180}, ${partitionHeight / 2})`}
           >
             {displayUnit(partitionHeight)}
           </text>
@@ -287,45 +373,74 @@ export default function SimpleModeDoorSketch({
             <g>
               <line
                 x1={doorX}
-                y1={doorHeight + 30}
-                x2={doorX + doorWidth}
-                y2={doorHeight + 30}
+                y1={doorY - 40}
+                x2={doorX}
+                y2={doorY - 60}
                 stroke="#f59e0b"
                 strokeWidth="2"
-                markerStart="url(#arrow-door-start)"
-                markerEnd="url(#arrow-door-end)"
+              />
+              <line
+                x1={doorX}
+                y1={doorY - 50}
+                x2={doorX + doorWidth}
+                y2={doorY - 50}
+                stroke="#f59e0b"
+                strokeWidth="2"
+              />
+              <line
+                x1={doorX + doorWidth}
+                y1={doorY - 40}
+                x2={doorX + doorWidth}
+                y2={doorY - 60}
+                stroke="#f59e0b"
+                strokeWidth="2"
               />
               <text
                 x={doorX + doorWidth / 2}
-                y={doorHeight + 70}
+                y={doorY - 75}
                 textAnchor="middle"
-                fontSize="35"
+                fontSize="32"
                 fill="#f59e0b"
                 fontWeight="600"
               >
-                {displayUnit(doorWidth)}
+                Дверь: {displayUnit(doorWidth)}
               </text>
             </g>
 
             {/* Высота двери */}
             <g>
               <line
-                x1={doorX - 30}
+                x1={doorX - 40}
                 y1={doorY}
-                x2={doorX - 30}
+                x2={doorX - 60}
+                y2={doorY}
+                stroke="#f59e0b"
+                strokeWidth="2"
+              />
+              <line
+                x1={doorX - 50}
+                y1={doorY}
+                x2={doorX - 50}
                 y2={doorY + doorHeight}
                 stroke="#f59e0b"
                 strokeWidth="2"
-                markerStart="url(#arrow-door-start)"
-                markerEnd="url(#arrow-door-end)"
+              />
+              <line
+                x1={doorX - 40}
+                y1={doorY + doorHeight}
+                x2={doorX - 60}
+                y2={doorY + doorHeight}
+                stroke="#f59e0b"
+                strokeWidth="2"
               />
               <text
-                x={doorX - 70}
-                y={doorY + doorHeight / 2}
-                textAnchor="end"
-                fontSize="35"
+                x={doorX - 100}
+                y={doorY + doorHeight / 2 + 12}
+                textAnchor="middle"
+                fontSize="32"
                 fill="#f59e0b"
                 fontWeight="600"
+                transform={`rotate(-90, ${doorX - 100}, ${doorY + doorHeight / 2})`}
               >
                 {displayUnit(doorHeight)}
               </text>
@@ -333,35 +448,40 @@ export default function SimpleModeDoorSketch({
           </>
         )}
 
-        {/* Стрелки для размеров */}
-        <defs>
-          <marker id="arrow-start" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
-            <polygon points="0,5 10,0 10,10" fill="#1e293b" />
-          </marker>
-          <marker id="arrow-end" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
-            <polygon points="10,5 0,0 0,10" fill="#1e293b" />
-          </marker>
-          <marker id="arrow-door-start" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
-            <polygon points="0,5 10,0 10,10" fill="#f59e0b" />
-          </marker>
-          <marker id="arrow-door-end" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
-            <polygon points="10,5 0,0 0,10" fill="#f59e0b" />
-          </marker>
-        </defs>
+        {/* Обозначение пола */}
+        <line
+          x1="-50"
+          y1={partitionHeight}
+          x2={partitionWidth + 50}
+          y2={partitionHeight}
+          stroke="#1e293b"
+          strokeWidth="4"
+          strokeDasharray="15,10"
+        />
+        <text
+          x="-70"
+          y={partitionHeight + 10}
+          fontSize="35"
+          fill="#1e293b"
+          fontWeight="600"
+        >
+          ПОЛ
+        </text>
       </svg>
-
-      <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-        <div className="flex items-start gap-2">
-          <span className="text-blue-600 text-sm font-semibold">ℹ️</span>
-          <div className="text-xs text-blue-900">
-            <p className="font-semibold mb-1">Условные обозначения:</p>
-            <ul className="space-y-1 ml-3">
-              <li>🔵 Голубой контур — стеклянная перегородка</li>
-              <li>🟡 Желтый контур — дверь (всегда от нижнего края)</li>
-              <li>⚫ Серые элементы — фурнитура (ручки, петли)</li>
-              {doorPanels === 2 && <li>↔️ Две створки — открываются в обе стороны от центра</li>}
-            </ul>
-          </div>
+      
+      {/* Легенда */}
+      <div className="mt-4 flex items-center justify-center gap-6 text-xs">
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 bg-sky-200 border-2 border-sky-500 rounded"></div>
+          <span className="text-slate-600">Стекло</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 bg-yellow-200 border-2 border-amber-500 rounded"></div>
+          <span className="text-slate-600">Дверь</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 bg-stone-500 border-2 border-stone-700 rounded"></div>
+          <span className="text-slate-600">Крепления</span>
         </div>
       </div>
     </div>
