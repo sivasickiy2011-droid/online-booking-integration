@@ -78,66 +78,23 @@ export default function PackageEditDialog({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="product_type">Тип изделия *</Label>
-              <Select
-                value={editingPackage?.product_type || ''}
-                onValueChange={(value) => setEditingPackage({ ...editingPackage, product_type: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {PRODUCT_TYPES.map(type => (
-                    <SelectItem key={type.value} value={type.value}>
-                      {type.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="glass_type">Тип стекла</Label>
-              <Select
-                value={editingPackage?.glass_type || ''}
-                onValueChange={(value) => setEditingPackage({ ...editingPackage, glass_type: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {GLASS_TYPES.map(type => (
-                    <SelectItem key={type} value={type}>
-                      {type}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="glass_thickness">Толщина стекла (мм)</Label>
-              <Input
-                id="glass_thickness"
-                type="number"
-                value={editingPackage?.glass_thickness || ''}
-                onChange={(e) => setEditingPackage({ ...editingPackage, glass_thickness: parseInt(e.target.value) })}
-              />
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="glass_price_per_sqm">Цена стекла за м² (₽)</Label>
-              <Input
-                id="glass_price_per_sqm"
-                type="number"
-                value={editingPackage?.glass_price_per_sqm || ''}
-                onChange={(e) => setEditingPackage({ ...editingPackage, glass_price_per_sqm: parseFloat(e.target.value) })}
-              />
-            </div>
+          <div className="grid gap-2">
+            <Label htmlFor="product_type">Тип изделия *</Label>
+            <Select
+              value={editingPackage?.product_type || ''}
+              onValueChange={(value) => setEditingPackage({ ...editingPackage, product_type: value })}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {PRODUCT_TYPES.map(type => (
+                  <SelectItem key={type.value} value={type.value}>
+                    {type.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid gap-2">
