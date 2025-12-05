@@ -20,6 +20,7 @@ export function useCalculatorLogic() {
   const [calculation, setCalculation] = useState<CalculationResult | null>(null);
   const [selectedAlternatives, setSelectedAlternatives] = useState<Record<number, number>>({});
   const [expandedComponents, setExpandedComponents] = useState<Record<number, boolean>>({});
+  const [selectedOptionalServices, setSelectedOptionalServices] = useState<Set<number>>(new Set());
   const [savedCalculations, setSavedCalculations] = useState<SavedCalculation[]>([]);
   const [showSaved, setShowSaved] = useState<boolean>(false);
   const { toast } = useToast();
@@ -179,7 +180,10 @@ export function useCalculatorLogic() {
     
     if (pkg.components && pkg.components.length > 0) {
       pkg.components.forEach(comp => {
-        if (comp.is_required) {
+        // Учитываем компонент если: обязательный ИЛИ выбран необязательный
+        const shouldInclude = comp.is_required || selectedOptionalServices.has(comp.component_id);
+        
+        if (shouldInclude) {
           const selectedAltId = selectedAlternatives[comp.component_id];
           const activeComponent = selectedAltId 
             ? comp.alternatives?.find(alt => alt.component_id === selectedAltId) || comp
@@ -332,6 +336,22 @@ export function useCalculatorLogic() {
     });
   };
 
+  const toggleOptionalService = (componentId: number) => {
+    setSelectedOptionalServices(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(componentId)) {
+        newSet.delete(componentId);
+      } else {
+        newSet.add(componentId);
+      }
+      return newSet;
+    });
+    // Пересчитываем после изменения
+    if (selectedPackage && partitionWidth && partitionHeight) {
+      setTimeout(() => calculatePrice(selectedPackage), 0);
+    }
+  };
+
   return {
     packages,
     selectedPackage,
@@ -356,6 +376,7 @@ export function useCalculatorLogic() {
     calculation,
     selectedAlternatives,
     expandedComponents,
+    selectedOptionalServices,
     savedCalculations,
     showSaved,
     setShowSaved,
@@ -364,6 +385,7 @@ export function useCalculatorLogic() {
     handlePackageChange,
     handleAlternativeSelect,
     toggleComponentExpand,
+    toggleOptionalService,
     handleDimensionChange,
     handleSubmitOrder,
     handleSaveCalculation,

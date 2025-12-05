@@ -8,6 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import Icon from '@/components/ui/icon';
 import { GlassComponent, PackageComponent, API_URL } from './types';
@@ -153,38 +154,67 @@ export default function PackageComponentsEditDialog({
     c => !components.some(pc => pc.component_id === c.component_id)
   );
 
+  // Разделяем компоненты по категориям
+  const hardwareComponents = components.filter(c => 
+    !['service', 'glass_material'].includes(c.component_type || '') && c.unit !== 'м²'
+  );
+  const glassComponents = components.filter(c => c.unit === 'м²' && c.component_type !== 'service');
+  const serviceComponents = components.filter(c => c.component_type === 'service');
+
+  const availableHardware = availableComponents.filter(c => 
+    !['service', 'glass_material'].includes(c.component_type || '') && c.unit !== 'м²'
+  );
+  const availableGlass = availableComponents.filter(c => c.unit === 'м²' && c.component_type !== 'service');
+  const availableServices = availableComponents.filter(c => c.component_type === 'service');
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>Редактировать состав: {packageName}</DialogTitle>
           <DialogDescription>
-            Добавляйте фурнитуру и указывайте аналоги для замены
+            Добавляйте стекло, фурнитуру и услуги. Укажите аналоги для замены
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-4">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex gap-3">
-                <div className="flex-1">
-                  <Label>Компонент фурнитуры</Label>
-                  <Select
-                    value={selectedComponentId?.toString()}
-                    onValueChange={(val) => setSelectedComponentId(Number(val))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Выберите компонент" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableComponents.map(comp => (
-                        <SelectItem key={comp.component_id} value={comp.component_id!.toString()}>
-                          {comp.component_name} ({comp.article || 'без артикула'})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+        <Tabs defaultValue="hardware" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="hardware">
+              <Icon name="Wrench" size={16} className="mr-2" />
+              Фурнитура ({hardwareComponents.length})
+            </TabsTrigger>
+            <TabsTrigger value="glass">
+              <Icon name="Square" size={16} className="mr-2" />
+              Стекло ({glassComponents.length})
+            </TabsTrigger>
+            <TabsTrigger value="services">
+              <Icon name="Package" size={16} className="mr-2" />
+              Услуги ({serviceComponents.length})
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="hardware" className="space-y-4">
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex gap-3">
+                  <div className="flex-1">
+                    <Label>Компонент фурнитуры</Label>
+                    <Select
+                      value={selectedComponentId?.toString()}
+                      onValueChange={(val) => setSelectedComponentId(Number(val))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Выберите компонент" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableHardware.map(comp => (
+                          <SelectItem key={comp.component_id} value={comp.component_id!.toString()}>
+                            {comp.component_name} ({comp.article || 'без артикула'})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 <div className="w-32">
                   <Label>Количество</Label>
                   <Input
@@ -214,10 +244,10 @@ export default function PackageComponentsEditDialog({
             </CardContent>
           </Card>
 
-          <ScrollArea className="h-[400px]">
-            <div className="space-y-3 pr-4">
-              {components.map((item, index) => (
-                <Card key={item.id}>
+            <ScrollArea className="h-[400px]">
+              <div className="space-y-3 pr-4">
+                {hardwareComponents.map((item, index) => (
+                  <Card key={item.id}>
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-start gap-3">
@@ -262,10 +292,201 @@ export default function PackageComponentsEditDialog({
                     )}
                   </CardContent>
                 </Card>
-              ))}
-            </div>
-          </ScrollArea>
-        </div>
+                ))}
+              </div>
+            </ScrollArea>
+          </TabsContent>
+
+          <TabsContent value="glass" className="space-y-4">
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex gap-3">
+                  <div className="flex-1">
+                    <Label>Стекло (цена за м²)</Label>
+                    <Select
+                      value={selectedComponentId?.toString()}
+                      onValueChange={(val) => setSelectedComponentId(Number(val))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Выберите стекло" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableGlass.map(comp => (
+                          <SelectItem key={comp.component_id} value={comp.component_id!.toString()}>
+                            {comp.component_name} — {comp.price_per_unit.toLocaleString()} ₽/м²
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="w-32">
+                    <Label>Количество</Label>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      min="0.1"
+                      value={quantity}
+                      onChange={(e) => setQuantity(parseFloat(e.target.value) || 1)}
+                    />
+                  </div>
+                  <div className="flex items-end">
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        checked={isRequired}
+                        onCheckedChange={(checked) => setIsRequired(checked as boolean)}
+                      />
+                      <Label className="text-sm">Обязательное</Label>
+                    </div>
+                  </div>
+                  <div className="flex items-end">
+                    <Button onClick={handleAddComponent}>
+                      <Icon name="Plus" size={16} className="mr-2" />
+                      Добавить
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <ScrollArea className="h-[400px]">
+              <div className="space-y-3 pr-4">
+                {glassComponents.map((item, index) => (
+                  <Card key={item.id}>
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-start gap-3">
+                          <div className="flex-shrink-0 w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center font-semibold text-primary">
+                            {index + 1}
+                          </div>
+                          <div>
+                            <div className="font-semibold">{item.component_name}</div>
+                            <div className="text-sm text-muted-foreground">
+                              {item.price_per_unit.toLocaleString()} ₽/м²
+                              {item.is_required && (
+                                <Badge variant="secondary" className="ml-2">Обязательное</Badge>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRemoveComponent(item.id!)}
+                        >
+                          <Icon name="Trash2" size={16} className="text-destructive" />
+                        </Button>
+                      </div>
+
+                      {item.alternatives && item.alternatives.length > 0 && (
+                        <div className="mt-3 pl-11">
+                          <div className="text-sm font-semibold mb-2 flex items-center gap-2">
+                            <Icon name="ArrowDownUp" size={14} />
+                            Аналоги:
+                          </div>
+                          <div className="space-y-1">
+                            {item.alternatives.map(alt => (
+                              <div key={alt.component_id} className="text-sm p-2 rounded bg-muted/30">
+                                {alt.component_name} — {alt.price_per_unit.toLocaleString()} ₽/м²
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </ScrollArea>
+          </TabsContent>
+
+          <TabsContent value="services" className="space-y-4">
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex gap-3">
+                  <div className="flex-1">
+                    <Label>Услуга</Label>
+                    <Select
+                      value={selectedComponentId?.toString()}
+                      onValueChange={(val) => setSelectedComponentId(Number(val))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Выберите услугу" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableServices.map(comp => (
+                          <SelectItem key={comp.component_id} value={comp.component_id!.toString()}>
+                            {comp.component_name} — {comp.price_per_unit.toLocaleString()} ₽/{comp.unit}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="w-32">
+                    <Label>Количество</Label>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      min="0.1"
+                      value={quantity}
+                      onChange={(e) => setQuantity(parseFloat(e.target.value) || 1)}
+                    />
+                  </div>
+                  <div className="flex items-end">
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        checked={isRequired}
+                        onCheckedChange={(checked) => setIsRequired(checked as boolean)}
+                      />
+                      <Label className="text-sm">Обязательная</Label>
+                    </div>
+                  </div>
+                  <div className="flex items-end">
+                    <Button onClick={handleAddComponent}>
+                      <Icon name="Plus" size={16} className="mr-2" />
+                      Добавить
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <ScrollArea className="h-[400px]">
+              <div className="space-y-3 pr-4">
+                {serviceComponents.map((item, index) => (
+                  <Card key={item.id}>
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-start gap-3">
+                          <div className="flex-shrink-0 w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center font-semibold text-primary">
+                            {index + 1}
+                          </div>
+                          <div>
+                            <div className="font-semibold">{item.component_name}</div>
+                            <div className="text-sm text-muted-foreground">
+                              {item.quantity} {item.unit} • {item.price_per_unit.toLocaleString()} ₽/{item.unit}
+                              {item.is_required ? (
+                                <Badge variant="secondary" className="ml-2">Обязательная</Badge>
+                              ) : (
+                                <Badge variant="outline" className="ml-2">Доп. услуга</Badge>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRemoveComponent(item.id!)}
+                        >
+                          <Icon name="Trash2" size={16} className="text-destructive" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </ScrollArea>
+          </TabsContent>
+        </Tabs>
 
         <div className="flex justify-end gap-2 pt-4 border-t">
           <Button variant="outline" onClick={() => onOpenChange(false)}>

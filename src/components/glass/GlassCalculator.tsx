@@ -32,6 +32,7 @@ export default function GlassCalculator() {
     calculation,
     selectedAlternatives,
     expandedComponents,
+    selectedOptionalServices,
     savedCalculations,
     showSaved,
     setShowSaved,
@@ -40,6 +41,7 @@ export default function GlassCalculator() {
     handlePackageChange,
     handleAlternativeSelect,
     toggleComponentExpand,
+    toggleOptionalService,
     handleDimensionChange,
     handleSubmitOrder,
     handleSaveCalculation,
@@ -97,8 +99,10 @@ export default function GlassCalculator() {
                     selectedPackage={selectedPackage}
                     selectedAlternatives={selectedAlternatives}
                     expandedComponents={expandedComponents}
+                    selectedOptionalServices={selectedOptionalServices}
                     onAlternativeSelect={handleAlternativeSelect}
                     onToggleExpand={toggleComponentExpand}
+                    onToggleOptionalService={toggleOptionalService}
                     hasDoor={selectedPackage.has_door || false}
                     doorPosition={doorPosition}
                     doorPanels={doorPanels}

@@ -1,4 +1,5 @@
 import { Card, CardContent } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import Icon from '@/components/ui/icon';
 import MiniDoorPreview from './MiniDoorPreview';
 import { GlassPackage, GlassComponent } from './GlassCalculatorTypes';
@@ -7,8 +8,10 @@ interface PackageDetailsProps {
   selectedPackage: GlassPackage;
   selectedAlternatives: Record<number, number>;
   expandedComponents: Record<number, boolean>;
+  selectedOptionalServices: Set<number>;
   onAlternativeSelect: (mainComponentId: number, alternativeId: number) => void;
   onToggleExpand: (componentId: number) => void;
+  onToggleOptionalService: (componentId: number) => void;
   hasDoor?: boolean;
   doorPosition?: 'left' | 'center' | 'right';
   doorPanels?: 1 | 2;
@@ -22,8 +25,10 @@ export default function PackageDetails({
   selectedPackage,
   selectedAlternatives,
   expandedComponents,
+  selectedOptionalServices,
   onAlternativeSelect,
   onToggleExpand,
+  onToggleOptionalService,
   hasDoor,
   doorPosition = 'center',
   doorPanels = 1,
@@ -62,7 +67,7 @@ export default function PackageDetails({
         {selectedPackage.components && selectedPackage.components.length > 0 && (
           <div className="pt-3 border-t space-y-2">
             <div className="font-medium text-foreground mb-2">Состав комплекта:</div>
-            {selectedPackage.components.map((comp, idx) => {
+            {selectedPackage.components.filter(c => c.is_required).map((comp, idx) => {
               const selectedAltId = selectedAlternatives[comp.component_id];
               const activeComponent = selectedAltId 
                 ? comp.alternatives?.find(alt => alt.component_id === selectedAltId) || comp
@@ -213,6 +218,35 @@ export default function PackageDetails({
                 </div>
               );
             })}
+          </div>
+        )}
+
+        {selectedPackage.components && selectedPackage.components.filter(c => !c.is_required && c.component_type === 'service').length > 0 && (
+          <div className="pt-3 border-t space-y-2">
+            <div className="font-medium text-foreground mb-2 flex items-center gap-2">
+              <Icon name="Plus" size={16} />
+              Дополнительные услуги:
+            </div>
+            {selectedPackage.components
+              .filter(c => !c.is_required && c.component_type === 'service')
+              .map((service) => (
+                <div 
+                  key={service.component_id}
+                  className="flex items-start gap-3 py-2 px-3 rounded-lg hover:bg-accent cursor-pointer"
+                  onClick={() => onToggleOptionalService(service.component_id)}
+                >
+                  <Checkbox
+                    checked={selectedOptionalServices.has(service.component_id)}
+                    onCheckedChange={() => onToggleOptionalService(service.component_id)}
+                  />
+                  <div className="flex-1">
+                    <div className="font-medium text-sm">{service.component_name}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {service.price_per_unit.toLocaleString('ru-RU')} ₽/{service.unit}
+                    </div>
+                  </div>
+                </div>
+              ))}
           </div>
         )}
       </CardContent>
