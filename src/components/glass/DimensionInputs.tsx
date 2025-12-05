@@ -22,6 +22,9 @@ interface DimensionInputsProps {
   doorPosition?: 'left' | 'center' | 'right';
   doorOffset?: string;
   doorPanels?: 1 | 2;
+  hasLeftWall?: boolean;
+  hasRightWall?: boolean;
+  hasBackWall?: boolean;
   onUnitChange: (unit: 'mm' | 'cm') => void;
   onPartitionWidthChange: (value: string) => void;
   onPartitionHeightChange: (value: string) => void;
@@ -50,6 +53,9 @@ export default function DimensionInputs({
   doorPosition: externalDoorPosition,
   doorOffset: externalDoorOffset,
   doorPanels: externalDoorPanels,
+  hasLeftWall = false,
+  hasRightWall = false,
+  hasBackWall = false,
   onUnitChange,
   onPartitionWidthChange,
   onPartitionHeightChange,
@@ -241,6 +247,9 @@ export default function DimensionInputs({
             doorPanels={doorPanels}
             unit={unit}
             convertToMm={convertToMm}
+            hasLeftWall={hasLeftWall}
+            hasRightWall={hasRightWall}
+            hasBackWall={hasBackWall}
             calculation={calculation}
             partitionCount={partitionCount}
           />

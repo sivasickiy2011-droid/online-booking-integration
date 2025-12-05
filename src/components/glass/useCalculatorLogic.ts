@@ -106,9 +106,9 @@ export function useCalculatorLogic() {
         setDoorPanels(1);
       }
       
-      setHasLeftWall(pkg.has_left_wall || false);
-      setHasRightWall(pkg.has_right_wall || false);
-      setHasBackWall(pkg.has_back_wall || false);
+      setHasLeftWall(pkg.has_left_wall ?? false);
+      setHasRightWall(pkg.has_right_wall ?? false);
+      setHasBackWall(pkg.has_back_wall ?? false);
     }
     
     if (pkg && partitionWidth && partitionHeight) {

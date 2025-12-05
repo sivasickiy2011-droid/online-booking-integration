@@ -19,6 +19,9 @@ interface SketchVisualizationProps {
   convertToMm: (value: string, fromUnit: 'mm' | 'cm') => string;
   calculation: CalculationResult | null;
   partitionCount: number;
+  hasLeftWall?: boolean;
+  hasRightWall?: boolean;
+  hasBackWall?: boolean;
 }
 
 export default function SketchVisualization({
@@ -35,7 +38,10 @@ export default function SketchVisualization({
   unit,
   convertToMm,
   calculation,
-  partitionCount
+  partitionCount,
+  hasLeftWall = false,
+  hasRightWall = false,
+  hasBackWall = false
 }: SketchVisualizationProps) {
   return (
     <div className="space-y-4">
@@ -70,6 +76,9 @@ export default function SketchVisualization({
               doorOffset={parseFloat(convertToMm(doorLeftOffset, unit)) || 0}
               doorPanels={doorPanels}
               unit={unit}
+              hasLeftWall={hasLeftWall}
+              hasRightWall={hasRightWall}
+              hasBackWall={hasBackWall}
             />
           ) : (
             <div className="bg-gradient-to-br from-slate-50 to-slate-100 border-2 border-slate-300 rounded-lg p-6">

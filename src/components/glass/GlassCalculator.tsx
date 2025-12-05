@@ -144,6 +144,9 @@ export default function GlassCalculator() {
                     partitionCount={partitionCount}
                     sectionWidths={sectionWidths}
                     calculation={calculation}
+                    hasLeftWall={hasLeftWall}
+                    hasRightWall={hasRightWall}
+                    hasBackWall={hasBackWall}
                     onUnitChange={handleUnitChange}
                     onPartitionWidthChange={setPartitionWidth}
                     onPartitionHeightChange={setPartitionHeight}

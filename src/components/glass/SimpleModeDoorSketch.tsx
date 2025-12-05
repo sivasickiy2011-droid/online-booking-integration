@@ -9,6 +9,9 @@ interface SimpleModeDoorSketchProps {
   doorOffset: number;
   doorPanels: 1 | 2;
   unit: 'mm' | 'cm';
+  hasLeftWall?: boolean;
+  hasRightWall?: boolean;
+  hasBackWall?: boolean;
 }
 
 export default function SimpleModeDoorSketch({
@@ -19,7 +22,10 @@ export default function SimpleModeDoorSketch({
   doorPosition,
   doorOffset,
   doorPanels,
-  unit
+  unit,
+  hasLeftWall = false,
+  hasRightWall = false,
+  hasBackWall = false
 }: SimpleModeDoorSketchProps) {
   const viewBox = useMemo(() => {
     const margin = 100;
@@ -51,15 +57,30 @@ export default function SimpleModeDoorSketch({
 
   // Определяем где петли в зависимости от позиции
   const hingesOnLeft = doorPosition === 'left' || doorPosition === 'center';
+  
+  // Показываем перспективу если есть хотя бы одна стена
+  const showPerspective = hasLeftWall || hasRightWall || hasBackWall;
+  
+  // Параметры для 3D перспективы
+  const perspectiveDepth = partitionWidth * 0.3; // Глубина перспективы
+  const perspectiveOffsetX = perspectiveDepth * 0.7; // Сдвиг вправо
+  const perspectiveOffsetY = -perspectiveDepth * 0.5; // Сдвиг вверх
 
   return (
     <div className="w-full bg-gradient-to-br from-slate-50 to-slate-100 border-2 border-slate-300 rounded-lg p-6">
       <div className="text-center mb-3">
-        <h4 className="font-semibold text-base text-slate-700">Эскиз изделия (вид спереди)</h4>
-        <p className="text-xs text-slate-500 mt-1">Дверь от пола вверх</p>
+        <h4 className="font-semibold text-base text-slate-700">
+          Эскиз изделия {showPerspective ? '(3D вид)' : '(вид спереди)'}
+        </h4>
+        <p className="text-xs text-slate-500 mt-1">
+          {showPerspective ? 'Упрощенная перспектива' : 'Дверь от пола вверх'}
+        </p>
       </div>
       <svg
-        viewBox={viewBox}
+        viewBox={showPerspective 
+          ? `${-100 - perspectiveOffsetX} ${-100 + perspectiveOffsetY} ${partitionWidth + 300 + perspectiveOffsetX} ${partitionHeight + 400}` 
+          : viewBox
+        }
         className="w-full h-auto"
         style={{ maxHeight: '450px' }}
       >
@@ -73,12 +94,68 @@ export default function SimpleModeDoorSketch({
             <stop offset="0%" style={{ stopColor: '#fef3c7', stopOpacity: 0.85 }} />
             <stop offset="100%" style={{ stopColor: '#fde047', stopOpacity: 0.6 }} />
           </linearGradient>
+          <linearGradient id="wall-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style={{ stopColor: '#cbd5e1', stopOpacity: 0.9 }} />
+            <stop offset="100%" style={{ stopColor: '#94a3b8', stopOpacity: 0.7 }} />
+          </linearGradient>
           
           {/* Стрелки для размеров */}
           <marker id="arrow" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
             <polygon points="0,0 10,5 0,10" fill="#1e293b" />
           </marker>
         </defs>
+
+        {/* 3D Стены (рисуем первыми, чтобы были позади стекла) */}
+        {showPerspective && (
+          <g>
+            {/* Задняя стена (если есть) */}
+            {hasBackWall && (
+              <polygon
+                points={`
+                  ${perspectiveOffsetX},${perspectiveOffsetY}
+                  ${partitionWidth + perspectiveOffsetX},${perspectiveOffsetY}
+                  ${partitionWidth},0
+                  0,0
+                `}
+                fill="url(#wall-gradient)"
+                stroke="#64748b"
+                strokeWidth="3"
+              />
+            )}
+            
+            {/* Левая боковая стена (если есть) */}
+            {hasLeftWall && (
+              <polygon
+                points={`
+                  0,0
+                  ${perspectiveOffsetX},${perspectiveOffsetY}
+                  ${perspectiveOffsetX},${partitionHeight + perspectiveOffsetY}
+                  0,${partitionHeight}
+                `}
+                fill="url(#wall-gradient)"
+                stroke="#64748b"
+                strokeWidth="3"
+                opacity="0.85"
+              />
+            )}
+            
+            {/* Правая боковая стена (если есть) */}
+            {hasRightWall && (
+              <polygon
+                points={`
+                  ${partitionWidth},0
+                  ${partitionWidth + perspectiveOffsetX},${perspectiveOffsetY}
+                  ${partitionWidth + perspectiveOffsetX},${partitionHeight + perspectiveOffsetY}
+                  ${partitionWidth},${partitionHeight}
+                `}
+                fill="url(#wall-gradient)"
+                stroke="#64748b"
+                strokeWidth="3"
+                opacity="0.85"
+              />
+            )}
+          </g>
+        )}
 
         {/* Основная перегородка (голубое стекло) */}
         <rect
