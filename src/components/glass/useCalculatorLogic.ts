@@ -29,8 +29,17 @@ export function useCalculatorLogic() {
     try {
       const response = await fetch(`${API_URL}?action=glass_packages&active_only=true&with_components=true`);
       const data = await response.json();
+      console.log('Fetched packages:', data);
       setPackages(data.packages || []);
+      if (!data.packages || data.packages.length === 0) {
+        toast({
+          title: 'Нет данных',
+          description: 'Шаблоны изделий не найдены. Добавьте шаблоны в личном кабинете.',
+          variant: 'default'
+        });
+      }
     } catch (error) {
+      console.error('Error fetching packages:', error);
       toast({
         title: 'Ошибка',
         description: 'Не удалось загрузить комплекты',

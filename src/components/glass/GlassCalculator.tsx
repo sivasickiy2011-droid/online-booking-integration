@@ -65,14 +65,21 @@ export default function GlassCalculator() {
               <label htmlFor="package" className="text-sm font-medium">Выберите комплект *</label>
               <Select onValueChange={handlePackageChange}>
                 <SelectTrigger id="package">
-                  <SelectValue placeholder="Выберите тип изделия и комплектацию" />
+                  <SelectValue placeholder={packages.length === 0 ? "Загрузка шаблонов..." : "Выберите тип изделия и комплектацию"} />
                 </SelectTrigger>
                 <SelectContent>
-                  {packages.map(pkg => (
-                    <SelectItem key={pkg.package_id} value={pkg.package_id.toString()}>
-                      {pkg.package_name}
-                    </SelectItem>
-                  ))}
+                  {packages.length === 0 ? (
+                    <div className="p-4 text-sm text-muted-foreground text-center">
+                      Нет доступных шаблонов.<br/>
+                      Добавьте шаблоны в личном кабинете.
+                    </div>
+                  ) : (
+                    packages.map(pkg => (
+                      <SelectItem key={pkg.package_id} value={pkg.package_id.toString()}>
+                        {pkg.package_name}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
