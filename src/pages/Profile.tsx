@@ -7,15 +7,17 @@ import { useToast } from '@/hooks/use-toast';
 import { useAppMode, AppMode } from '@/contexts/AppModeContext';
 import { useNavigate } from 'react-router-dom';
 import AdminLogin from '@/components/admin/AdminLogin';
-import UsersManagement from '@/components/admin/UsersManagement';
-import TemplatesStats from '@/components/admin/TemplatesStats';
 import AdminStats from '@/components/admin/AdminStats';
 import AdminAppointments from '@/components/admin/AdminAppointments';
+import AdminLogs from '@/components/admin/AdminLogs';
+import CRMIntegration from '@/components/admin/CRMIntegration';
+import GlassDashboard from '@/components/dashboards/GlassDashboard';
+import CountertopDashboard from '@/components/dashboards/CountertopDashboard';
 
 const API_URL = 'https://functions.poehali.dev/da819482-69ab-4b27-954a-cd7ac2026f30';
-const SUPER_AUTH_URL = 'https://functions.poehali.dev/bb129e10-b955-455d-8c79-c982ac1ba88f';
+const AUTH_URL = 'https://functions.poehali.dev/bb129e10-b955-455d-8c79-c982ac1ba88f';
 
-export default function Admin() {
+export default function Profile() {
   const { mode, setMode } = useAppMode();
   const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -23,28 +25,39 @@ export default function Admin() {
   const [authLoading, setAuthLoading] = useState(false);
   const [stats, setStats] = useState<any>(null);
   const [appointments, setAppointments] = useState<any[]>([]);
+  const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<string>('users');
+  const [activeTab, setActiveTab] = useState<string>('stats');
   const { toast } = useToast();
 
   useEffect(() => {
-    const savedAuth = sessionStorage.getItem('super_admin_authenticated');
+    if (mode === 'glass' || mode === 'countertop') {
+      setActiveTab('dashboard');
+    } else {
+      setActiveTab('stats');
+    }
+  }, [mode]);
+
+  useEffect(() => {
+    const savedAuth = sessionStorage.getItem('user_authenticated');
     if (savedAuth === 'true') {
       setIsAuthenticated(true);
     }
   }, []);
 
   useEffect(() => {
-    if (isAuthenticated && mode === 'clinic') {
+    if (isAuthenticated) {
       fetchStats();
     }
-  }, [isAuthenticated, mode]);
+  }, [isAuthenticated]);
 
   useEffect(() => {
-    if (activeTab === 'appointments' && mode === 'clinic') {
+    if (activeTab === 'appointments') {
       fetchAppointments();
+    } else if (activeTab === 'logs') {
+      fetchLogs();
     }
-  }, [activeTab, mode]);
+  }, [activeTab]);
 
   const fetchStats = async () => {
     setLoading(true);
@@ -80,21 +93,38 @@ export default function Admin() {
     }
   };
 
+  const fetchLogs = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_URL}?action=logs&limit=100`);
+      const data = await response.json();
+      setLogs(data.logs || []);
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось загрузить логи',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleLogin = async () => {
     setAuthLoading(true);
     try {
-      const response = await fetch(SUPER_AUTH_URL, {
+      const response = await fetch(AUTH_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password, role: 'superadmin' })
+        body: JSON.stringify({ password })
       });
 
       if (response.ok) {
         setIsAuthenticated(true);
-        sessionStorage.setItem('super_admin_authenticated', 'true');
+        sessionStorage.setItem('user_authenticated', 'true');
         toast({
           title: 'Вход выполнен',
-          description: 'Добро пожаловать в админ-панель суперпользователя'
+          description: 'Добро пожаловать в личный кабинет'
         });
       } else {
         toast({
@@ -116,7 +146,7 @@ export default function Admin() {
 
   const handleLogout = () => {
     setIsAuthenticated(false);
-    sessionStorage.removeItem('super_admin_authenticated');
+    sessionStorage.removeItem('user_authenticated');
     setPassword('');
     navigate('/');
   };
@@ -136,10 +166,7 @@ export default function Admin() {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-6">
         <div className="mb-6 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Панель суперпользователя</h1>
-            <p className="text-sm text-muted-foreground">Управление системой и пользователями</p>
-          </div>
+          <h1 className="text-2xl font-bold">Личный кабинет</h1>
           <div className="flex items-center gap-4">
             <Select value={mode} onValueChange={(value: AppMode) => setMode(value)}>
               <SelectTrigger className="w-[280px]">
@@ -173,37 +200,31 @@ export default function Admin() {
           </div>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full max-w-2xl" style={{ gridTemplateColumns: mode === 'clinic' ? 'repeat(3, 1fr)' : 'repeat(2, 1fr)' }}>
-            <TabsTrigger value="users" className="flex items-center gap-2">
-              <Icon name="Users" size={16} />
-              Пользователи
-            </TabsTrigger>
-            <TabsTrigger value="templates" className="flex items-center gap-2">
-              <Icon name="BarChart" size={16} />
-              {mode === 'clinic' ? 'Статистика записей' : 'Шаблоны'}
-            </TabsTrigger>
-            {mode === 'clinic' && (
+        {mode === 'clinic' && (
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+            <TabsList className="grid w-full grid-cols-4 max-w-3xl">
+              <TabsTrigger value="stats" className="flex items-center gap-2">
+                <Icon name="BarChart" size={16} />
+                Статистика
+              </TabsTrigger>
               <TabsTrigger value="appointments" className="flex items-center gap-2">
                 <Icon name="Calendar" size={16} />
                 Записи
               </TabsTrigger>
-            )}
-          </TabsList>
+              <TabsTrigger value="crm" className="flex items-center gap-2">
+                <Icon name="Workflow" size={16} />
+                Интеграция
+              </TabsTrigger>
+              <TabsTrigger value="logs" className="flex items-center gap-2">
+                <Icon name="FileText" size={16} />
+                Логи
+              </TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="users">
-            <UsersManagement />
-          </TabsContent>
-
-          <TabsContent value="templates">
-            {mode === 'clinic' ? (
+            <TabsContent value="stats">
               <AdminStats stats={stats} loading={loading} />
-            ) : (
-              <TemplatesStats />
-            )}
-          </TabsContent>
+            </TabsContent>
 
-          {mode === 'clinic' && (
             <TabsContent value="appointments">
               <AdminAppointments 
                 appointments={appointments}
@@ -211,8 +232,62 @@ export default function Admin() {
                 onStatusChange={fetchAppointments}
               />
             </TabsContent>
-          )}
-        </Tabs>
+
+            <TabsContent value="crm">
+              <CRMIntegration appointments={appointments} />
+            </TabsContent>
+
+            <TabsContent value="logs">
+              <AdminLogs logs={logs} loading={loading} />
+            </TabsContent>
+          </Tabs>
+        )}
+
+        {mode === 'glass' && (
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+            <TabsList className="grid w-full grid-cols-2 max-w-md">
+              <TabsTrigger value="dashboard" className="flex items-center gap-2">
+                <Icon name="LayoutDashboard" size={16} />
+                Панель управления
+              </TabsTrigger>
+              <TabsTrigger value="logs" className="flex items-center gap-2">
+                <Icon name="FileText" size={16} />
+                Логи
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="dashboard">
+              <GlassDashboard />
+            </TabsContent>
+
+            <TabsContent value="logs">
+              <AdminLogs logs={logs} loading={loading} />
+            </TabsContent>
+          </Tabs>
+        )}
+
+        {mode === 'countertop' && (
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+            <TabsList className="grid w-full grid-cols-2 max-w-md">
+              <TabsTrigger value="dashboard" className="flex items-center gap-2">
+                <Icon name="LayoutDashboard" size={16} />
+                Панель управления
+              </TabsTrigger>
+              <TabsTrigger value="logs" className="flex items-center gap-2">
+                <Icon name="FileText" size={16} />
+                Логи
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="dashboard">
+              <CountertopDashboard />
+            </TabsContent>
+
+            <TabsContent value="logs">
+              <AdminLogs logs={logs} loading={loading} />
+            </TabsContent>
+          </Tabs>
+        )}
       </div>
     </div>
   );

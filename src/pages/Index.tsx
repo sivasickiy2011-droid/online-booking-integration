@@ -70,10 +70,16 @@ export default function Index() {
           </Card>
         </div>
 
-        <div className="mt-12 text-center">
+        <div className="mt-12 flex items-center justify-center gap-4">
+          <Link to="/profile">
+            <Button variant="ghost" size="sm">
+              <Icon name="User" size={16} className="mr-2" />
+              Личный кабинет
+            </Button>
+          </Link>
           <Link to="/admin">
             <Button variant="ghost" size="sm">
-              <Icon name="Settings" size={16} className="mr-2" />
+              <Icon name="Shield" size={16} className="mr-2" />
               Панель администратора
             </Button>
           </Link>
