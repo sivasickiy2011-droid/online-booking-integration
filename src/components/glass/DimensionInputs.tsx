@@ -1,6 +1,8 @@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import PartitionSketch from './PartitionSketch';
+import FrontView from './sketch/FrontView';
+import TopView from './sketch/TopView';
 import StructureConfigurator, { StructureConfig } from './StructureConfigurator';
 import Structure3DView from './Structure3DView';
 import StructureTopView from './StructureTopView';
@@ -189,7 +191,10 @@ export default function DimensionInputs({
                 id="partitionWidth"
                 type="number"
                 value={partitionWidth}
-                onChange={(e) => onPartitionWidthChange(e.target.value)}
+                onChange={(e) => {
+                  onPartitionWidthChange(e.target.value);
+                  onSectionWidthChange(0, e.target.value);
+                }}
                 onBlur={onDimensionBlur}
                 placeholder={unit === 'mm' ? '1000' : '100'}
                 min="1"
@@ -332,17 +337,28 @@ export default function DimensionInputs({
       )}
 
           <div className="space-y-4">
-            <PartitionSketch
-              partitionWidth={parseInt(convertToMm(partitionWidth, unit)) || 1000}
-              partitionHeight={parseInt(convertToMm(partitionHeight, unit)) || 1900}
-              doorWidth={parseInt(convertToMm(doorWidth, unit)) || 0}
-              doorHeight={parseInt(convertToMm(doorHeight, unit)) || 0}
-              hasDoor={hasDoor}
-              partitionCount={1}
-              sectionWidths={[parseInt(convertToMm(partitionWidth, unit)) || 1000]}
-              doorPosition={doorPosition}
-              doorLeftOffset={parseInt(convertToMm(doorLeftOffset, unit)) || 0}
-            />
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg border-2 border-blue-200">
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <FrontView
+                    partitionWidth={parseInt(convertToMm(partitionWidth, unit)) || 1000}
+                    partitionHeight={parseInt(convertToMm(partitionHeight, unit)) || 1900}
+                    doorWidth={parseInt(convertToMm(doorWidth, unit)) || 0}
+                    doorHeight={parseInt(convertToMm(doorHeight, unit)) || 0}
+                    hasDoor={hasDoor}
+                    doorPosition={doorPosition}
+                    doorLeftOffset={parseInt(convertToMm(doorLeftOffset, unit)) || 0}
+                  />
+                </div>
+                <div className="w-48">
+                  <TopView
+                    partitionWidth={parseInt(convertToMm(partitionWidth, unit)) || 1000}
+                    partitionCount={1}
+                    sectionWidths={[parseInt(convertToMm(partitionWidth, unit)) || 1000]}
+                  />
+                </div>
+              </div>
+            </div>
 
             {calculation && partitionCount > 1 && (
               <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
