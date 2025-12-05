@@ -7,19 +7,21 @@ import { GlassComponent, PackageComponent, API_URL } from './types';
 import ComponentTab from './package-components/ComponentTab';
 
 interface PackageComponentsEditDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   packageId: number;
   packageName: string;
-  onSave: () => void;
+  onSave?: () => void;
+  embedded?: boolean;
 }
 
 export default function PackageComponentsEditDialog({
-  open,
+  open = true,
   onOpenChange,
   packageId,
   packageName,
-  onSave
+  onSave,
+  embedded = false
 }: PackageComponentsEditDialogProps) {
   const [components, setComponents] = useState<PackageComponent[]>([]);
   const [allComponents, setAllComponents] = useState<GlassComponent[]>([]);
@@ -30,10 +32,10 @@ export default function PackageComponentsEditDialog({
   const { toast } = useToast();
 
   useEffect(() => {
-    if (open) {
+    if (embedded || open) {
       fetchData();
     }
-  }, [open, packageId]);
+  }, [open, packageId, embedded]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -160,17 +162,18 @@ export default function PackageComponentsEditDialog({
   const availableGlass = availableComponents.filter(c => c.unit === 'м²' && c.component_type !== 'service');
   const availableServices = availableComponents.filter(c => c.component_type === 'service');
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh]">
-        <DialogHeader>
-          <DialogTitle>Редактировать состав: {packageName}</DialogTitle>
-          <DialogDescription>
+  const content = (
+    <div className={embedded ? "space-y-4" : ""}>
+      {!embedded && (
+        <div className="mb-4">
+          <h3 className="font-semibold text-lg">Редактировать состав: {packageName}</h3>
+          <p className="text-sm text-muted-foreground">
             Добавляйте стекло, фурнитуру и услуги. Укажите аналоги для замены
-          </DialogDescription>
-        </DialogHeader>
+          </p>
+        </div>
+      )}
 
-        <Tabs defaultValue="hardware" className="w-full">
+      <Tabs defaultValue="hardware" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="hardware">
               <Icon name="Wrench" size={16} className="mr-2" />
@@ -243,6 +246,17 @@ export default function PackageComponentsEditDialog({
             />
           </TabsContent>
         </Tabs>
+      </div>
+  );
+
+  if (embedded) {
+    return content;
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-4xl max-h-[90vh]">
+        {content}
       </DialogContent>
     </Dialog>
   );

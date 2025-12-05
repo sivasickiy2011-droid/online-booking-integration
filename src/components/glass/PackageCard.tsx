@@ -5,17 +5,17 @@ import Icon from '@/components/ui/icon';
 import { GlassPackage } from './types';
 
 const PRODUCT_TYPES = [
-  { value: 'shower_cabin', label: 'Душевая кабина' },
-  { value: 'corner_shower', label: 'Угловая душевая' },
-  { value: 'swing_door', label: 'Распашная дверь' },
-  { value: 'sliding_door', label: 'Раздвижная дверь' },
+  { value: 'shower_cabin', label: 'Душевая кабина прямая' },
+  { value: 'corner_shower', label: 'Душевая кабина угловая' },
+  { value: 'swing_door', label: 'Дверь распашная' },
+  { value: 'sliding_door', label: 'Дверь раздвижная' },
   { value: 'bath_screen', label: 'Шторка для ванной' },
-  { value: 'partition', label: 'Перегородка' },
-  { value: 'radius_door', label: 'Радиусная дверь' },
-  { value: 'p_shaped_shower', label: 'П-образная душевая' },
-  { value: 'folding_door', label: 'Складная дверь' },
-  { value: 'trapezoid_shower', label: 'Душевая трапеция' },
-  { value: 'round_shower', label: 'Круглая душевая' }
+  { value: 'partition', label: 'Перегородка стеклянная' },
+  { value: 'radius_door', label: 'Дверь радиусная' },
+  { value: 'p_shaped_shower', label: 'Душевая кабина П-образная' },
+  { value: 'folding_door', label: 'Дверь складная' },
+  { value: 'trapezoid_shower', label: 'Душевая кабина трапеция' },
+  { value: 'round_shower', label: 'Душевая кабина круглая' }
 ];
 
 interface PackageCardProps {

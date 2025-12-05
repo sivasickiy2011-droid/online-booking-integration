@@ -179,7 +179,8 @@ export default function GlassPackageManager() {
       is_active: true,
       default_door_position: 'center',
       default_door_offset: '0',
-      default_door_panels: 1
+      default_door_panels: 1,
+      glass_sections_count: 1
     });
     setIsDialogOpen(true);
   };

@@ -29,6 +29,7 @@ export interface GlassPackage {
   default_door_position?: 'left' | 'center' | 'right';
   default_door_offset?: string;
   default_door_panels?: 1 | 2;
+  glass_sections_count?: number;
 }
 
 export interface PackageComponent {
