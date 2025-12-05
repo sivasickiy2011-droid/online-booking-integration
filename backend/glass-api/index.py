@@ -159,8 +159,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                      installation_price, description, sketch_image_url, is_active,
                      has_door, default_partition_height, default_partition_width,
                      default_door_height, default_door_width, sketch_svg,
-                     default_door_position, default_door_offset, default_door_panels)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                     default_door_position, default_door_offset, default_door_panels,
+                     glass_sections_count, has_left_wall, has_right_wall, has_back_wall)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     RETURNING package_id
                 """, (
                     pkg.get('package_name'), pkg.get('package_article'), pkg.get('product_type'),
@@ -172,7 +173,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     pkg.get('default_partition_width', 1000), pkg.get('default_door_height', 1900),
                     pkg.get('default_door_width', 800), pkg.get('sketch_svg', ''),
                     pkg.get('default_door_position', 'center'), pkg.get('default_door_offset', '0'),
-                    pkg.get('default_door_panels', 1)
+                    pkg.get('default_door_panels', 1), pkg.get('glass_sections_count', 1),
+                    pkg.get('has_left_wall', False), pkg.get('has_right_wall', False), pkg.get('has_back_wall', False)
                 ))
                 result = cursor.fetchone()
                 conn.commit()
@@ -381,7 +383,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         markup_percent=%s, installation_price=%s, description=%s, sketch_image_url=%s, is_active=%s,
                         has_door=%s, default_partition_height=%s, default_partition_width=%s,
                         default_door_height=%s, default_door_width=%s, sketch_svg=%s,
-                        default_door_position=%s, default_door_offset=%s, default_door_panels=%s
+                        default_door_position=%s, default_door_offset=%s, default_door_panels=%s,
+                        glass_sections_count=%s, has_left_wall=%s, has_right_wall=%s, has_back_wall=%s
                     WHERE package_id=%s
                 """, (
                     pkg.get('package_name'), pkg.get('package_article'), pkg.get('product_type'),
@@ -393,7 +396,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     pkg.get('default_partition_width', 1000), pkg.get('default_door_height', 1900),
                     pkg.get('default_door_width', 800), pkg.get('sketch_svg', ''),
                     pkg.get('default_door_position', 'center'), pkg.get('default_door_offset', '0'),
-                    pkg.get('default_door_panels', 1), pkg.get('package_id')
+                    pkg.get('default_door_panels', 1), pkg.get('glass_sections_count', 1),
+                    pkg.get('has_left_wall', False), pkg.get('has_right_wall', False), pkg.get('has_back_wall', False),
+                    pkg.get('package_id')
                 ))
                 conn.commit()
                 return {
