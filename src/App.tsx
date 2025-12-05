@@ -7,7 +7,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppModeProvider } from "@/contexts/AppModeContext";
 import Index from "./pages/Index";
 import Admin from "./pages/Admin";
-import Widget from "./pages/Widget";
+import WidgetDoctor from "./pages/WidgetDoctor";
+import WidgetCalc from "./pages/WidgetCalc";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,7 +23,8 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/admin" element={<Admin />} />
-            <Route path="/widget" element={<Widget />} />
+            <Route path="/widget-doctor" element={<WidgetDoctor />} />
+            <Route path="/widget-calc" element={<WidgetCalc />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
