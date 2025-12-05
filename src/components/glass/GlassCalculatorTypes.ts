@@ -30,6 +30,9 @@ export interface GlassPackage {
   default_partition_width?: number;
   default_door_height?: number;
   default_door_width?: number;
+  default_door_position?: 'left' | 'center' | 'right';
+  default_door_offset?: number;
+  default_door_panels?: 1 | 2;
   sketch_svg?: string;
   partition_count?: number;
 }
@@ -54,5 +57,8 @@ export interface SavedCalculation extends CalculationResult {
   partition_height: number;
   door_width?: number;
   door_height?: number;
+  door_position?: 'left' | 'center' | 'right';
+  door_offset?: number;
+  door_panels?: 1 | 2;
   selected_alternatives: Record<number, number>;
 }

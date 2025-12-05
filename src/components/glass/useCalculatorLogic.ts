@@ -11,6 +11,9 @@ export function useCalculatorLogic() {
   const [partitionHeight, setPartitionHeight] = useState<string>('1900');
   const [doorWidth, setDoorWidth] = useState<string>('');
   const [doorHeight, setDoorHeight] = useState<string>('');
+  const [doorPosition, setDoorPosition] = useState<'left' | 'center' | 'right'>('center');
+  const [doorOffset, setDoorOffset] = useState<string>('0');
+  const [doorPanels, setDoorPanels] = useState<1 | 2>(1);
   const [partitionCount, setPartitionCount] = useState<number>(1);
   const [sectionWidths, setSectionWidths] = useState<string[]>(['']);
   const [unit, setUnit] = useState<'mm' | 'cm'>('mm');
@@ -66,6 +69,7 @@ export function useCalculatorLogic() {
     setPartitionHeight(convertFromMm(convertToMm(partitionHeight, unit), newUnit));
     setDoorWidth(convertFromMm(convertToMm(doorWidth, unit), newUnit));
     setDoorHeight(convertFromMm(convertToMm(doorHeight, unit), newUnit));
+    setDoorOffset(convertFromMm(convertToMm(doorOffset, unit), newUnit));
     setSectionWidths(sectionWidths.map(w => convertFromMm(convertToMm(w, unit), newUnit)));
   };
 
@@ -87,9 +91,15 @@ export function useCalculatorLogic() {
         const defaultDoorWidth = (pkg.default_door_width || 800).toString();
         setDoorHeight(convertFromMm(defaultDoorHeight, unit));
         setDoorWidth(convertFromMm(defaultDoorWidth, unit));
+        setDoorPosition(pkg.default_door_position || 'center');
+        setDoorOffset(convertFromMm((pkg.default_door_offset || 0).toString(), unit));
+        setDoorPanels(pkg.default_door_panels || 1);
       } else {
         setDoorHeight('');
         setDoorWidth('');
+        setDoorPosition('center');
+        setDoorOffset('0');
+        setDoorPanels(1);
       }
     }
     
@@ -279,6 +289,9 @@ export function useCalculatorLogic() {
       partition_height: parseFloat(convertToMm(partitionHeight, unit)),
       door_width: doorWidth ? parseFloat(convertToMm(doorWidth, unit)) : undefined,
       door_height: doorHeight ? parseFloat(convertToMm(doorHeight, unit)) : undefined,
+      door_position: doorPosition,
+      door_offset: parseFloat(convertToMm(doorOffset, unit)),
+      door_panels: doorPanels,
       selected_alternatives: selectedAlternatives,
       ...calculation
     };
@@ -299,6 +312,9 @@ export function useCalculatorLogic() {
     setPartitionHeight(convertFromMm(saved.partition_height.toString(), unit));
     if (saved.door_width) setDoorWidth(convertFromMm(saved.door_width.toString(), unit));
     if (saved.door_height) setDoorHeight(convertFromMm(saved.door_height.toString(), unit));
+    if (saved.door_position) setDoorPosition(saved.door_position);
+    if (saved.door_offset !== undefined) setDoorOffset(convertFromMm(saved.door_offset.toString(), unit));
+    if (saved.door_panels) setDoorPanels(saved.door_panels);
     setSelectedAlternatives(saved.selected_alternatives);
     setCalculation(saved);
     
@@ -327,6 +343,12 @@ export function useCalculatorLogic() {
     setDoorWidth,
     doorHeight,
     setDoorHeight,
+    doorPosition,
+    setDoorPosition,
+    doorOffset,
+    setDoorOffset,
+    doorPanels,
+    setDoorPanels,
     partitionCount,
     setPartitionCount,
     sectionWidths,

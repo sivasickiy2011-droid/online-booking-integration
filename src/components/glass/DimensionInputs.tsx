@@ -6,8 +6,9 @@ import TopView from './sketch/TopView';
 import StructureConfigurator, { StructureConfig } from './StructureConfigurator';
 import Structure3DView from './Structure3DView';
 import StructureTopView from './StructureTopView';
+import SimpleModeDoorSketch from './SimpleModeDoorSketch';
 import { Button } from '@/components/ui/button';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import { CalculationResult } from './GlassCalculatorTypes';
 
@@ -21,11 +22,17 @@ interface DimensionInputsProps {
   partitionCount: number;
   sectionWidths: string[];
   calculation: CalculationResult | null;
+  doorPosition?: 'left' | 'center' | 'right';
+  doorOffset?: string;
+  doorPanels?: 1 | 2;
   onUnitChange: (unit: 'mm' | 'cm') => void;
   onPartitionWidthChange: (value: string) => void;
   onPartitionHeightChange: (value: string) => void;
   onDoorWidthChange: (value: string) => void;
   onDoorHeightChange: (value: string) => void;
+  onDoorPositionChange?: (value: 'left' | 'center' | 'right') => void;
+  onDoorOffsetChange?: (value: string) => void;
+  onDoorPanelsChange?: (value: 1 | 2) => void;
   onPartitionCountChange: (value: number) => void;
   onSectionWidthChange: (index: number, value: string) => void;
   onDimensionBlur: () => void;
@@ -42,19 +49,33 @@ export default function DimensionInputs({
   partitionCount,
   sectionWidths,
   calculation,
+  doorPosition: externalDoorPosition,
+  doorOffset: externalDoorOffset,
+  doorPanels: externalDoorPanels,
   onUnitChange,
   onPartitionWidthChange,
   onPartitionHeightChange,
   onDoorWidthChange,
   onDoorHeightChange,
+  onDoorPositionChange,
+  onDoorOffsetChange,
+  onDoorPanelsChange,
   onPartitionCountChange,
   onSectionWidthChange,
   onDimensionBlur,
   convertToMm
 }: DimensionInputsProps) {
   const [useAdvancedMode, setUseAdvancedMode] = useState(false);
-  const [doorPosition, setDoorPosition] = useState<'center' | 'left'>('center');
-  const [doorLeftOffset, setDoorLeftOffset] = useState<string>('0');
+  const [doorPosition, setDoorPosition] = useState<'left' | 'center' | 'right'>(externalDoorPosition || 'center');
+  const [doorLeftOffset, setDoorLeftOffset] = useState<string>(externalDoorOffset || '0');
+  const [doorPanels, setDoorPanels] = useState<1 | 2>(externalDoorPanels || 1);
+
+  useEffect(() => {
+    if (doorPosition !== 'center' && doorPanels === 2) {
+      setDoorPanels(1);
+      onDoorPanelsChange?.(1);
+    }
+  }, [doorPosition, doorPanels, onDoorPanelsChange]);
 
   // Валидация размеров двери
   const getMaxDoorWidth = () => {
@@ -281,38 +302,61 @@ export default function DimensionInputs({
             </div>
           </div>
           
-          <div className="border rounded-lg p-4 bg-muted/50 space-y-3">
-            <Label>Позиция двери</Label>
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant={doorPosition === 'center' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setDoorPosition('center')}
-                className="flex-1"
-              >
-                По центру
-              </Button>
-              <Button
-                type="button"
-                variant={doorPosition === 'left' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setDoorPosition('left')}
-                className="flex-1"
-              >
-                С отступом слева
-              </Button>
+          <div className="border rounded-lg p-4 bg-muted/50 space-y-4">
+            <div className="space-y-3">
+              <Label>Позиция двери</Label>
+              <div className="grid grid-cols-3 gap-2">
+                <Button
+                  type="button"
+                  variant={doorPosition === 'left' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => {
+                    setDoorPosition('left');
+                    onDoorPositionChange?.('left');
+                  }}
+                >
+                  Слева
+                </Button>
+                <Button
+                  type="button"
+                  variant={doorPosition === 'center' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => {
+                    setDoorPosition('center');
+                    setDoorLeftOffset('0');
+                    onDoorPositionChange?.('center');
+                    onDoorOffsetChange?.('0');
+                  }}
+                >
+                  По центру
+                </Button>
+                <Button
+                  type="button"
+                  variant={doorPosition === 'right' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => {
+                    setDoorPosition('right');
+                    onDoorPositionChange?.('right');
+                  }}
+                >
+                  Справа
+                </Button>
+              </div>
             </div>
             
-            {doorPosition === 'left' && (
+            {(doorPosition === 'left' || doorPosition === 'right') && (
               <div className="grid gap-2">
-                <Label htmlFor="doorLeftOffset">Отступ от левого края</Label>
+                <Label htmlFor="doorOffset">Отступ от {doorPosition === 'left' ? 'левого' : 'правого'} края</Label>
                 <Input
-                  id="doorLeftOffset"
+                  id="doorOffset"
                   type="number"
                   value={doorLeftOffset}
-                  onChange={(e) => setDoorLeftOffset(e.target.value)}
-                  placeholder={unit === 'mm' ? '100' : '10'}
+                  onChange={(e) => {
+                    setDoorLeftOffset(e.target.value);
+                    onDoorOffsetChange?.(e.target.value);
+                  }}
+                  onBlur={onDimensionBlur}
+                  placeholder={unit === 'mm' ? '0' : '0'}
                   min="0"
                   step={unit === 'mm' ? '1' : '0.1'}
                   className={!validateDoorOffset(doorLeftOffset) && doorLeftOffset ? 'border-red-500' : ''}
@@ -329,6 +373,42 @@ export default function DimensionInputs({
               </div>
             )}
             
+            <div className="space-y-3">
+              <Label>Количество створок</Label>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant={doorPanels === 1 ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => {
+                    setDoorPanels(1);
+                    onDoorPanelsChange?.(1);
+                  }}
+                  className="flex-1"
+                >
+                  Одна створка
+                </Button>
+                <Button
+                  type="button"
+                  variant={doorPanels === 2 ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => {
+                    setDoorPanels(2);
+                    onDoorPanelsChange?.(2);
+                  }}
+                  className="flex-1"
+                  disabled={doorPosition !== 'center'}
+                >
+                  Две створки
+                </Button>
+              </div>
+              {doorPosition !== 'center' && (
+                <p className="text-xs text-amber-600">
+                  ℹ️ Две створки доступны только при центральном расположении
+                </p>
+              )}
+            </div>
+            
             <p className="text-xs text-muted-foreground">
               ℹ️ Дверь всегда располагается от нижнего края изделия
             </p>
@@ -337,28 +417,41 @@ export default function DimensionInputs({
       )}
 
           <div className="space-y-4">
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg border-2 border-blue-200">
-              <div className="flex gap-4">
-                <div className="flex-1">
-                  <FrontView
-                    partitionWidth={parseInt(convertToMm(partitionWidth, unit)) || 1000}
-                    partitionHeight={parseInt(convertToMm(partitionHeight, unit)) || 1900}
-                    doorWidth={parseInt(convertToMm(doorWidth, unit)) || 0}
-                    doorHeight={parseInt(convertToMm(doorHeight, unit)) || 0}
-                    hasDoor={hasDoor}
-                    doorPosition={doorPosition}
-                    doorLeftOffset={parseInt(convertToMm(doorLeftOffset, unit)) || 0}
-                  />
-                </div>
-                <div className="w-48">
-                  <TopView
-                    partitionWidth={parseInt(convertToMm(partitionWidth, unit)) || 1000}
-                    partitionCount={1}
-                    sectionWidths={[parseInt(convertToMm(partitionWidth, unit)) || 1000]}
-                  />
+            {hasDoor ? (
+              <SimpleModeDoorSketch
+                partitionWidth={parseFloat(convertToMm(partitionWidth, unit)) || 1000}
+                partitionHeight={parseFloat(convertToMm(partitionHeight, unit)) || 1900}
+                doorWidth={parseFloat(convertToMm(doorWidth, unit)) || 800}
+                doorHeight={parseFloat(convertToMm(doorHeight, unit)) || 1900}
+                doorPosition={doorPosition}
+                doorOffset={parseFloat(convertToMm(doorLeftOffset, unit)) || 0}
+                doorPanels={doorPanels}
+                unit={unit}
+              />
+            ) : (
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg border-2 border-blue-200">
+                <div className="flex gap-4">
+                  <div className="flex-1">
+                    <FrontView
+                      partitionWidth={parseInt(convertToMm(partitionWidth, unit)) || 1000}
+                      partitionHeight={parseInt(convertToMm(partitionHeight, unit)) || 1900}
+                      doorWidth={0}
+                      doorHeight={0}
+                      hasDoor={false}
+                      doorPosition={doorPosition}
+                      doorLeftOffset={0}
+                    />
+                  </div>
+                  <div className="w-48">
+                    <TopView
+                      partitionWidth={parseInt(convertToMm(partitionWidth, unit)) || 1000}
+                      partitionCount={1}
+                      sectionWidths={[parseInt(convertToMm(partitionWidth, unit)) || 1000]}
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {calculation && partitionCount > 1 && (
               <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
