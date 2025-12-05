@@ -41,10 +41,21 @@ export default function ComponentEditDialog({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith('image/')) {
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+    if (!allowedTypes.includes(file.type)) {
       toast({
         title: 'Ошибка',
-        description: 'Выберите изображение',
+        description: 'Поддерживаются только форматы PNG и JPG',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    const maxSize = 3 * 1024 * 1024;
+    if (file.size > maxSize) {
+      toast({
+        title: 'Ошибка',
+        description: 'Размер файла не должен превышать 3 МБ',
         variant: 'destructive'
       });
       return;
@@ -154,6 +165,7 @@ export default function ComponentEditDialog({
 
           <div className="grid gap-2">
             <Label>Изображение</Label>
+            <p className="text-xs text-muted-foreground">PNG или JPG, до 3 МБ</p>
             <div className="flex items-center gap-4">
               {editingComponent.image_url && (
                 <img
@@ -166,7 +178,7 @@ export default function ComponentEditDialog({
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept="image/*"
+                  accept="image/png,image/jpeg,image/jpg"
                   onChange={handleImageUpload}
                   className="hidden"
                 />
