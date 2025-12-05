@@ -16,9 +16,9 @@ export default function Index() {
             alt="ООО Молотов траст" 
             className="h-16 object-contain mb-6"
           />
-          <h1 className="text-4xl font-bold text-center mb-4">Сервис онлайн-записи</h1>
+          <h1 className="text-4xl font-bold text-center mb-4">Виджеты для вашего сайта</h1>
           <p className="text-xl text-muted-foreground text-center max-w-2xl">
-            Удобная система записи и калькуляторы для расчёта стоимости услуг
+            Готовые инструменты для онлайн-записи и расчёта стоимости услуг
           </p>
         </div>
 
