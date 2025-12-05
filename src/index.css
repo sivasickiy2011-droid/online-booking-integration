@@ -119,3 +119,22 @@
   transform: translateY(-1px) !important;
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
 }
+
+/* Custom scrollbar styles */
+.scrollbar-thin::-webkit-scrollbar {
+  height: 8px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: rgb(226 232 240);
+  border-radius: 4px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgb(148 163 184);
+  border-radius: 4px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: rgb(100 116 139);
+}

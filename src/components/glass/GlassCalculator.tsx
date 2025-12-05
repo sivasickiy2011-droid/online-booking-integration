@@ -6,6 +6,7 @@ import PackageDetails from './PackageDetails';
 import CalculationResultCard from './CalculationResultCard';
 import DimensionInputs from './DimensionInputs';
 import SavedCalculationsList from './SavedCalculationsList';
+import ProductGallery from './ProductGallery';
 import { useCalculatorLogic } from './useCalculatorLogic';
 
 export default function GlassCalculator() {
@@ -45,6 +46,8 @@ export default function GlassCalculator() {
 
   return (
     <div className="mx-[100px] space-y-6">
+      <ProductGallery />
+      
       <Card className="relative overflow-hidden">
         <div 
           className="absolute inset-0 opacity-5 bg-cover bg-center pointer-events-none"
