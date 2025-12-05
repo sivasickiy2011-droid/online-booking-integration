@@ -81,32 +81,6 @@ export default function Index() {
     setIsAuthenticated(savedAuth === 'true');
   }, []);
 
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-accent/5 flex items-center justify-center">
-        <Card className="max-w-md w-full mx-4">
-          <CardHeader className="text-center">
-            <div className="mx-auto mb-4 w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center">
-              <Icon name="AlertCircle" size={32} className="text-amber-600" />
-            </div>
-            <CardTitle className="text-2xl">Не выбран основной инструмент</CardTitle>
-            <CardDescription className="text-base mt-2">
-              Войдите в личный кабинет и выберите основной инструмент для работы
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Link to="/profile">
-              <Button className="w-full" size="lg">
-                <Icon name="User" size={20} className="mr-2" />
-                Войти в личный кабинет
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-accent/5">
       <div className="mx-[100px] py-12 space-y-8">
@@ -121,6 +95,32 @@ export default function Index() {
             Выберите тип калькулятора для вашего бизнеса
           </p>
         </div>
+
+        {!isAuthenticated && (
+          <Card className="border-2 border-primary/20 bg-gradient-to-r from-primary/5 to-accent/5">
+            <CardContent className="py-6">
+              <div className="flex items-center justify-between gap-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                    <Icon name="Info" size={24} className="text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg mb-1">Демонстрационный режим</h3>
+                    <p className="text-muted-foreground text-sm">
+                      Войдите в личный кабинет, чтобы выбрать основной инструмент и начать работу с полным функционалом
+                    </p>
+                  </div>
+                </div>
+                <Link to="/profile" className="flex-shrink-0">
+                  <Button size="lg">
+                    <Icon name="User" size={20} className="mr-2" />
+                    Войти
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <CalculatorGallery
           title="Бронирование по времени"
