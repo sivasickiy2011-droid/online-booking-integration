@@ -214,6 +214,60 @@ export default function PackageEditDialog({
             />
           </div>
 
+          <div className="border-t pt-4 mt-2">
+            <h3 className="text-sm font-semibold mb-3">Параметры двери по умолчанию</h3>
+            
+            <div className="grid grid-cols-3 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="door_position">Позиция двери</Label>
+                <Select
+                  value={editingPackage?.default_door_position || 'center'}
+                  onValueChange={(value: 'left' | 'center' | 'right') => 
+                    setEditingPackage({ ...editingPackage, default_door_position: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="left">Слева</SelectItem>
+                    <SelectItem value="center">По центру</SelectItem>
+                    <SelectItem value="right">Справа</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="door_offset">Отступ (мм)</Label>
+                <Input
+                  id="door_offset"
+                  type="number"
+                  value={editingPackage?.default_door_offset || '0'}
+                  onChange={(e) => setEditingPackage({ ...editingPackage, default_door_offset: e.target.value })}
+                  placeholder="0"
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="door_panels">Количество створок</Label>
+                <Select
+                  value={String(editingPackage?.default_door_panels || 1)}
+                  onValueChange={(value) => 
+                    setEditingPackage({ ...editingPackage, default_door_panels: parseInt(value) as 1 | 2 })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">1 створка</SelectItem>
+                    <SelectItem value="2">2 створки</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+
           <div className="flex items-center space-x-2">
             <Switch
               id="is_active"

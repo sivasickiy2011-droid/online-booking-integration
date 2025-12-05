@@ -176,7 +176,10 @@ export default function GlassPackageManager() {
       installation_price: 3000,
       description: '',
       sketch_image_url: '',
-      is_active: true
+      is_active: true,
+      default_door_position: 'center',
+      default_door_offset: '0',
+      default_door_panels: 1
     });
     setIsDialogOpen(true);
   };

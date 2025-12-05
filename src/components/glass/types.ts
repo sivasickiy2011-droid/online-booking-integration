@@ -25,6 +25,9 @@ export interface GlassPackage {
   description: string;
   sketch_image_url?: string;
   is_active: boolean;
+  default_door_position?: 'left' | 'center' | 'right';
+  default_door_offset?: string;
+  default_door_panels?: 1 | 2;
 }
 
 export interface PackageComponent {
