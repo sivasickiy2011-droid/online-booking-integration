@@ -13,34 +13,33 @@ export default function WidgetDoctor() {
     setIsAuthenticated(savedAuth === 'true');
   }, []);
 
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-accent/5 flex items-center justify-center">
-        <Card className="max-w-md w-full mx-4">
-          <CardHeader className="text-center">
-            <div className="mx-auto mb-4 w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center">
-              <Icon name="AlertCircle" size={32} className="text-amber-600" />
-            </div>
-            <CardTitle className="text-2xl">Не выбран основной инструмент</CardTitle>
-            <CardDescription className="text-base mt-2">
-              Войдите в личный кабинет и выберите основной инструмент для работы
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Link to="/profile">
-              <Button className="w-full" size="lg">
-                <Icon name="User" size={20} className="mr-2" />
-                Войти в личный кабинет
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-accent/5 p-4">
+      {!isAuthenticated && (
+        <Card className="max-w-4xl mx-auto mb-6 border-2 border-amber-500/50 bg-gradient-to-r from-amber-50 to-orange-50">
+          <CardContent className="py-6">
+            <div className="flex items-center justify-between gap-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <Icon name="Info" size={24} className="text-amber-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-lg mb-1 text-amber-900">Демонстрационный режим</h3>
+                  <p className="text-amber-800 text-sm">
+                    Вы можете ознакомиться с формой бронирования. Для полного доступа войдите в личный кабинет
+                  </p>
+                </div>
+              </div>
+              <Link to="/profile" className="flex-shrink-0">
+                <Button size="lg" className="bg-amber-600 hover:bg-amber-700">
+                  <Icon name="User" size={20} className="mr-2" />
+                  Войти
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      )}
       <AppointmentForm />
     </div>
   );
