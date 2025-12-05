@@ -4,6 +4,8 @@ interface FrontViewProps {
   doorWidth: number;
   doorHeight: number;
   hasDoor: boolean;
+  doorPosition?: 'center' | 'left';
+  doorLeftOffset?: number;
 }
 
 export default function FrontView({
@@ -11,7 +13,9 @@ export default function FrontView({
   partitionHeight,
   doorWidth,
   doorHeight,
-  hasDoor
+  hasDoor,
+  doorPosition = 'center',
+  doorLeftOffset = 0
 }: FrontViewProps) {
   const scale = 0.12;
   const svgWidth = 350;
@@ -73,41 +77,71 @@ export default function FrontView({
         fill="url(#glass-pattern-front)"
       />
 
-      {hasDoor && dWidth > 0 && dHeight > 0 && (
-        <>
-          <rect 
-            x={offsetX + (wallWidth - dWidth) / 2} 
-            y={offsetY + actualHeight - (dHeight * heightScale)}
-            width={dWidth} 
-            height={dHeight * heightScale}
-            fill="#fef3c7"
-            stroke="#f59e0b"
-            strokeWidth="2"
-            strokeDasharray="4,2"
-            rx="2"
-          />
-          
-          <line
-            x1={offsetX + (wallWidth - dWidth) / 2 + dWidth / 2}
-            y1={offsetY + actualHeight - (dHeight * heightScale)}
-            x2={offsetX + (wallWidth - dWidth) / 2 + dWidth / 2}
-            y2={offsetY + actualHeight}
-            stroke="#f59e0b"
-            strokeWidth="1.5"
-          />
+      {hasDoor && dWidth > 0 && dHeight > 0 && (() => {
+        const doorX = doorPosition === 'center' 
+          ? offsetX + (wallWidth - dWidth) / 2
+          : offsetX + (doorLeftOffset * scale);
+        
+        return (
+          <>
+            <rect 
+              x={doorX} 
+              y={offsetY + actualHeight - (dHeight * heightScale)}
+              width={dWidth} 
+              height={dHeight * heightScale}
+              fill="#fef3c7"
+              stroke="#f59e0b"
+              strokeWidth="2"
+              strokeDasharray="4,2"
+              rx="2"
+            />
+            
+            <line
+              x1={doorX + dWidth / 2}
+              y1={offsetY + actualHeight - (dHeight * heightScale)}
+              x2={doorX + dWidth / 2}
+              y2={offsetY + actualHeight}
+              stroke="#f59e0b"
+              strokeWidth="1.5"
+            />
 
-          <text
-            x={offsetX + wallWidth / 2}
-            y={offsetY + actualHeight - (dHeight * heightScale) / 2}
-            textAnchor="middle"
-            fill="#92400e"
-            fontSize="11"
-            fontWeight="600"
-          >
-            Дверь
-          </text>
-        </>
-      )}
+            <text
+              x={doorX + dWidth / 2}
+              y={offsetY + actualHeight - (dHeight * heightScale) / 2}
+              textAnchor="middle"
+              fill="#92400e"
+              fontSize="11"
+              fontWeight="600"
+            >
+              Дверь
+            </text>
+            
+            {doorPosition === 'left' && doorLeftOffset > 0 && (
+              <>
+                <line
+                  x1={offsetX}
+                  y1={offsetY + actualHeight + 50}
+                  x2={doorX}
+                  y2={offsetY + actualHeight + 50}
+                  stroke="#9333ea"
+                  strokeWidth="1.5"
+                  strokeDasharray="3,2"
+                />
+                <text
+                  x={(offsetX + doorX) / 2}
+                  y={offsetY + actualHeight + 61}
+                  textAnchor="middle"
+                  fill="#7e22ce"
+                  fontSize="9"
+                  fontWeight="500"
+                >
+                  Отступ: {doorLeftOffset} мм
+                </text>
+              </>
+            )}
+          </>
+        );
+      })()}
 
       <line
         x1={offsetX}
@@ -152,29 +186,35 @@ export default function FrontView({
         {partitionHeight} мм ({(partitionHeight / 10).toFixed(0)} см)
       </text>
 
-      {hasDoor && dWidth > 0 && dHeight > 0 && (
-        <>
-          <line
-            x1={offsetX + (wallWidth - dWidth) / 2}
-            y1={offsetY + actualHeight + 35}
-            x2={offsetX + (wallWidth + dWidth) / 2}
-            y2={offsetY + actualHeight + 35}
-            stroke="#d97706"
-            strokeWidth="1.5"
-            strokeDasharray="3,2"
-          />
-          <text
-            x={offsetX + wallWidth / 2}
-            y={offsetY + actualHeight + 46}
-            textAnchor="middle"
-            fill="#92400e"
-            fontSize="9"
-            fontWeight="500"
-          >
-            Дверь: {doorWidth}×{doorHeight} мм
-          </text>
-        </>
-      )}
+      {hasDoor && dWidth > 0 && dHeight > 0 && (() => {
+        const doorX = doorPosition === 'center' 
+          ? offsetX + (wallWidth - dWidth) / 2
+          : offsetX + (doorLeftOffset * scale);
+        
+        return (
+          <>
+            <line
+              x1={doorX}
+              y1={offsetY + actualHeight + 35}
+              x2={doorX + dWidth}
+              y2={offsetY + actualHeight + 35}
+              stroke="#d97706"
+              strokeWidth="1.5"
+              strokeDasharray="3,2"
+            />
+            <text
+              x={doorX + dWidth / 2}
+              y={offsetY + actualHeight + 46}
+              textAnchor="middle"
+              fill="#92400e"
+              fontSize="9"
+              fontWeight="500"
+            >
+              Дверь: {doorWidth}×{doorHeight} мм
+            </text>
+          </>
+        );
+      })()}
 
       <defs>
         <marker id="arrow-start-front" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">

@@ -10,6 +10,8 @@ interface PartitionSketchProps {
   hasDoor: boolean;
   partitionCount?: number;
   sectionWidths?: number[];
+  doorPosition?: 'center' | 'left';
+  doorLeftOffset?: number;
 }
 
 export default function PartitionSketch({
@@ -19,9 +21,11 @@ export default function PartitionSketch({
   doorHeight = 0,
   hasDoor,
   partitionCount = 1,
-  sectionWidths = []
+  sectionWidths = [],
+  doorPosition = 'center',
+  doorLeftOffset = 0
 }: PartitionSketchProps) {
-  const sideViews = Array.from({ length: partitionCount }, (_, i) => (
+  const sideViews = partitionCount > 1 ? Array.from({ length: partitionCount }, (_, i) => (
     <div key={i} className="flex items-center justify-center">
       <SideView
         partitionHeight={partitionHeight}
@@ -29,11 +33,11 @@ export default function PartitionSketch({
         index={i}
       />
     </div>
-  ));
+  )) : [];
 
   return (
     <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg border-2 border-blue-200">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className={`grid ${partitionCount > 1 ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'} gap-4`}>
         <div className="flex items-center justify-center">
           <FrontView
             partitionWidth={partitionWidth}
@@ -41,15 +45,19 @@ export default function PartitionSketch({
             doorWidth={doorWidth}
             doorHeight={doorHeight}
             hasDoor={hasDoor}
+            doorPosition={doorPosition}
+            doorLeftOffset={doorLeftOffset}
           />
         </div>
-        <div className="flex items-center justify-center">
-          <TopView
-            partitionWidth={partitionWidth}
-            partitionCount={partitionCount}
-            sectionWidths={sectionWidths}
-          />
-        </div>
+        {partitionCount > 1 && (
+          <div className="flex items-center justify-center">
+            <TopView
+              partitionWidth={partitionWidth}
+              partitionCount={partitionCount}
+              sectionWidths={sectionWidths}
+            />
+          </div>
+        )}
         {sideViews}
       </div>
     </div>

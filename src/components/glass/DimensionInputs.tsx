@@ -51,6 +51,8 @@ export default function DimensionInputs({
   convertToMm
 }: DimensionInputsProps) {
   const [useAdvancedMode, setUseAdvancedMode] = useState(false);
+  const [doorPosition, setDoorPosition] = useState<'center' | 'left'>('center');
+  const [doorLeftOffset, setDoorLeftOffset] = useState<string>('0');
   const [structureConfig, setStructureConfig] = useState<StructureConfig>({
     height: partitionHeight,
     sections: [{
@@ -142,122 +144,125 @@ export default function DimensionInputs({
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="grid gap-2">
-          <Label htmlFor="partitionHeight">Высота изделия *</Label>
-          <Input
-            id="partitionHeight"
-            type="number"
-            value={partitionHeight}
-            onChange={(e) => onPartitionHeightChange(e.target.value)}
-            onBlur={onDimensionBlur}
-            placeholder={unit === 'mm' ? '1900' : '190'}
-            min="1"
-            step={unit === 'mm' ? '1' : '0.1'}
-          />
-          <p className="text-xs text-muted-foreground">
-            {partitionHeight && unit === 'mm' ? `(${(parseFloat(partitionHeight) / 10).toFixed(1)} см)` : ''}
-            {partitionHeight && unit === 'cm' ? `(${(parseFloat(partitionHeight) * 10).toFixed(0)} мм)` : ''}
-          </p>
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="partitionCount">Количество секций *</Label>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => onPartitionCountChange(Math.max(1, partitionCount - 1))}
-              className="h-10 w-10 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground disabled:opacity-50"
-              disabled={partitionCount <= 1}
-            >
-              −
-            </button>
-            <Input
-              id="partitionCount"
-              type="number"
-              value={partitionCount}
-              onChange={(e) => onPartitionCountChange(Math.max(1, Math.min(10, parseInt(e.target.value) || 1)))}
-              className="text-center"
-              min="1"
-              max="10"
-            />
-            <button
-              type="button"
-              onClick={() => onPartitionCountChange(Math.min(10, partitionCount + 1))}
-              className="h-10 w-10 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground disabled:opacity-50"
-              disabled={partitionCount >= 10}
-            >
-              +
-            </button>
+            <div className="grid gap-2">
+              <Label htmlFor="partitionWidth">Ширина изделия *</Label>
+              <Input
+                id="partitionWidth"
+                type="number"
+                value={partitionWidth}
+                onChange={(e) => onPartitionWidthChange(e.target.value)}
+                onBlur={onDimensionBlur}
+                placeholder={unit === 'mm' ? '1000' : '100'}
+                min="1"
+                step={unit === 'mm' ? '1' : '0.1'}
+              />
+              <p className="text-xs text-muted-foreground">
+                {partitionWidth && unit === 'mm' ? `(${(parseFloat(partitionWidth) / 10).toFixed(1)} см)` : ''}
+                {partitionWidth && unit === 'cm' ? `(${(parseFloat(partitionWidth) * 10).toFixed(0)} мм)` : ''}
+              </p>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="partitionHeight">Высота изделия *</Label>
+              <Input
+                id="partitionHeight"
+                type="number"
+                value={partitionHeight}
+                onChange={(e) => onPartitionHeightChange(e.target.value)}
+                onBlur={onDimensionBlur}
+                placeholder={unit === 'mm' ? '1900' : '190'}
+                min="1"
+                step={unit === 'mm' ? '1' : '0.1'}
+              />
+              <p className="text-xs text-muted-foreground">
+                {partitionHeight && unit === 'mm' ? `(${(parseFloat(partitionHeight) / 10).toFixed(1)} см)` : ''}
+                {partitionHeight && unit === 'cm' ? `(${(parseFloat(partitionHeight) * 10).toFixed(0)} мм)` : ''}
+              </p>
+            </div>
           </div>
-          <p className="text-xs text-muted-foreground">
-            Общая ширина: {partitionWidth} {unit}
-          </p>
-        </div>
-      </div>
-
-      {partitionCount > 1 && (
-        <div className="border-2 border-blue-200 rounded-lg p-4 bg-blue-50">
-          <Label className="mb-3 block text-sm font-semibold text-blue-900">Ширина каждой секции</Label>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-            {sectionWidths.map((width, index) => (
-              <div key={index} className="grid gap-1.5">
-                <Label htmlFor={`section-${index}`} className="text-xs text-muted-foreground">
-                  Секция {index + 1}
-                </Label>
-                <Input
-                  id={`section-${index}`}
-                  type="number"
-                  value={width}
-                  onChange={(e) => onSectionWidthChange(index, e.target.value)}
-                  onBlur={onDimensionBlur}
-                  placeholder={unit === 'mm' ? '1000' : '100'}
-                  min="1"
-                  step={unit === 'mm' ? '1' : '0.1'}
-                  className="text-sm"
-                />
-                <p className="text-xs text-muted-foreground">
-                  {width && unit === 'mm' ? `${(parseFloat(width) / 10).toFixed(1)} см` : ''}
-                  {width && unit === 'cm' ? `${(parseFloat(width) * 10).toFixed(0)} мм` : ''}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {hasDoor && (
-        <div className="grid grid-cols-2 gap-4">
-          <div className="grid gap-2">
-            <Label htmlFor="doorWidth">Ширина двери *</Label>
-            <Input
-              id="doorWidth"
-              type="number"
-              value={doorWidth}
-              onChange={(e) => onDoorWidthChange(e.target.value)}
-              onBlur={onDimensionBlur}
-              placeholder={unit === 'mm' ? '800' : '80'}
-              min="1"
-              step={unit === 'mm' ? '1' : '0.1'}
-            />
-            <p className="text-xs text-muted-foreground">
-              {doorWidth && unit === 'mm' ? `(${(parseFloat(doorWidth) / 10).toFixed(1)} см)` : ''}
-              {doorWidth && unit === 'cm' ? `(${(parseFloat(doorWidth) * 10).toFixed(0)} мм)` : ''}
-            </p>
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="doorWidth">Ширина двери *</Label>
+              <Input
+                id="doorWidth"
+                type="number"
+                value={doorWidth}
+                onChange={(e) => onDoorWidthChange(e.target.value)}
+                onBlur={onDimensionBlur}
+                placeholder={unit === 'mm' ? '800' : '80'}
+                min="1"
+                step={unit === 'mm' ? '1' : '0.1'}
+              />
+              <p className="text-xs text-muted-foreground">
+                {doorWidth && unit === 'mm' ? `(${(parseFloat(doorWidth) / 10).toFixed(1)} см)` : ''}
+                {doorWidth && unit === 'cm' ? `(${(parseFloat(doorWidth) * 10).toFixed(0)} мм)` : ''}
+              </p>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="doorHeight">Высота двери *</Label>
+              <Input
+                id="doorHeight"
+                type="number"
+                value={doorHeight}
+                onChange={(e) => onDoorHeightChange(e.target.value)}
+                onBlur={onDimensionBlur}
+                placeholder={unit === 'mm' ? '1900' : '190'}
+                min="1"
+                step={unit === 'mm' ? '1' : '0.1'}
+              />
+              <p className="text-xs text-muted-foreground">
+                {doorHeight && unit === 'mm' ? `(${(parseFloat(doorHeight) / 10).toFixed(1)} см)` : ''}
+                {doorHeight && unit === 'cm' ? `(${(parseFloat(doorHeight) * 10).toFixed(0)} мм)` : ''}
+              </p>
+            </div>
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="doorHeight">Высота двери *</Label>
-            <Input
-              id="doorHeight"
-              type="number"
-              value={doorHeight}
-              onChange={(e) => onDoorHeightChange(e.target.value)}
-              onBlur={onDimensionBlur}
-              placeholder={unit === 'mm' ? '1900' : '190'}
-              min="1"
-              step={unit === 'mm' ? '1' : '0.1'}
-            />
+          
+          <div className="border rounded-lg p-4 bg-muted/50 space-y-3">
+            <Label>Позиция двери</Label>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant={doorPosition === 'center' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setDoorPosition('center')}
+                className="flex-1"
+              >
+                По центру
+              </Button>
+              <Button
+                type="button"
+                variant={doorPosition === 'left' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setDoorPosition('left')}
+                className="flex-1"
+              >
+                С отступом слева
+              </Button>
+            </div>
+            
+            {doorPosition === 'left' && (
+              <div className="grid gap-2">
+                <Label htmlFor="doorLeftOffset">Отступ от левого края</Label>
+                <Input
+                  id="doorLeftOffset"
+                  type="number"
+                  value={doorLeftOffset}
+                  onChange={(e) => setDoorLeftOffset(e.target.value)}
+                  placeholder={unit === 'mm' ? '100' : '10'}
+                  min="0"
+                  step={unit === 'mm' ? '1' : '0.1'}
+                />
+                <p className="text-xs text-muted-foreground">
+                  {doorLeftOffset && unit === 'mm' ? `(${(parseFloat(doorLeftOffset) / 10).toFixed(1)} см)` : ''}
+                  {doorLeftOffset && unit === 'cm' ? `(${(parseFloat(doorLeftOffset) * 10).toFixed(0)} мм)` : ''}
+                </p>
+              </div>
+            )}
+            
             <p className="text-xs text-muted-foreground">
-              {doorHeight && unit === 'mm' ? `(${(parseFloat(doorHeight) / 10).toFixed(1)} см)` : ''}
-              {doorHeight && unit === 'cm' ? `(${(parseFloat(doorHeight) * 10).toFixed(0)} мм)` : ''}
+              ℹ️ Дверь всегда располагается от нижнего края изделия
             </p>
           </div>
         </div>
@@ -270,8 +275,10 @@ export default function DimensionInputs({
               doorWidth={parseInt(convertToMm(doorWidth, unit)) || 0}
               doorHeight={parseInt(convertToMm(doorHeight, unit)) || 0}
               hasDoor={hasDoor}
-              partitionCount={partitionCount}
-              sectionWidths={sectionWidths.map(w => parseInt(convertToMm(w, unit)) || 0)}
+              partitionCount={1}
+              sectionWidths={[parseInt(convertToMm(partitionWidth, unit)) || 1000]}
+              doorPosition={doorPosition}
+              doorLeftOffset={parseInt(convertToMm(doorLeftOffset, unit)) || 0}
             />
 
             {calculation && partitionCount > 1 && (
