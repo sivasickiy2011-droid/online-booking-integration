@@ -272,19 +272,7 @@ export default function SimpleModeDoorSketch({
               </>
             )}
 
-            {/* Стрелка ВХОД от пола */}
-            <g>
-              <text
-                x={doorX + doorWidth / 2}
-                y={partitionHeight + 50}
-                textAnchor="middle"
-                fontSize="50"
-                fill="#f59e0b"
-                fontWeight="bold"
-              >
-                ↑ ВХОД
-              </text>
-            </g>
+
           </>
         )}
 
@@ -448,7 +436,7 @@ export default function SimpleModeDoorSketch({
           </>
         )}
 
-        {/* Обозначение пола */}
+        {/* Линия пола (без надписи) */}
         <line
           x1="-50"
           y1={partitionHeight}
@@ -458,15 +446,6 @@ export default function SimpleModeDoorSketch({
           strokeWidth="4"
           strokeDasharray="15,10"
         />
-        <text
-          x="-70"
-          y={partitionHeight + 10}
-          fontSize="35"
-          fill="#1e293b"
-          fontWeight="600"
-        >
-          ПОЛ
-        </text>
       </svg>
       
       {/* Легенда */}

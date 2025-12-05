@@ -7,6 +7,7 @@ import StructureConfigurator, { StructureConfig } from './StructureConfigurator'
 import Structure3DView from './Structure3DView';
 import StructureTopView from './StructureTopView';
 import SimpleModeDoorSketch from './SimpleModeDoorSketch';
+import MiniDoorPreview from './MiniDoorPreview';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
 
@@ -69,6 +70,7 @@ export default function DimensionInputs({
   const [doorPosition, setDoorPosition] = useState<'left' | 'center' | 'right'>(externalDoorPosition || 'center');
   const [doorLeftOffset, setDoorLeftOffset] = useState<string>(externalDoorOffset || '0');
   const [doorPanels, setDoorPanels] = useState<1 | 2>(externalDoorPanels || 1);
+  const [viewMode, setViewMode] = useState<'front' | 'top'>('front');
 
   useEffect(() => {
     if (doorPosition !== 'center' && doorPanels === 2) {
@@ -409,29 +411,84 @@ export default function DimensionInputs({
               )}
             </div>
             
-            <p className="text-xs text-muted-foreground">
-              ℹ️ Дверь всегда располагается от нижнего края изделия
-            </p>
+            <MiniDoorPreview
+              doorPosition={doorPosition}
+              doorPanels={doorPanels}
+              doorHeightPercent={doorHeight && partitionHeight ? (parseFloat(convertToMm(doorHeight, unit)) / parseFloat(convertToMm(partitionHeight, unit)) * 100) : 85}
+            />
           </div>
         </div>
       )}
 
           <div className="space-y-4">
             {hasDoor ? (
-              <SimpleModeDoorSketch
-                partitionWidth={parseFloat(convertToMm(partitionWidth, unit)) || 1000}
-                partitionHeight={parseFloat(convertToMm(partitionHeight, unit)) || 1900}
-                doorWidth={parseFloat(convertToMm(doorWidth, unit)) || 800}
-                doorHeight={parseFloat(convertToMm(doorHeight, unit)) || 1900}
-                doorPosition={doorPosition}
-                doorOffset={parseFloat(convertToMm(doorLeftOffset, unit)) || 0}
-                doorPanels={doorPanels}
-                unit={unit}
-              />
+              <div className="space-y-3">
+                <div className="flex gap-2 justify-center">
+                  <Button
+                    type="button"
+                    variant={viewMode === 'front' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setViewMode('front')}
+                  >
+                    Вид спереди
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={viewMode === 'top' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setViewMode('top')}
+                  >
+                    Вид сверху
+                  </Button>
+                </div>
+                
+                {viewMode === 'front' ? (
+                  <SimpleModeDoorSketch
+                    partitionWidth={parseFloat(convertToMm(partitionWidth, unit)) || 1000}
+                    partitionHeight={parseFloat(convertToMm(partitionHeight, unit)) || 1900}
+                    doorWidth={parseFloat(convertToMm(doorWidth, unit)) || 800}
+                    doorHeight={parseFloat(convertToMm(doorHeight, unit)) || 1900}
+                    doorPosition={doorPosition}
+                    doorOffset={parseFloat(convertToMm(doorLeftOffset, unit)) || 0}
+                    doorPanels={doorPanels}
+                    unit={unit}
+                  />
+                ) : (
+                  <div className="bg-gradient-to-br from-slate-50 to-slate-100 border-2 border-slate-300 rounded-lg p-6">
+                    <div className="text-center mb-3">
+                      <h4 className="font-semibold text-base text-slate-700">Эскиз изделия (вид сверху)</h4>
+                    </div>
+                    <TopView
+                      partitionWidth={parseInt(convertToMm(partitionWidth, unit)) || 1000}
+                      partitionCount={1}
+                      sectionWidths={[parseInt(convertToMm(partitionWidth, unit)) || 1000]}
+                    />
+                  </div>
+                )}
+              </div>
             ) : (
-              <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg border-2 border-blue-200">
-                <div className="flex gap-4">
-                  <div className="flex-1">
+              <div className="space-y-3">
+                <div className="flex gap-2 justify-center">
+                  <Button
+                    type="button"
+                    variant={viewMode === 'front' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setViewMode('front')}
+                  >
+                    Вид спереди
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={viewMode === 'top' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setViewMode('top')}
+                  >
+                    Вид сверху
+                  </Button>
+                </div>
+                
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg border-2 border-blue-200">
+                  {viewMode === 'front' ? (
                     <FrontView
                       partitionWidth={parseInt(convertToMm(partitionWidth, unit)) || 1000}
                       partitionHeight={parseInt(convertToMm(partitionHeight, unit)) || 1900}
@@ -441,14 +498,13 @@ export default function DimensionInputs({
                       doorPosition={doorPosition}
                       doorLeftOffset={0}
                     />
-                  </div>
-                  <div className="w-48">
+                  ) : (
                     <TopView
                       partitionWidth={parseInt(convertToMm(partitionWidth, unit)) || 1000}
                       partitionCount={1}
                       sectionWidths={[parseInt(convertToMm(partitionWidth, unit)) || 1000]}
                     />
-                  </div>
+                  )}
                 </div>
               </div>
             )}
