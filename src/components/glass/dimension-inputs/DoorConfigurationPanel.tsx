@@ -7,6 +7,7 @@ interface DoorConfigurationPanelProps {
   doorPosition: 'left' | 'center' | 'right';
   doorLeftOffset: string;
   doorPanels: 1 | 2;
+  doorCenterAllowed?: boolean;
   setDoorPosition: (value: 'left' | 'center' | 'right') => void;
   setDoorLeftOffset: (value: string) => void;
   setDoorPanels: (value: 1 | 2) => void;
@@ -22,6 +23,7 @@ export default function DoorConfigurationPanel({
   doorPosition,
   doorLeftOffset,
   doorPanels,
+  doorCenterAllowed = true,
   setDoorPosition,
   setDoorLeftOffset,
   setDoorPanels,
@@ -57,6 +59,7 @@ export default function DoorConfigurationPanel({
               onDoorPositionChange?.('center');
               onDoorOffsetChange?.('0');
             }}
+            disabled={!doorCenterAllowed}
           >
             По центру
           </Button>
@@ -135,6 +138,11 @@ export default function DoorConfigurationPanel({
         {doorPosition !== 'center' && (
           <p className="text-xs text-amber-600">
             ℹ️ Две створки доступны только при центральном расположении
+          </p>
+        )}
+        {!doorCenterAllowed && (
+          <p className="text-xs text-blue-600">
+            ℹ️ Для данного изделия дверь может быть только у стены
           </p>
         )}
       </div>

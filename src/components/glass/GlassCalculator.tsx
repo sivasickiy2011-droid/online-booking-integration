@@ -120,6 +120,7 @@ export default function GlassCalculator() {
                     doorOffset={doorOffset}
                     doorPanels={doorPanels}
                     hasDoor={selectedPackage.has_door || false}
+                    doorCenterAllowed={selectedPackage.door_center_allowed !== false}
                     partitionCount={partitionCount}
                     sectionWidths={sectionWidths}
                     calculation={calculation}

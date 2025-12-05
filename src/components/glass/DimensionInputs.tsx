@@ -15,6 +15,7 @@ interface DimensionInputsProps {
   doorWidth: string;
   doorHeight: string;
   hasDoor: boolean;
+  doorCenterAllowed?: boolean;
   partitionCount: number;
   sectionWidths: string[];
   calculation: CalculationResult | null;
@@ -42,6 +43,7 @@ export default function DimensionInputs({
   doorWidth,
   doorHeight,
   hasDoor,
+  doorCenterAllowed = true,
   partitionCount,
   sectionWidths,
   calculation,
@@ -195,6 +197,7 @@ export default function DimensionInputs({
               doorPosition={doorPosition}
               doorLeftOffset={doorLeftOffset}
               doorPanels={doorPanels}
+              doorCenterAllowed={doorCenterAllowed}
               setDoorPosition={setDoorPosition}
               setDoorLeftOffset={setDoorLeftOffset}
               setDoorPanels={setDoorPanels}

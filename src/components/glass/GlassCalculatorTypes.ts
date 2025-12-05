@@ -33,6 +33,7 @@ export interface GlassPackage {
   default_door_position?: 'left' | 'center' | 'right';
   default_door_offset?: number;
   default_door_panels?: 1 | 2;
+  door_center_allowed?: boolean;
   sketch_svg?: string;
   partition_count?: number;
 }
