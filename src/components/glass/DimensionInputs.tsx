@@ -69,6 +69,25 @@ export default function DimensionInputs({
   const [doorPanels, setDoorPanels] = useState<1 | 2>(externalDoorPanels || 1);
   const [viewMode, setViewMode] = useState<'front' | 'top'>('front');
 
+  // Синхронизация с внешними значениями при изменении шаблона
+  useEffect(() => {
+    if (externalDoorPosition) {
+      setDoorPosition(externalDoorPosition);
+    }
+  }, [externalDoorPosition]);
+
+  useEffect(() => {
+    if (externalDoorOffset !== undefined) {
+      setDoorLeftOffset(externalDoorOffset);
+    }
+  }, [externalDoorOffset]);
+
+  useEffect(() => {
+    if (externalDoorPanels) {
+      setDoorPanels(externalDoorPanels);
+    }
+  }, [externalDoorPanels]);
+
   useEffect(() => {
     if (doorPosition !== 'center' && doorPanels === 2) {
       setDoorPanels(1);

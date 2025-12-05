@@ -61,17 +61,25 @@ export default function CalculationResultCard({
             </>
           )}
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Площадь стекла для расчёта:</span>
-            <span className="font-bold text-lg">{calculation.square_meters.toFixed(2)} м²</span>
+            <span className="text-muted-foreground">Площадь стекла:</span>
+            <span className="font-bold">{calculation.square_meters.toFixed(2)} м²</span>
           </div>
           <Separator />
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Материалы и фурнитура:</span>
-            <span className="font-medium">{calculation.components_total.toLocaleString('ru-RU', { minimumFractionDigits: 2 })} ₽</span>
+            <span className="text-muted-foreground">Стоимость изделия:</span>
+            <span className="font-medium">{calculation.subtotal.toLocaleString('ru-RU', { minimumFractionDigits: 2 })} ₽</span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Услуги:</span>
-            <span className="font-medium">{calculation.services_total.toLocaleString('ru-RU', { minimumFractionDigits: 2 })} ₽</span>
+          <div className="flex justify-between text-xs text-muted-foreground pl-4">
+            <span>• Материалы и фурнитура:</span>
+            <span>{calculation.components_total.toLocaleString('ru-RU', { minimumFractionDigits: 2 })} ₽</span>
+          </div>
+          <div className="flex justify-between text-xs text-muted-foreground pl-4">
+            <span>• Работы и доставка:</span>
+            <span>{calculation.services_total.toLocaleString('ru-RU', { minimumFractionDigits: 2 })} ₽</span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Наценка ({((calculation.markup_amount / calculation.subtotal) * 100).toFixed(0)}%):</span>
+            <span className="font-medium">{calculation.markup_amount.toLocaleString('ru-RU', { minimumFractionDigits: 2 })} ₽</span>
           </div>
           <Separator className="my-3" />
           <div className="flex justify-between text-lg font-bold">
