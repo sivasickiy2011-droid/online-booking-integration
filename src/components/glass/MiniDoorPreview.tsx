@@ -20,9 +20,9 @@ export default function MiniDoorPreview({
     if (doorPosition === 'center') {
       return (partitionWidth - doorWidth) / 2;
     } else if (doorPosition === 'left') {
-      return 20;
+      return 0;
     } else {
-      return partitionWidth - doorWidth - 20;
+      return partitionWidth - doorWidth;
     }
   }, [doorPosition, doorWidth]);
 
