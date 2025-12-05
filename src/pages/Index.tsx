@@ -92,9 +92,9 @@ export default function Index() {
             alt="ООО Молотов траст" 
             className="h-16 object-contain mb-6"
           />
-          <h1 className="text-4xl font-bold text-center mb-4">Отраслевые калькуляторы</h1>
+          <h1 className="text-4xl font-bold text-center mb-4">Отраслевые виджеты</h1>
           <p className="text-xl text-muted-foreground text-center max-w-2xl">
-            Выберите тип калькулятора для вашего бизнеса
+            Выберите тип виджета
           </p>
         </div>
 
