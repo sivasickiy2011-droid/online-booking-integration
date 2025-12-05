@@ -11,19 +11,24 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 type WidgetType = 'doctor' | 'calc';
+type EmbedMethod = 'iframe' | 'js';
 
 export default function EmbedCodeGenerator() {
   const [widgetType, setWidgetType] = useState<WidgetType>('doctor');
+  const [embedMethod, setEmbedMethod] = useState<EmbedMethod>('iframe');
   const [width, setWidth] = useState('100%');
   const [height, setHeight] = useState('600px');
   const [copied, setCopied] = useState(false);
 
   const baseUrl = window.location.origin;
   const widgetUrl = widgetType === 'doctor' ? `${baseUrl}/widget-doctor` : `${baseUrl}/widget-calc`;
+  const widgetTypeName = widgetType === 'doctor' ? 'бронирования времени' : 'калькулятора';
+  const apiWidgetType = widgetType === 'doctor' ? 'booking' : 'calculator';
 
-  const embedCode = `<!-- Виджет ${widgetType === 'doctor' ? 'онлайн-записи' : 'калькулятора'} -->
+  const iframeCode = `<!-- Виджет ${widgetTypeName} -->
 <iframe 
   src="${widgetUrl}"
   width="${width}"
@@ -32,6 +37,38 @@ export default function EmbedCodeGenerator() {
   style="border: none; border-radius: 8px;"
   loading="lazy"
 ></iframe>`;
+
+  const jsCode = `<!-- Виджет ${widgetTypeName} через JavaScript API -->
+<div id="widget-container"></div>
+
+<script src="${baseUrl}/widget-api.js"></script>
+<script>
+  // Создание виджета
+  const widgetId = window.WidgetAPI.create({
+    type: '${apiWidgetType}',
+    containerId: 'widget-container',
+    width: '${width}',
+    height: '${height}',
+    
+    // Колбэки (опционально)
+    onLoad: function() {
+      console.log('Виджет загружен');
+    },
+    ${apiWidgetType === 'booking' ? `onBook: function(data) {
+      console.log('Бронирование:', data);
+      // data содержит: date, time, name, phone, email
+    }` : `onCalculate: function(data) {
+      console.log('Расчёт:', data);
+      // data содержит: total, services, discount
+    }`}
+  });
+  
+  // Управление виджетом
+  // window.WidgetAPI.resize(widgetId, '800px', '700px');
+  // window.WidgetAPI.destroy(widgetId);
+</script>`;
+
+  const embedCode = embedMethod === 'iframe' ? iframeCode : jsCode;
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(embedCode);
@@ -54,6 +91,19 @@ export default function EmbedCodeGenerator() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          <Tabs value={embedMethod} onValueChange={(v) => setEmbedMethod(v as EmbedMethod)} className="mb-4">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="iframe">
+                <Icon name="Frame" size={16} className="mr-2" />
+                iframe
+              </TabsTrigger>
+              <TabsTrigger value="js">
+                <Icon name="Code2" size={16} className="mr-2" />
+                JavaScript API
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+
           <div className="space-y-2">
             <Label htmlFor="widget-type">Тип виджета:</Label>
             <Select value={widgetType} onValueChange={(v) => setWidgetType(v as WidgetType)}>
@@ -64,7 +114,7 @@ export default function EmbedCodeGenerator() {
                 <SelectItem value="doctor">
                   <div className="flex items-center gap-2">
                     <Icon name="Calendar" size={16} />
-                    <span>Виджет онлайн-записи</span>
+                    <span>Виджет бронирования</span>
                   </div>
                 </SelectItem>
                 <SelectItem value="calc">
@@ -137,6 +187,25 @@ export default function EmbedCodeGenerator() {
               </Button>
             </div>
           </div>
+
+          {embedMethod === 'js' && (
+            <div className="bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
+              <div className="flex gap-3">
+                <Icon name="Sparkles" size={20} className="text-purple-600 dark:text-purple-400 flex-shrink-0 mt-0.5" />
+                <div className="space-y-2 text-sm">
+                  <p className="font-medium text-purple-900 dark:text-purple-100">
+                    Преимущества JavaScript API:
+                  </p>
+                  <ul className="list-disc list-inside space-y-1 text-purple-800 dark:text-purple-200">
+                    <li>Программное управление виджетами (создание, удаление, изменение размеров)</li>
+                    <li>Получение данных о бронированиях и расчётах в реальном времени</li>
+                    <li>Интеграция с вашей аналитикой и CRM-системой</li>
+                    <li>Гибкая настройка поведения через колбэки</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
             <div className="flex gap-3">

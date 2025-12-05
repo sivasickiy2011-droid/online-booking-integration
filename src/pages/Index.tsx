@@ -29,17 +29,17 @@ export default function Index() {
                 <div className="p-2 bg-primary/10 rounded-lg">
                   <Icon name="Calendar" size={24} className="text-primary" />
                 </div>
-                <CardTitle>Запись на приём</CardTitle>
+                <CardTitle>Бронирование времени</CardTitle>
               </div>
               <CardDescription>
-                Запишитесь на приём к специалисту в удобное время
+                Забронируйте удобное время для встречи или услуги
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Link to="/widget-doctor">
                 <Button className="w-full" size="lg">
                   <Icon name="ArrowRight" size={20} className="mr-2" />
-                  Записаться
+                  Забронировать
                 </Button>
               </Link>
             </CardContent>
