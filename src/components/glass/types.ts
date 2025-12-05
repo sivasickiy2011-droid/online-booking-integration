@@ -8,6 +8,7 @@ export interface GlassComponent {
   price_per_unit: number;
   is_active: boolean;
   packages_count?: number;
+  image_url?: string;
 }
 
 export interface GlassPackage {
@@ -47,6 +48,7 @@ export interface PackageComponent {
 }
 
 export const API_URL = 'https://functions.poehali.dev/ea1cedae-dffe-4589-a9c8-05fcc5e540be';
+export const S3_UPLOAD_URL = 'https://functions.poehali.dev/31619e17-e2ad-4358-a71d-81376f924485';
 
 export const componentTypes = [
   { value: 'profile', label: 'Профиль' },

@@ -134,6 +134,13 @@ export default function ComponentsList({
                       checked={selectedIds.includes(comp.component_id!)}
                       onCheckedChange={() => onToggleSelect(comp.component_id!)}
                     />
+                    {comp.image_url && (
+                      <img
+                        src={comp.image_url}
+                        alt={comp.component_name}
+                        className="w-12 h-12 object-cover rounded border"
+                      />
+                    )}
                     <div className="flex-1 space-y-1">
                       <div className="flex items-center gap-2">
                         <div className="font-medium">{comp.component_name}</div>

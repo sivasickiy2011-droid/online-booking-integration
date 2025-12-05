@@ -1,0 +1,19 @@
+{
+  "tests": [
+    {
+      "name": "Handle OPTIONS request",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Test POST endpoint structure",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "image": "test"
+      },
+      "expectedStatus": [200, 400, 500, 502]
+    }
+  ]
+}

@@ -12,7 +12,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
-import { GlassComponent, componentTypes, units } from './types';
+import { GlassComponent, componentTypes, units, S3_UPLOAD_URL } from './types';
+import { useState, useRef } from 'react';
+import { useToast } from '@/hooks/use-toast';
 
 interface ComponentEditDialogProps {
   open: boolean;
@@ -31,6 +33,60 @@ export default function ComponentEditDialog({
   onSave,
   loading
 }: ComponentEditDialogProps) {
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: 'Ошибка',
+        description: 'Выберите изображение',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        const base64 = event.target?.result as string;
+        const response = await fetch(S3_UPLOAD_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            image: base64,
+            filename: `${Date.now()}-${file.name}`
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setEditingComponent({ ...editingComponent, image_url: data.url });
+          toast({
+            title: 'Успешно',
+            description: 'Изображение загружено'
+          });
+        } else {
+          throw new Error('Upload failed');
+        }
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось загрузить изображение',
+        variant: 'destructive'
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -94,6 +150,58 @@ export default function ComponentEditDialog({
               placeholder="40, 2-е крышки Серебро матовое"
               rows={2}
             />
+          </div>
+
+          <div className="grid gap-2">
+            <Label>Изображение</Label>
+            <div className="flex items-center gap-4">
+              {editingComponent.image_url && (
+                <img
+                  src={editingComponent.image_url}
+                  alt="Компонент"
+                  className="w-20 h-20 object-cover rounded border"
+                />
+              )}
+              <div className="flex flex-col gap-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                >
+                  {uploading ? (
+                    <>
+                      <Icon name="Loader2" size={16} className="mr-2 animate-spin" />
+                      Загрузка...
+                    </>
+                  ) : (
+                    <>
+                      <Icon name="Upload" size={16} className="mr-2" />
+                      {editingComponent.image_url ? 'Изменить' : 'Загрузить'}
+                    </>
+                  )}
+                </Button>
+                {editingComponent.image_url && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setEditingComponent({ ...editingComponent, image_url: undefined })}
+                  >
+                    <Icon name="Trash2" size={16} className="mr-2" />
+                    Удалить
+                  </Button>
+                )}
+              </div>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">

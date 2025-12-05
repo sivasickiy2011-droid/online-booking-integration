@@ -192,12 +192,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     for comp in components:
                         cursor.execute("""
                             INSERT INTO t_p56372141_online_booking_integ.glass_components 
-                            (component_name, component_type, article, characteristics, unit, price_per_unit, is_active)
-                            VALUES (%s, %s, %s, %s, %s, %s, %s)
+                            (component_name, component_type, article, characteristics, unit, price_per_unit, is_active, image_url)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                         """, (
                             comp.get('component_name'), comp.get('component_type'), comp.get('article', ''),
                             comp.get('characteristics', ''), comp.get('unit', 'шт'),
-                            comp.get('price_per_unit', 0), comp.get('is_active', True)
+                            comp.get('price_per_unit', 0), comp.get('is_active', True), comp.get('image_url', '')
                         ))
                         imported += 1
                     conn.commit()
@@ -211,13 +211,13 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     comp = body.get('component', {})
                     cursor.execute("""
                         INSERT INTO t_p56372141_online_booking_integ.glass_components 
-                        (component_name, component_type, article, characteristics, unit, price_per_unit, is_active)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s)
+                        (component_name, component_type, article, characteristics, unit, price_per_unit, is_active, image_url)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                         RETURNING component_id
                     """, (
                         comp.get('component_name'), comp.get('component_type'), comp.get('article'),
                         comp.get('characteristics', ''), comp.get('unit', 'шт'),
-                        comp.get('price_per_unit', 0), comp.get('is_active', True)
+                        comp.get('price_per_unit', 0), comp.get('is_active', True), comp.get('image_url', '')
                     ))
                     result = cursor.fetchone()
                     conn.commit()
@@ -369,12 +369,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 cursor.execute("""
                     UPDATE t_p56372141_online_booking_integ.glass_components 
                     SET component_name=%s, component_type=%s, article=%s, characteristics=%s,
-                        unit=%s, price_per_unit=%s, is_active=%s
+                        unit=%s, price_per_unit=%s, is_active=%s, image_url=%s
                     WHERE component_id=%s
                 """, (
                     comp.get('component_name'), comp.get('component_type'), comp.get('article'),
                     comp.get('characteristics', ''), comp.get('unit', 'шт'),
-                    comp.get('price_per_unit', 0), comp.get('is_active', True), comp.get('component_id')
+                    comp.get('price_per_unit', 0), comp.get('is_active', True), comp.get('image_url', ''), comp.get('component_id')
                 ))
                 conn.commit()
                 return {
