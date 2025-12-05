@@ -1,14 +1,6 @@
-import { useState } from 'react';
-import { Card } from '@/components/ui/card';
-import Icon from '@/components/ui/icon';
+import CalculatorGallery from '@/components/shared/CalculatorGallery';
 
-interface Product {
-  id: string;
-  title: string;
-  image: string;
-}
-
-const products: Product[] = [
+const products = [
   {
     id: 'kitchen',
     title: 'Кухонный гарнитур',
@@ -37,68 +29,11 @@ const products: Product[] = [
 ];
 
 export default function ProductGallery() {
-  const [hoveredId, setHoveredId] = useState<string | null>(null);
-
   return (
-    <div className="w-full bg-gradient-to-br from-slate-50 to-slate-100 border-2 border-slate-200 rounded-xl overflow-hidden shadow-lg">
-      <div className="px-6 pt-6 pb-4 flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-slate-800 mb-2">Наши изделия</h2>
-          <p className="text-slate-600">Выберите категорию изделия для расчета стоимости</p>
-        </div>
-        <div className="flex items-center gap-2 text-slate-500">
-          <Icon name="ChevronLeft" size={20} />
-          <span className="text-sm font-medium">Прокрутите</span>
-          <Icon name="ChevronRight" size={20} />
-        </div>
-      </div>
-      <div className="h-[420px] overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-slate-400 scrollbar-track-slate-200">
-        <div className="flex gap-4 px-6 pb-6 h-full min-w-min">
-          {products.map((product) => (
-            <Card
-              key={product.id}
-              className={`relative flex-shrink-0 w-80 h-full cursor-pointer transition-all duration-300 overflow-hidden group ${
-                hoveredId === product.id ? 'scale-105 shadow-2xl z-10' : 'shadow-lg'
-              }`}
-              onMouseEnter={() => setHoveredId(product.id)}
-              onMouseLeave={() => setHoveredId(null)}
-            >
-              <div className="relative w-full h-full">
-                <img
-                  src={product.image}
-                  alt={product.title}
-                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-                
-                {hoveredId === product.id && (
-                  <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-sm rounded-full p-2 animate-in fade-in duration-300">
-                    <Icon name="Sparkles" size={24} className="text-white" />
-                  </div>
-                )}
-                
-                <div className="absolute bottom-0 left-0 right-0 p-6">
-                  <h3 className="text-white text-xl font-bold drop-shadow-lg mb-2">
-                    {product.title}
-                  </h3>
-                  <div className="h-1 bg-white/30 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full bg-white rounded-full transition-all duration-500 ${
-                        hoveredId === product.id ? 'w-full' : 'w-0'
-                      }`}
-                    />
-                  </div>
-                  {hoveredId === product.id && (
-                    <p className="text-white/90 text-sm mt-3 animate-in slide-in-from-bottom-2 duration-300">
-                      Нажмите для выбора и расчета стоимости
-                    </p>
-                  )}
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
-      </div>
-    </div>
+    <CalculatorGallery
+      title="Калькуляторы изделий"
+      description="Выберите категорию изделия для расчета стоимости"
+      items={products}
+    />
   );
 }

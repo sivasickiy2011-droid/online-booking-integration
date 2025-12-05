@@ -1,102 +1,116 @@
 import { useAppMode } from '@/contexts/AppModeContext';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
 import { Link } from 'react-router-dom';
+import CalculatorGallery from '@/components/shared/CalculatorGallery';
+
+const bookingItems = [
+  {
+    id: 'doctor',
+    title: 'Запись на прием ко врачу',
+    image: 'https://cdn.poehali.dev/projects/2d1552ad-d36b-4459-bfc0-603634635613/files/b0bfbf24-ddc3-426a-ac72-588922d1667f.jpg',
+    link: '/widget-doctor'
+  },
+  {
+    id: 'service',
+    title: 'Запись на услугу',
+    image: 'https://cdn.poehali.dev/projects/2d1552ad-d36b-4459-bfc0-603634635613/files/47a5d737-664f-4572-9ff0-fd3d39f98024.jpg',
+    link: '/widget-doctor'
+  },
+  {
+    id: 'apartment',
+    title: 'Бронирование квартир посуточное',
+    image: 'https://cdn.poehali.dev/projects/2d1552ad-d36b-4459-bfc0-603634635613/files/dbe4f97e-a626-4b6d-89b8-e5b74bbd1abc.jpg',
+    link: '/widget-doctor'
+  },
+  {
+    id: 'warehouse',
+    title: 'Запись на разгрузку Склад',
+    image: 'https://cdn.poehali.dev/projects/2d1552ad-d36b-4459-bfc0-603634635613/files/4567a415-d664-4369-a14e-bdd005a49108.jpg',
+    link: '/widget-doctor'
+  },
+  {
+    id: 'technician',
+    title: 'Выезд мастера',
+    image: 'https://cdn.poehali.dev/projects/2d1552ad-d36b-4459-bfc0-603634635613/files/a7cdd397-7a32-4c76-9591-01991f4b9e98.jpg',
+    link: '/widget-doctor'
+  }
+];
+
+const calculatorItems = [
+  {
+    id: 'kitchen',
+    title: 'Кухонный гарнитур',
+    image: 'https://cdn.poehali.dev/projects/2d1552ad-d36b-4459-bfc0-603634635613/files/ebe3c36f-cc0a-4f7b-b762-a7c820e47bf0.jpg',
+    link: '/widget-calc'
+  },
+  {
+    id: 'countertop',
+    title: 'Столешница для кухни',
+    image: 'https://cdn.poehali.dev/projects/2d1552ad-d36b-4459-bfc0-603634635613/files/6cfe7435-80a2-46a0-b311-0cf9d8c54d68.jpg',
+    link: '/widget-calc'
+  },
+  {
+    id: 'shower',
+    title: 'Душевая кабина из стекла',
+    image: 'https://cdn.poehali.dev/projects/2d1552ad-d36b-4459-bfc0-603634635613/files/30b81fc2-c30e-4ee4-be01-0d812b1d3b9c.jpg',
+    link: '/widget-calc'
+  },
+  {
+    id: 'partition',
+    title: 'Перегородка цельностеклянная',
+    image: 'https://cdn.poehali.dev/projects/2d1552ad-d36b-4459-bfc0-603634635613/files/55b03a15-b2c9-46bf-b9f1-f9cce7139e83.jpg',
+    link: '/widget-calc'
+  },
+  {
+    id: 'office',
+    title: 'Офисная перегородка',
+    image: 'https://cdn.poehali.dev/projects/2d1552ad-d36b-4459-bfc0-603634635613/files/db8b36bc-ecea-47e6-b886-af86540d14c2.jpg',
+    link: '/widget-calc'
+  }
+];
 
 export default function Index() {
   const { mode } = useAppMode();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-accent/5">
-      <div className="container mx-auto px-4 py-12">
+      <div className="mx-[100px] py-12 space-y-8">
         <div className="flex flex-col items-center mb-12">
           <img 
             src="https://cdn.poehali.dev/files/5e53ea79-1c81-4c3f-847b-e8a82a5743c2.png" 
             alt="ООО Молотов траст" 
             className="h-16 object-contain mb-6"
           />
-          <h1 className="text-4xl font-bold text-center mb-4">Виджеты для вашего сайта</h1>
+          <h1 className="text-4xl font-bold text-center mb-4">Отраслевые калькуляторы</h1>
           <p className="text-xl text-muted-foreground text-center max-w-2xl">
-            Готовые инструменты для онлайн-записи и расчёта стоимости услуг
+            Выберите тип калькулятора для вашего бизнеса
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-primary/10 rounded-lg">
-                  <Icon name="Calendar" size={24} className="text-primary" />
-                </div>
-                <CardTitle>Бронирование времени</CardTitle>
-              </div>
-              <CardDescription>
-                Забронируйте удобное время для встречи или услуги
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Link to="/widget-doctor">
-                <Button className="w-full" size="lg">
-                  <Icon name="ArrowRight" size={20} className="mr-2" />
-                  Забронировать
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
+        <CalculatorGallery
+          title="Бронирование по времени"
+          description="Выберите отраслевое решение для записи и бронирования"
+          items={bookingItems}
+        />
 
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-accent/10 rounded-lg">
-                  <Icon name="Calculator" size={24} className="text-accent" />
-                </div>
-                <CardTitle>Калькулятор стоимости</CardTitle>
-              </div>
-              <CardDescription>
-                {mode === 'glass' && 'Рассчитайте стоимость стеклянных изделий'}
-                {mode === 'countertop' && 'Рассчитайте стоимость столешниц'}
-                {mode === 'clinic' && 'Калькулятор готовых изделий'}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Link to="/widget-calc">
-                <Button className="w-full" size="lg" variant="outline">
-                  <Icon name="Calculator" size={20} className="mr-2" />
-                  Открыть калькулятор
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-lg transition-shadow border-2 border-primary/20">
-            <CardHeader>
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-green-100 dark:bg-green-950 rounded-lg">
-                  <Icon name="Code" size={24} className="text-green-600 dark:text-green-400" />
-                </div>
-                <CardTitle>Код встраивания</CardTitle>
-              </div>
-              <CardDescription>
-                Получите код для размещения виджетов на вашем сайте
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Link to="/embed">
-                <Button className="w-full" size="lg" variant="default">
-                  <Icon name="Code" size={20} className="mr-2" />
-                  Получить код
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-        </div>
+        <CalculatorGallery
+          title="Калькуляторы изделий"
+          description="Выберите категорию изделия для расчета стоимости"
+          items={calculatorItems}
+        />
 
         <div className="mt-12 flex items-center justify-center gap-4">
           <Link to="/profile">
             <Button variant="ghost" size="sm">
               <Icon name="User" size={16} className="mr-2" />
               Личный кабинет
+            </Button>
+          </Link>
+          <Link to="/embed">
+            <Button variant="outline" size="sm">
+              <Icon name="Code" size={16} className="mr-2" />
+              Код встраивания
             </Button>
           </Link>
         </div>
