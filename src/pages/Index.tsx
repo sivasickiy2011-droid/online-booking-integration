@@ -11,31 +11,32 @@ const bookingItems = [
     id: 'doctor',
     title: 'Запись на прием ко врачу',
     image: 'https://cdn.poehali.dev/projects/2d1552ad-d36b-4459-bfc0-603634635613/files/b0bfbf24-ddc3-426a-ac72-588922d1667f.jpg',
-    link: '/widget-doctor'
+    link: '/widget-doctor',
+    disabled: false
   },
   {
     id: 'service',
     title: 'Запись на услугу',
     image: 'https://cdn.poehali.dev/projects/2d1552ad-d36b-4459-bfc0-603634635613/files/47a5d737-664f-4572-9ff0-fd3d39f98024.jpg',
-    link: '/widget-doctor'
+    disabled: true
   },
   {
     id: 'apartment',
     title: 'Бронирование квартир посуточное',
     image: 'https://cdn.poehali.dev/projects/2d1552ad-d36b-4459-bfc0-603634635613/files/dbe4f97e-a626-4b6d-89b8-e5b74bbd1abc.jpg',
-    link: '/widget-doctor'
+    disabled: true
   },
   {
     id: 'warehouse',
     title: 'Запись на разгрузку Склад',
     image: 'https://cdn.poehali.dev/projects/2d1552ad-d36b-4459-bfc0-603634635613/files/4567a415-d664-4369-a14e-bdd005a49108.jpg',
-    link: '/widget-doctor'
+    disabled: true
   },
   {
     id: 'technician',
     title: 'Выезд мастера',
     image: 'https://cdn.poehali.dev/projects/2d1552ad-d36b-4459-bfc0-603634635613/files/a7cdd397-7a32-4c76-9591-01991f4b9e98.jpg',
-    link: '/widget-doctor'
+    disabled: true
   }
 ];
 
@@ -44,31 +45,32 @@ const calculatorItems = [
     id: 'kitchen',
     title: 'Кухонный гарнитур',
     image: 'https://cdn.poehali.dev/projects/2d1552ad-d36b-4459-bfc0-603634635613/files/ebe3c36f-cc0a-4f7b-b762-a7c820e47bf0.jpg',
-    link: '/widget-calc'
+    disabled: true
   },
   {
     id: 'countertop',
     title: 'Столешница для кухни',
     image: 'https://cdn.poehali.dev/projects/2d1552ad-d36b-4459-bfc0-603634635613/files/6cfe7435-80a2-46a0-b311-0cf9d8c54d68.jpg',
-    link: '/widget-calc'
+    disabled: true
   },
   {
     id: 'shower',
     title: 'Душевая кабина из стекла',
     image: 'https://cdn.poehali.dev/projects/2d1552ad-d36b-4459-bfc0-603634635613/files/30b81fc2-c30e-4ee4-be01-0d812b1d3b9c.jpg',
-    link: '/widget-calc'
+    link: '/widget-calc',
+    disabled: false
   },
   {
     id: 'partition',
     title: 'Перегородка цельностеклянная',
     image: 'https://cdn.poehali.dev/projects/2d1552ad-d36b-4459-bfc0-603634635613/files/55b03a15-b2c9-46bf-b9f1-f9cce7139e83.jpg',
-    link: '/widget-calc'
+    disabled: true
   },
   {
     id: 'office',
     title: 'Офисная перегородка',
     image: 'https://cdn.poehali.dev/projects/2d1552ad-d36b-4459-bfc0-603634635613/files/db8b36bc-ecea-47e6-b886-af86540d14c2.jpg',
-    link: '/widget-calc'
+    disabled: true
   }
 ];
 

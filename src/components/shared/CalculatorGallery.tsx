@@ -7,6 +7,7 @@ interface GalleryItem {
   title: string;
   image: string;
   link?: string;
+  disabled?: boolean;
 }
 
 interface CalculatorGalleryProps {
@@ -25,6 +26,8 @@ export default function CalculatorGallery({
   const [hoveredId, setHoveredId] = useState<string | null>(null);
 
   const handleClick = (item: GalleryItem) => {
+    if (item.disabled) return;
+    
     if (onItemClick) {
       onItemClick(item.id);
     } else if (item.link) {
@@ -50,10 +53,12 @@ export default function CalculatorGallery({
           {items.map((item) => (
             <Card
               key={item.id}
-              className={`relative flex-shrink-0 w-80 h-full cursor-pointer transition-all duration-300 overflow-hidden group ${
-                hoveredId === item.id ? 'scale-105 shadow-2xl z-10' : 'shadow-lg'
+              className={`relative flex-shrink-0 w-80 h-full transition-all duration-300 overflow-hidden group ${
+                item.disabled 
+                  ? 'opacity-60 cursor-not-allowed' 
+                  : `cursor-pointer ${hoveredId === item.id ? 'scale-105 shadow-2xl z-10' : 'shadow-lg'}`
               }`}
-              onMouseEnter={() => setHoveredId(item.id)}
+              onMouseEnter={() => !item.disabled && setHoveredId(item.id)}
               onMouseLeave={() => setHoveredId(null)}
               onClick={() => handleClick(item)}
             >
@@ -61,11 +66,21 @@ export default function CalculatorGallery({
                 <img
                   src={item.image}
                   alt={item.title}
-                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                  className={`w-full h-full object-cover transition-transform duration-300 ${
+                    item.disabled ? 'grayscale' : 'group-hover:scale-110'
+                  }`}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                <div className={`absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent ${
+                  item.disabled ? 'bg-black/50' : ''
+                }`} />
                 
-                {hoveredId === item.id && (
+                {item.disabled && (
+                  <div className="absolute top-4 right-4 bg-orange-500/90 backdrop-blur-sm rounded-full px-4 py-2">
+                    <span className="text-white text-sm font-semibold">В разработке</span>
+                  </div>
+                )}
+                
+                {hoveredId === item.id && !item.disabled && (
                   <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-sm rounded-full p-2 animate-in fade-in duration-300">
                     <Icon name="Sparkles" size={24} className="text-white" />
                   </div>
@@ -78,13 +93,18 @@ export default function CalculatorGallery({
                   <div className="h-1 bg-white/30 rounded-full overflow-hidden">
                     <div
                       className={`h-full bg-white rounded-full transition-all duration-500 ${
-                        hoveredId === item.id ? 'w-full' : 'w-0'
+                        hoveredId === item.id && !item.disabled ? 'w-full' : 'w-0'
                       }`}
                     />
                   </div>
-                  {hoveredId === item.id && (
+                  {hoveredId === item.id && !item.disabled && (
                     <p className="text-white/90 text-sm mt-3 animate-in slide-in-from-bottom-2 duration-300">
                       Нажмите для выбора
+                    </p>
+                  )}
+                  {item.disabled && (
+                    <p className="text-white/70 text-sm mt-3">
+                      Скоро будет доступно
                     </p>
                   )}
                 </div>
