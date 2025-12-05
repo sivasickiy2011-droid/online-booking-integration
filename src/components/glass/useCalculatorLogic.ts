@@ -171,8 +171,8 @@ export function useCalculatorLogic() {
     
     const partitionArea = (pw * ph) / 1000000;
     const doorArea = pkg.has_door && dw > 0 && dh > 0 ? (dw * dh) / 1000000 : 0;
-    const totalArea = partitionArea - doorArea;
-    const squareMeters = Math.max(totalArea, 0);
+    // Дверь тоже из стекла, не вычитаем её из площади
+    const squareMeters = partitionArea;
     
     let componentsTotal = 0;
     let servicesTotal = 0;

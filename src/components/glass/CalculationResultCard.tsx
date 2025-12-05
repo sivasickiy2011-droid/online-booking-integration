@@ -49,19 +49,19 @@ export default function CalculationResultCard({
           {calculation.partition_area && calculation.partition_area > 0 && (
             <>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Площадь перегородки:</span>
+                <span className="text-muted-foreground">Площадь изделия:</span>
                 <span className="font-medium">{calculation.partition_area.toFixed(2)} м²</span>
               </div>
               {calculation.door_area && calculation.door_area > 0 && (
-                <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">Минус дверь:</span>
-                  <span className="font-medium">-{calculation.door_area.toFixed(2)} м²</span>
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span className="pl-4">↳ в т.ч. дверь:</span>
+                  <span>{calculation.door_area.toFixed(2)} м²</span>
                 </div>
               )}
             </>
           )}
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Площадь для расчёта:</span>
+            <span className="text-muted-foreground">Площадь стекла для расчёта:</span>
             <span className="font-bold text-lg">{calculation.square_meters.toFixed(2)} м²</span>
           </div>
           <Separator />
