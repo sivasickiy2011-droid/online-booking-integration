@@ -56,7 +56,7 @@ export default function Index() {
               <CardDescription>
                 {mode === 'glass' && 'Рассчитайте стоимость стеклянных изделий'}
                 {mode === 'countertop' && 'Рассчитайте стоимость столешниц'}
-                {mode === 'clinic' && 'Калькулятор услуг'}
+                {mode === 'clinic' && 'Калькулятор готовых изделий'}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -97,12 +97,6 @@ export default function Index() {
             <Button variant="ghost" size="sm">
               <Icon name="User" size={16} className="mr-2" />
               Личный кабинет
-            </Button>
-          </Link>
-          <Link to="/admin">
-            <Button variant="ghost" size="sm">
-              <Icon name="Shield" size={16} className="mr-2" />
-              Панель администратора
             </Button>
           </Link>
         </div>
