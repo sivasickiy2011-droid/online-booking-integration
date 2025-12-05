@@ -184,25 +184,49 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 }
             
             elif action == 'glass_component':
-                comp = body.get('component', {})
-                cursor.execute("""
-                    INSERT INTO t_p56372141_online_booking_integ.glass_components 
-                    (component_name, component_type, article, characteristics, unit, price_per_unit, is_active)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s)
-                    RETURNING component_id
-                """, (
-                    comp.get('component_name'), comp.get('component_type'), comp.get('article'),
-                    comp.get('characteristics', ''), comp.get('unit', 'шт'),
-                    comp.get('price_per_unit', 0), comp.get('is_active', True)
-                ))
-                result = cursor.fetchone()
-                conn.commit()
-                return {
-                    'statusCode': 200,
-                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                    'isBase64Encoded': False,
-                    'body': json.dumps({'component_id': result['component_id']})
-                }
+                action_type = body.get('action_type', 'create')
+                
+                if action_type == 'import':
+                    components = body.get('components', [])
+                    imported = 0
+                    for comp in components:
+                        cursor.execute("""
+                            INSERT INTO t_p56372141_online_booking_integ.glass_components 
+                            (component_name, component_type, article, characteristics, unit, price_per_unit, is_active)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s)
+                        """, (
+                            comp.get('component_name'), comp.get('component_type'), comp.get('article', ''),
+                            comp.get('characteristics', ''), comp.get('unit', 'шт'),
+                            comp.get('price_per_unit', 0), comp.get('is_active', True)
+                        ))
+                        imported += 1
+                    conn.commit()
+                    return {
+                        'statusCode': 200,
+                        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                        'isBase64Encoded': False,
+                        'body': json.dumps({'imported': imported})
+                    }
+                else:
+                    comp = body.get('component', {})
+                    cursor.execute("""
+                        INSERT INTO t_p56372141_online_booking_integ.glass_components 
+                        (component_name, component_type, article, characteristics, unit, price_per_unit, is_active)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s)
+                        RETURNING component_id
+                    """, (
+                        comp.get('component_name'), comp.get('component_type'), comp.get('article'),
+                        comp.get('characteristics', ''), comp.get('unit', 'шт'),
+                        comp.get('price_per_unit', 0), comp.get('is_active', True)
+                    ))
+                    result = cursor.fetchone()
+                    conn.commit()
+                    return {
+                        'statusCode': 200,
+                        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                        'isBase64Encoded': False,
+                        'body': json.dumps({'component_id': result['component_id']})
+                    }
             
             elif action == 'package_component':
                 package_id = body.get('package_id')

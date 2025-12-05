@@ -86,7 +86,7 @@ export default function GlassComponentManager() {
       const response = await fetch(API_URL, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'glass_components', ...body })
+        body: JSON.stringify({ action: 'glass_component', ...body })
       });
 
       if (response.ok) {
@@ -184,7 +184,7 @@ export default function GlassComponentManager() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          action: 'glass_components',
+          action: 'glass_component',
           action_type: 'import',
           components: componentsToImport
         })
