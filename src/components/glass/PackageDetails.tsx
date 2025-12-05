@@ -1,5 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
+import MiniDoorPreview from './MiniDoorPreview';
 import { GlassPackage, GlassComponent } from './GlassCalculatorTypes';
 
 interface PackageDetailsProps {
@@ -8,6 +9,13 @@ interface PackageDetailsProps {
   expandedComponents: Record<number, boolean>;
   onAlternativeSelect: (mainComponentId: number, alternativeId: number) => void;
   onToggleExpand: (componentId: number) => void;
+  hasDoor?: boolean;
+  doorPosition?: 'left' | 'center' | 'right';
+  doorPanels?: 1 | 2;
+  doorHeight?: string;
+  partitionHeight?: string;
+  unit?: 'mm' | 'cm';
+  convertToMm?: (value: string, currentUnit: string) => string;
 }
 
 export default function PackageDetails({
@@ -15,19 +23,28 @@ export default function PackageDetails({
   selectedAlternatives,
   expandedComponents,
   onAlternativeSelect,
-  onToggleExpand
+  onToggleExpand,
+  hasDoor,
+  doorPosition = 'center',
+  doorPanels = 1,
+  doorHeight,
+  partitionHeight,
+  unit = 'mm',
+  convertToMm = (v) => v
 }: PackageDetailsProps) {
+  const doorHeightPercent = hasDoor && doorHeight && partitionHeight 
+    ? (parseFloat(convertToMm(doorHeight, unit)) / parseFloat(convertToMm(partitionHeight, unit)) * 100) 
+    : 85;
+
   return (
     <Card className="bg-muted/50">
       <CardContent className="pt-4 space-y-3 text-sm">
-        {/* Картинка шаблона */}
-        {selectedPackage.sketch_svg && (
-          <div className="mb-4 p-4 bg-white rounded-lg border-2 border-primary/20">
-            <div 
-              dangerouslySetInnerHTML={{ __html: selectedPackage.sketch_svg }}
-              className="w-full [&>svg]:w-full [&>svg]:h-auto"
-            />
-          </div>
+        {hasDoor && (
+          <MiniDoorPreview
+            doorPosition={doorPosition}
+            doorPanels={doorPanels}
+            doorHeightPercent={doorHeightPercent}
+          />
         )}
         
         <div className="flex justify-between">

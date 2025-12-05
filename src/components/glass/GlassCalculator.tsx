@@ -99,6 +99,13 @@ export default function GlassCalculator() {
                     expandedComponents={expandedComponents}
                     onAlternativeSelect={handleAlternativeSelect}
                     onToggleExpand={toggleComponentExpand}
+                    hasDoor={selectedPackage.has_door || false}
+                    doorPosition={doorPosition}
+                    doorPanels={doorPanels}
+                    doorHeight={doorHeight}
+                    partitionHeight={partitionHeight}
+                    unit={unit}
+                    convertToMm={convertToMm}
                   />
                 </div>
 
