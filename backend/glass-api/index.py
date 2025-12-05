@@ -188,8 +188,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 
                 if action_type == 'import':
                     components = body.get('components', [])
+                    import_mode = body.get('import_mode', 'skip')
                     imported = 0
                     skipped = 0
+                    updated = 0
+                    
                     for comp in components:
                         article = comp.get('article', '')
                         name = comp.get('component_name', '')
@@ -208,8 +211,23 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         existing = cursor.fetchone()
                         
                         if existing:
-                            skipped += 1
-                            continue
+                            if import_mode == 'skip':
+                                skipped += 1
+                                continue
+                            else:
+                                cursor.execute("""
+                                    UPDATE t_p56372141_online_booking_integ.glass_components 
+                                    SET component_type = %s, article = %s, characteristics = %s, 
+                                        unit = %s, price_per_unit = %s, is_active = %s, image_url = %s
+                                    WHERE component_id = %s
+                                """, (
+                                    comp.get('component_type'), article, comp.get('characteristics', ''),
+                                    comp.get('unit', 'шт'), comp.get('price_per_unit', 0), 
+                                    comp.get('is_active', True), comp.get('image_url', ''),
+                                    existing[0]
+                                ))
+                                updated += 1
+                                continue
                         
                         cursor.execute("""
                             INSERT INTO t_p56372141_online_booking_integ.glass_components 
@@ -226,7 +244,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         'statusCode': 200,
                         'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                         'isBase64Encoded': False,
-                        'body': json.dumps({'imported': imported, 'skipped': skipped})
+                        'body': json.dumps({'imported': imported, 'skipped': skipped, 'updated': updated})
                     }
                 else:
                     comp = body.get('component', {})

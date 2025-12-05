@@ -7,6 +7,16 @@ import { GlassComponent, API_URL } from './types';
 import ComponentEditDialog from './ComponentEditDialog';
 import ComponentDeleteDialog from './ComponentDeleteDialog';
 import ComponentsList from './ComponentsList';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export default function GlassComponentManager() {
   const [components, setComponents] = useState<GlassComponent[]>([]);
@@ -24,6 +34,9 @@ export default function GlassComponentManager() {
     price_per_unit: 0,
     is_active: true
   });
+  const [importMode, setImportMode] = useState<'skip' | 'update'>('skip');
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const [pendingImportData, setPendingImportData] = useState<GlassComponent[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -147,6 +160,12 @@ export default function GlassComponentManager() {
   };
 
   const handleImportClick = () => {
+    setShowImportDialog(true);
+  };
+
+  const handleImportModeSelect = (mode: 'skip' | 'update') => {
+    setImportMode(mode);
+    setShowImportDialog(false);
     fileInputRef.current?.click();
   };
 
@@ -186,15 +205,23 @@ export default function GlassComponentManager() {
         body: JSON.stringify({
           action: 'glass_component',
           action_type: 'import',
-          components: componentsToImport
+          components: componentsToImport,
+          import_mode: importMode
         })
       });
 
       if (response.ok) {
         const result = await response.json();
-        const message = result.skipped > 0 
-          ? `Импортировано: ${result.imported}, пропущено дублей: ${result.skipped}`
-          : `Импортировано компонентов: ${result.imported}`;
+        let message = '';
+        if (importMode === 'skip') {
+          message = result.skipped > 0 
+            ? `Импортировано: ${result.imported}, пропущено дублей: ${result.skipped}`
+            : `Импортировано компонентов: ${result.imported}`;
+        } else {
+          message = result.updated > 0
+            ? `Импортировано: ${result.imported}, обновлено: ${result.updated}`
+            : `Импортировано компонентов: ${result.imported}`;
+        }
         toast({
           title: 'Импорт завершён',
           description: message
@@ -374,6 +401,52 @@ export default function GlassComponentManager() {
         loading={loading}
         count={componentToDelete ? 1 : selectedIds.length}
       />
+
+      <AlertDialog open={showImportDialog} onOpenChange={setShowImportDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Выберите режим импорта</AlertDialogTitle>
+            <AlertDialogDescription>
+              Что делать при обнаружении дублей (совпадение по артикулу+название или название+тип)?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-3 py-4">
+            <Button
+              variant="outline"
+              className="w-full justify-start text-left h-auto py-4"
+              onClick={() => handleImportModeSelect('skip')}
+            >
+              <div>
+                <div className="font-semibold mb-1 flex items-center gap-2">
+                  <Icon name="AlertCircle" size={18} />
+                  Игнорировать дубли
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Существующие позиции останутся без изменений, новые будут добавлены
+                </div>
+              </div>
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full justify-start text-left h-auto py-4"
+              onClick={() => handleImportModeSelect('update')}
+            >
+              <div>
+                <div className="font-semibold mb-1 flex items-center gap-2">
+                  <Icon name="RefreshCw" size={18} />
+                  Обновить существующие
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Данные существующих позиций будут обновлены из файла
+                </div>
+              </div>
+            </Button>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Отмена</AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
