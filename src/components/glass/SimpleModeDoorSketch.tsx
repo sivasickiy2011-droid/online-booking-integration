@@ -23,9 +23,10 @@ export default function SimpleModeDoorSketch({
 }: SimpleModeDoorSketchProps) {
   const viewBox = useMemo(() => {
     const margin = 100;
+    const marginBottom = 200; // Увеличиваем нижний отступ для размера ширины
     const width = Math.max(partitionWidth, 100);
     const height = Math.max(partitionHeight, 100);
-    return `${-margin} ${-margin} ${width + margin * 2} ${height + margin * 2}`;
+    return `${-margin} ${-margin} ${width + margin * 2} ${height + margin + marginBottom}`;
   }, [partitionWidth, partitionHeight]);
 
   const doorX = useMemo(() => {
